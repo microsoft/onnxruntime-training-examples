@@ -5,13 +5,23 @@ import onnx
 from onnxruntime.capi.ort_trainer import ORTTrainer, IODescription, ModelDescription
 from onnxruntime.capi.ort_trainer import LossScaler
 import torch
+from azureml_adapter import set_environment_variables_for_nccl_backend, get_local_rank, get_local_size, get_global_size, get_world_size, get_world_rank 
 
 def setup_onnxruntime_with_mpi(args):
     from mpi4py import MPI
     comm = MPI.COMM_WORLD
-    args.local_rank = comm.Get_rank() % torch.cuda.device_count()
-    args.world_rank = comm.Get_rank()
-    args.world_size=comm.Get_size()
+
+    has_aml = 'AZ_BATCH_MASTER_NODE' in os.environ.keys() or 'AZ_BATCHAPI_MPI_MASTER_NODE' in os.environ.keys()
+    if not has_aml:
+        args.local_rank = comm.Get_rank() % torch.cuda.device_count()
+        args.world_rank = comm.Get_rank()
+        args.world_size=comm.Get_size()
+    else:
+        set_environment_variables_for_nccl_backend(get_local_size() == get_global_size(), IB = args.use_ib)
+        args.local_rank = get_local_rank()
+        args.world_rank = get_world_rank()
+        args.world_size = get_global_size()
+
     torch.cuda.set_device(args.local_rank)
     device = torch.device("cuda", args.local_rank)
     args.n_gpu = 1
@@ -26,31 +36,36 @@ def setup_onnxruntime_with_mpi(args):
 
 def bert_model_description(args):
     vocab_size = 30528
+
+    # allow variable input sizes:
     # input_ids_desc = IODescription('input_ids', ['batch', 'max_seq_len_in_batch'], torch.int64, num_classes = vocab_size)
     # segment_ids_desc = IODescription('segment_ids', ['batch', 'max_seq_len_in_batch'], torch.int64, num_classes = 2)
     # input_mask_desc = IODescription('input_mask', ['batch', 'max_seq_len_in_batch'], torch.int64, num_classes = 2)
     # masked_lm_labels_desc = IODescription('masked_lm_labels', ['batch', 'max_seq_len_in_batch'], torch.int64, num_classes = vocab_size)
     # next_sentence_labels_desc = IODescription('next_sentence_labels', ['batch',], torch.int64, num_classes = 2)
+
+    # set concrete input sizes to permit optimization
     micro_batch = args.train_batch_size // args.gradient_accumulation_steps
     input_ids_desc = IODescription('input_ids', [args.train_batch_size, args.max_seq_length], torch.int64, num_classes = vocab_size)
     segment_ids_desc = IODescription('segment_ids', [args.train_batch_size, args.max_seq_length], torch.int64, num_classes = 2)
     input_mask_desc = IODescription('input_mask', [args.train_batch_size, args.max_seq_length], torch.int64, num_classes = 2)
     masked_lm_labels_desc = IODescription('masked_lm_labels', [args.train_batch_size, args.max_seq_length], torch.int64, num_classes = vocab_size)
     next_sentence_labels_desc = IODescription('next_sentence_labels', [args.train_batch_size,2], torch.int64, num_classes = 2)
+
     loss_desc = IODescription('loss', [], torch.float32)
     return ModelDescription([input_ids_desc, segment_ids_desc, input_mask_desc, masked_lm_labels_desc, next_sentence_labels_desc], [loss_desc])
 
-# opset 12
+# for opset 12
 # from ort_supplement.onnx_transforms.model_transform import add_name, fix_transpose, add_expand_shape, process_concat, process_dropout #, handle_expand_input_is_not_constant_case, fix_dim, fix_expand
 
-# opset 10
+# for opset 10
 from ort_supplement.onnx_transforms.model_transform import add_name, fix_transpose, add_expand_shape, process_concat, process_dropout, handle_expand_input_is_not_constant_case, fix_dim, fix_expand
 
 from ort_supplement.onnx_transforms.layer_norm_transform import layer_norm_transform
 
 def postprocess_model(model):
     add_name(model)
-    # opset 10:
+    # for opset 10 ..
     handle_expand_input_is_not_constant_case(model)
     fix_expand(model)
     fix_dim(model)
