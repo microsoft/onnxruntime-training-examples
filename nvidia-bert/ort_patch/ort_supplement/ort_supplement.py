@@ -47,17 +47,12 @@ from ort_supplement.onnx_transforms.layer_norm_transform import layer_norm_trans
 
 def postprocess_model(model):
     add_name(model)
-
-    # not in TJ branch process_concat(model)
-
     # opset 10:
     handle_expand_input_is_not_constant_case(model)
     fix_expand(model)
     fix_dim(model)
     process_dropout(model)
     # --- 
-
-    # not in TJ branch fix_transpose(model)
     add_expand_shape(model)
     layer_norm_transform(model)
 
@@ -93,6 +88,9 @@ def create_ort_trainer(args, device, model):
         partition_optimizer=True,
         _opset_version = 10)
 
+    if args.fp16:
+        setattr(args, 'ort_loss_scale', LossScaler(model.loss_scale_input_name, True, up_scale_window=2000))
+
     return model
 
 from ort_supplement.lr_schedules import SCHEDULES
@@ -106,13 +104,10 @@ def get_lr(args, training_steps, schedule='warmup_poly'):
 def run_ort_training_step(args, global_step, training_steps, model, batch):
     input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels = batch
 
-    if args.fp16:
-        loss_scaler = LossScaler(model.loss_scale_input_name, True, up_scale_window=2000)
-
     lr = get_lr(args, global_step, args.schedule)
     learning_rate = torch.tensor([lr])
     if args.fp16:
-        loss_scale = torch.tensor([loss_scaler.loss_scale_])
+        loss_scale = torch.tensor([args.ort_loss_scale.loss_scale_])
         loss = model.train_step(input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels, learning_rate, loss_scale)
         all_finite = 1
         if isinstance(loss, (list, tuple)):
@@ -122,7 +117,7 @@ def run_ort_training_step(args, global_step, training_steps, model, batch):
         loss = model(input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels, learning_rate)
     if training_steps % args.gradient_accumulation_steps == 0:
         if args.fp16:
-            loss_scaler.update_loss_scale(all_finite.item())
+            args.ort_loss_scale.update_loss_scale(all_finite.item())
         global_step += 1
 
     return loss, global_step
