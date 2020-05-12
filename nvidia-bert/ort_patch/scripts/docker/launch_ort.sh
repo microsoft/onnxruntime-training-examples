@@ -14,4 +14,5 @@ docker run -it --rm \
   -v <replace-with-path-to-phase2-hdf5-training-data>:/data/512 \
   -v $PWD:/workspace/bert \
   -v $PWD/results:/results \
-  bert $CMD
+  --workdir=/workspace/bert \
+  bert-onnxruntime $CMD

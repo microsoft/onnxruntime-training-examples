@@ -1,11 +1,12 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
+import os
 import onnx
 from onnxruntime.capi.ort_trainer import ORTTrainer, IODescription, ModelDescription
 from onnxruntime.capi.ort_trainer import LossScaler
 import torch
-from azureml_adapter import set_environment_variables_for_nccl_backend, get_local_rank, get_local_size, get_global_size, get_world_size, get_world_rank 
+from ort_supplement.azureml_adapter import set_environment_variables_for_nccl_backend, get_local_rank, get_local_size, get_global_size, get_world_size, get_world_rank 
 
 def setup_onnxruntime_with_mpi(args):
     from mpi4py import MPI
@@ -13,10 +14,12 @@ def setup_onnxruntime_with_mpi(args):
 
     has_aml = 'AZ_BATCH_MASTER_NODE' in os.environ.keys() or 'AZ_BATCHAPI_MPI_MASTER_NODE' in os.environ.keys()
     if not has_aml:
+        print('Detected local run')
         args.local_rank = comm.Get_rank() % torch.cuda.device_count()
         args.world_rank = comm.Get_rank()
-        args.world_size=comm.Get_size()
+        args.world_size = comm.Get_size()
     else:
+        print('Detected Azure batch run')
         set_environment_variables_for_nccl_backend(get_local_size() == get_global_size(), IB = args.use_ib)
         args.local_rank = get_local_rank()
         args.world_rank = get_world_rank()

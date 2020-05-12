@@ -36,6 +36,7 @@ train_batch_size_phase2=${17:-4096}
 learning_rate_phase2=${18:-"4e-3"}
 warmup_proportion_phase2=${19:-"0.128"}
 train_steps_phase2=${20:-1563}
+gradient_accumulation_steps_phase2=${11:-256} 
 # train_steps_phase2=${20:-5}
 PATH_TO_PHASE1_TRAINING_DATA=/data/128
 DATA_DIR_PHASE1=${22:-$PATH_TO_PHASE1_TRAINING_DATA}
