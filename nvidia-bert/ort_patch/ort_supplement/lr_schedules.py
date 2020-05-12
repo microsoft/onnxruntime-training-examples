@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License.
+
 def warmup_cosine(x, warmup=0.002):
     if x < warmup:
         return x/warmup
