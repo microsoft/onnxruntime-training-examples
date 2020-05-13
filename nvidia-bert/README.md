@@ -31,6 +31,7 @@ For Azure run,
     az login
     az extension add -n azure-cli-ml
     pip install --upgrade azureml-sdk
+    pip install azureml-sdk[notebooks]
 
     4. Create Azure machine learning workspace.
     Consult https://docs.microsoft.com/en-us/python/api/overview/azure/ml/?view=azure-ml-py
