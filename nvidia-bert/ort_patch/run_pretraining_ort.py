@@ -281,6 +281,10 @@ def parse_arguments():
                         default=False,
                         action='store_true',
                         help="Whether to run with ort in fully optimized mode (run optimization in ort as opposed in pytorch).")
+    parser.add_argument('--use_ib',
+                        default=False,
+                        action='store_true',
+                        help="Whether to use infiniband on Azure ML submission.")
     parser.add_argument('--schedule',
                         default='warmup_poly',
                         type=str)
