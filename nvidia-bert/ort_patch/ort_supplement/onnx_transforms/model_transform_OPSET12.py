@@ -94,3 +94,4 @@ def add_expand_shape(model):
     expand_out = model.graph.value_info.add()
     expand_out.name = expand_node[0].output[0] # base: '421' # tiny: '85'
     expand_out.type.CopyFrom(model.graph.input[0].type)
+    

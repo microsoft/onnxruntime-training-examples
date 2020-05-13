@@ -57,3 +57,4 @@ For Azure run,
     az storage blob upload-batch --account-name <storage-name>  -d <container-name>  -s <path-to-training-data>
 
     7. Follow further instructions in azureml-notebooks/azure-pretraining.ipynb.
+    
