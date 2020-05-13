@@ -18,16 +18,30 @@ def setup_onnxruntime_with_mpi(args):
         args.local_rank = comm.Get_rank() % torch.cuda.device_count()
         args.world_rank = comm.Get_rank()
         args.world_size = comm.Get_size()
+
+        torch.cuda.set_device(args.local_rank)
+        device = torch.device("cuda", args.local_rank)
+        args.n_gpu = 1
+
     else:
         print('Detected Azure batch run')
         set_environment_variables_for_nccl_backend(get_local_size() == get_global_size(), IB = args.use_ib)
         args.local_rank = get_local_rank()
+        args.local_size = get_local_size()
         args.world_rank = get_world_rank()
         args.world_size = get_global_size()
 
-    torch.cuda.set_device(args.local_rank)
-    device = torch.device("cuda", args.local_rank)
-    args.n_gpu = 1
+        print('Local rank: {}'.format(args.local_rank))
+        print('Local size: {}'.format(args.local_size))
+        print('World rank: {}'.format(args.world_rank))
+        print('World size: {}'.format(args.world_size))
+        print('CUDA device: {}'.format(args.local_rank))
+
+        torch.cuda.set_device(args.local_rank)
+        device = torch.device("cuda", args.local_rank)
+        args.n_gpu = 1
+
+        torch.distributed.init_process_group(backend='nccl')
 
     from onnxruntime.capi._pybind_state import set_cuda_device_id 
     set_cuda_device_id(args.local_rank)
