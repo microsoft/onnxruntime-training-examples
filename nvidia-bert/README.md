@@ -44,6 +44,7 @@ For Azure run,
 
     az acr create --name <acr-name> --resource-group <resource-group-name> --sku <sku-type>
     az acr login --name <acr-name>
+    docker tag bert-onnxruntime <acr-name>.azurecr.io/bert-onnxruntime
     docker push <acr-name>.azurecr.io/bert-onnxruntime
 
     6. Create storage and upload training data.
@@ -54,4 +55,4 @@ For Azure run,
     az storage container create --account-name <storage-name> --name <container-name>
     az storage blob upload-batch --account-name <storage-name>  -d <container-name>  -s <path-to-training-data>
 
-    7. Follow further instructions in workspace/aml-notebooks/azure-pretraining.ipynb.
+    7. Follow further instructions in azureml-notebooks/azure-pretraining.ipynb.
