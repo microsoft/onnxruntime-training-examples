@@ -12,7 +12,7 @@ def setup_onnxruntime_with_mpi(args):
     from mpi4py import MPI
     comm = MPI.COMM_WORLD
 
-    has_aml = 'AZ_BATCH_MASTER_NODE' in os.environ.keys() or 'AZ_BATCHAPI_MPI_MASTER_NODE' in os.environ.keys()
+    has_aml = 'AZ_BATCH_MASTER_NODE' in os.environ.keys() or 'AZ_BATCHAI_MPI_MASTER_NODE' in os.environ.keys()
     if not has_aml:
         print('Detected local run')
         args.local_rank = comm.Get_rank() % torch.cuda.device_count()
