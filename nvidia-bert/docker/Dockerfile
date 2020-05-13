@@ -52,5 +52,3 @@ RUN pip install --no-cache-dir \
 RUN apt-get install -y iputils-ping
 RUN ldconfig
 
-# pull in workspace
-COPY . .
