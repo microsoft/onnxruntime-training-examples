@@ -80,7 +80,7 @@ def postprocess_model(model):
 def create_ort_trainer(args, device, model):
     # set GPU memory limitation
     from onnxruntime.capi._pybind_state import set_cuda_mem_limit
-    ort_cuda_mem_limit_in_gbs = 16
+    ort_cuda_mem_limit_in_gbs = args.gpu_memory_limit_gb
     set_cuda_mem_limit(int(ort_cuda_mem_limit_in_gbs * 1024 * 1024 *1024))
 
     # BertLAMB default initial settings: b1=0.9, b2=0.999, e=1e-6
@@ -106,7 +106,7 @@ def create_ort_trainer(args, device, model):
         world_rank=args.world_rank, world_size=args.world_size,
         use_mixed_precision = True if args.fp16 else False,
         allreduce_post_accumulation = True if args.allreduce_post_accumulation else False,
-        partition_optimizer=True,
+        partition_optimizer=False,
         _opset_version = 10)
 
     if args.fp16:

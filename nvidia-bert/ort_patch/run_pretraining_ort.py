@@ -285,6 +285,10 @@ def parse_arguments():
                         default=False,
                         action='store_true',
                         help="Whether to use infiniband on Azure ML submission.")
+    parser.add_argument("--gpu_memory_limit_gb",
+                        type=int,
+                        default=32,
+                        help="GPU memory limit in GBs")
     parser.add_argument('--schedule',
                         default='warmup_poly',
                         type=str)
