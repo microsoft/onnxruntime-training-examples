@@ -3,7 +3,7 @@ Instructions:
 1. Run "./setup_workspace.sh" to create workspace/
 This downloads the NVIDIA PyTorch BERT example and adds in files to use onnxruntime as backend.
 
-2. cd workspace and run "bash scripts/docker/build_ort.sh"
+2. cd docker and run "docker build --network=host -t bert-onnxruntime ."
 This builds onnxruntime from source and contains CUDA 10.1, MPI, and PyTorch 1.5.
 
 3. See "Getting the data" section of workspace/README.md by NVIDIA to download training data.
@@ -17,10 +17,10 @@ For local run,
     From workspace root launch using "bash scripts/docker/launch_ort.sh"
 
     5. Set 'num_gpus' at top of scripts/run_pretraining_ort.sh
-    Withing container run "bash scripts/run_pretraining_ort.sh".
+    Within container run "bash scripts/run_pretraining_ort.sh".
 
     Feel free to adjust other parameters at top of scripts/run_pretraining_ort.sh
-    For more details, consult workspace/README.md by NVIDIA in reference to scripts/run_pretraining.sh.
+    For more details consult workspace/README.md by NVIDIA in reference to scripts/run_pretraining.sh.
 
 For Azure run,
 
