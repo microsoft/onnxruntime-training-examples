@@ -96,7 +96,7 @@ az ml workspace create -w <workspace-name> -g <resource-group-name>
 ```
 Consult [azure-ml-py](https://docs.microsoft.com/en-us/python/api/overview/azure/ml/?view=azure-ml-py) or [how-to-manage-workspace-cli](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-manage-workspace-cli) for details.
 
-Step 5. Create Azure container registry and upload onnxruntime Docker image.
+Step 6. Create Azure container registry and upload onnxruntime Docker image.
 
 ```
 az acr create --name <acr-name> --resource-group <resource-group-name> --sku <sku-type>
@@ -107,7 +107,7 @@ docker push <acr-name>.azurecr.io/bert-onnxruntime
 
 Consult [container-registry-get-started-docker-cli](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-docker-cli) for details.
 
-Step 6. Create storage and upload training data.
+Step 7. Create storage and upload training data.
     
 ```
 az storage account create --resource-group <my-resource-group> --name <storage-name>
@@ -117,5 +117,5 @@ az storage blob upload-batch --account-name <storage-name>  -d <container-name> 
 Consult [storage-account-create](https://docs.microsoft.com/en-us/azure/storage/common/storage-account-create?tabs=azure-portal)
 and [az-storage-blob-upload-batch](https://docs.microsoft.com/en-us/cli/azure/storage/blob?view=azure-cli-latest#az-storage-blob-upload-batch) for details.
 
-Step 7. Follow further instructions in Python notebook [azureml-notebooks/run-pretraining.ipynb](azureml-notebooks/run-pretraining.ipynb)
+Step 8. Follow further instructions in Python notebook [azureml-notebooks/run-pretraining.ipynb](azureml-notebooks/run-pretraining.ipynb)
     
