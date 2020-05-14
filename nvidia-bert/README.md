@@ -54,6 +54,10 @@ Edit scripts/run_pretraining_ort.sh
 ```
 seed=${12:-42}
 num_gpus=${4:-4}
+gpu_memory_limit_gb=${26:-"32"}
+
+accumulate_gradients=${10:-"true"}
+partition_optimizer=${27:-"false"}
 
 train_batch_size=${1:-8192} 
 learning_rate=${2:-"6e-3"}
@@ -69,12 +73,15 @@ train_steps_phase2=${20:-1563}
 gradient_accumulation_steps_phase2=${11:-256} 
 ```
 
+Be sure to set the number of GPUs and the per GPU memory limit in GB.
+The per GPU batch size will be the training batch size divided by gradient accumulation steps.
 Consult [Parameters](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#parameters) section by NVIDIA for additional details.
 
 Step 7. Launch pretraining run.    
 ```
 bash scripts/run_pretraining_ort.sh
 ```
+If you get memory errors, try reducing the batch size or enabling the partition optimizer flag.
 
 ## For Azure run, proceed as ..
 

@@ -120,7 +120,7 @@ def create_ort_trainer(args, device, model):
         world_rank=args.world_rank, world_size=args.world_size,
         use_mixed_precision = True if args.fp16 else False,
         allreduce_post_accumulation = True if args.allreduce_post_accumulation else False,
-        partition_optimizer=False,
+        partition_optimizer = True if args.partition_optimizer else False,
         _opset_version = 10)
 
     if args.fp16:
