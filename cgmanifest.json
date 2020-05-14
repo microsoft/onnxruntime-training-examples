@@ -1,0 +1,14 @@
+{
+   "Registrations": [
+      {
+         "component": {
+            "type": "git",
+            "git": {
+               "commitHash": "af32ac2a23c5f44cd415baf099a265b076ad5d16",
+               "repositoryUrl": "https://github.com/NVIDIA/DeepLearningExamples.git"
+            }
+         }
+      },
+   ],
+   "Version": 1
+}
