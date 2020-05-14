@@ -17,6 +17,7 @@ echo "Container nvidia build = " $NVIDIA_BUILD_ID
 
 precision=${3:-"fp16"}
 num_gpus=${4:-4}
+gpu_memory_limit_gb=${26:-"32"}
 
 seed=${12:-42}
 job_name=${13:-"bert_lamb_pretraining"}
@@ -126,6 +127,7 @@ CMD+=" $ALL_REDUCE_POST_ACCUMULATION_FP16"
 CMD+=" $INIT_CHECKPOINT"
 CMD+=" --do_train"
 CMD+=" --json-summary ${RESULTS_DIR}/dllogger.json "
+CMD+=" --gpu_memory_limit_gb=$gpu_memory_limit_gb"
 
 # running within container can be OK with root
 CMD="mpirun --allow-run-as-root -n $num_gpus python $CMD"
@@ -203,6 +205,7 @@ CMD+=" $ALL_REDUCE_POST_ACCUMULATION"
 CMD+=" $ALL_REDUCE_POST_ACCUMULATION_FP16"
 CMD+=" --do_train --phase2 --resume_from_checkpoint --phase1_end_step=$train_steps"
 CMD+=" --json-summary ${RESULTS_DIR}/dllogger.json "
+CMD+=" --gpu_memory_limit_gb=$gpu_memory_limit_gb"
 
 # running within container can be OK with root
 CMD="mpirun --allow-run-as-root -n $num_gpus python $CMD"
