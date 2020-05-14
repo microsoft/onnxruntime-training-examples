@@ -13,31 +13,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-use_ort_trainer=true
-
 echo "Container nvidia build = " $NVIDIA_BUILD_ID
-train_batch_size=${1:-8192} 
-learning_rate=${2:-"6e-3"}
+
 precision=${3:-"fp16"}
 num_gpus=${4:-4}
-warmup_proportion=${5:-"0.2843"}
-train_steps=${6:-7038}
-# train_steps=${6:-5}
-save_checkpoint_steps=${7:-200}
-resume_training=${8:-"false"}
-create_logfile=${9:-"true"}
-accumulate_gradients=${10:-"true"}
-gradient_accumulation_steps=${11:-128} # for V100 16 GB - batch size 64
+
 seed=${12:-42}
 job_name=${13:-"bert_lamb_pretraining"}
 allreduce_post_accumulation=${14:-"true"}
 allreduce_post_accumulation_fp16=${15:-"true"}
+
+resume_training=${8:-"false"}
+create_logfile=${9:-"true"}
+accumulate_gradients=${10:-"true"}
+
+train_batch_size=${1:-4096} 
+learning_rate=${2:-"6e-3"}
+warmup_proportion=${5:-"0.2843"}
+train_steps=${6:-7038}
+save_checkpoint_steps=${7:-200}
+gradient_accumulation_steps=${11:-32} 
+
 train_batch_size_phase2=${17:-4096}
 learning_rate_phase2=${18:-"4e-3"}
 warmup_proportion_phase2=${19:-"0.128"}
 train_steps_phase2=${20:-1563}
 gradient_accumulation_steps_phase2=${11:-256} 
-# train_steps_phase2=${20:-5}
+
 PATH_TO_PHASE1_TRAINING_DATA=/data/128
 DATA_DIR_PHASE1=${22:-$PATH_TO_PHASE1_TRAINING_DATA}
 BERT_CONFIG=bert_config.json
@@ -125,14 +127,8 @@ CMD+=" $INIT_CHECKPOINT"
 CMD+=" --do_train"
 CMD+=" --json-summary ${RESULTS_DIR}/dllogger.json "
 
-if [ "$use_ort_trainer" = true ] ; then
-    CMD+=" --use_ort_trainer"
-   # running within container
-    CMD="mpirun --allow-run-as-root -n $num_gpus python $CMD"
-else 
-   # requires pytorch built on same host as mpi
-   CMD="python3 -m torch.distributed.launch --nproc_per_node=$num_gpus $CMD"
-fi
+# running within container can be OK with root
+CMD="mpirun --allow-run-as-root -n $num_gpus python $CMD"
 
 if [ "$create_logfile" = "true" ] ; then
   export GBS=$(expr $train_batch_size \* $num_gpus)
@@ -208,14 +204,8 @@ CMD+=" $ALL_REDUCE_POST_ACCUMULATION_FP16"
 CMD+=" --do_train --phase2 --resume_from_checkpoint --phase1_end_step=$train_steps"
 CMD+=" --json-summary ${RESULTS_DIR}/dllogger.json "
 
-if [ "$use_ort_trainer" = true ] ; then
-    CMD+=" --use_ort_trainer"
-   # running within container
-    CMD="mpirun --allow-run-as-root -n $num_gpus python $CMD"
-else 
-   # requires pytorch built on same host as mpi
-   CMD="python3 -m torch.distributed.launch --nproc_per_node=$num_gpus $CMD"
-fi
+# running within container can be OK with root
+CMD="mpirun --allow-run-as-root -n $num_gpus python $CMD"
 
 if [ "$create_logfile" = "true" ] ; then
   export GBS=$(expr $train_batch_size_phase2 \* $num_gpus)
