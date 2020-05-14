@@ -73,7 +73,7 @@ Consult [Parameters](https://github.com/NVIDIA/DeepLearningExamples/tree/master/
 
 Step 7. Launch pretraining run.    
 ```
-bash scripts/docker/launch_ort.sh
+bash scripts/run_pretraining_ort.sh
 ```
 
 ## For Azure run, proceed as ..
