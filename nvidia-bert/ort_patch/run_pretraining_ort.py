@@ -23,6 +23,7 @@ from __future__ import print_function
 # ==================
 import csv
 import os
+import sys
 import time
 import argparse
 import random
@@ -32,24 +33,11 @@ import os
 import numpy as np
 import torch
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, Dataset
-from torch.utils.data.distributed import DistributedSampler
 import math
-from apex import amp
 import multiprocessing
-
-from tokenization import BertTokenizer
 import modeling
-from apex.optimizers import FusedLAMB
-from schedulers import PolyWarmUpScheduler
 
-from file_utils import PYTORCH_PRETRAINED_BERT_CACHE
 from utils import is_main_process, format_step
-from apex.parallel import DistributedDataParallel as DDP
-from schedulers import LinearWarmUpScheduler
-from apex.parallel.distributed import flat_dist_call
-import amp_C
-import apex_C
-from apex.amp import _amp_state
 
 import dllogger
 from concurrent.futures import ProcessPoolExecutor
@@ -59,9 +47,7 @@ torch._C._jit_set_profiling_executor(False)
 
 skipped_steps = 0
 
-# --- ort training edit
 import onnx
-# ---
 
 #Workaround because python functions are not picklable
 class WorkerInitObj(object):
@@ -78,7 +64,7 @@ def create_pretraining_dataset(input_file, max_pred_length, shared_list, args, w
     train_dataloader = DataLoader(train_data, sampler=train_sampler,
                                   batch_size=args.train_batch_size * args.n_gpu, 
                                   num_workers=4, worker_init_fn=worker_init,
-                                  pin_memory=True, drop_last=args.use_ort_trainer)
+                                  pin_memory=True, drop_last=True)
     # ---
     return train_dataloader, input_file
 
@@ -126,7 +112,6 @@ class BertPretrainingCriterion(torch.nn.Module):
         total_loss = masked_lm_loss + next_sentence_loss
         return total_loss
 
-# --- ort training edit
 # we manually add the loss function into the bert model
 # currently ort front end support for this assumes a single tensor input for labels
 class bert_model_with_loss(torch.nn.Module):
@@ -138,7 +123,6 @@ class bert_model_with_loss(torch.nn.Module):
     def forward(self, input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels):
         preds_score, seq_relation_score = self.model_(input_ids, segment_ids, input_mask)
         return self.loss_fn_(preds_score, seq_relation_score, masked_lm_labels, next_sentence_labels)
-# ---
 
 def parse_arguments():
 
@@ -276,11 +260,6 @@ def parse_arguments():
                         default=False,
                         action='store_true',
                         help='Disable tqdm progress bar')
-    # --- ort training edit
-    parser.add_argument('--use_ort_trainer',
-                        default=False,
-                        action='store_true',
-                        help="Whether to run with ort in fully optimized mode (run optimization in ort as opposed in pytorch).")
     parser.add_argument('--use_ib',
                         default=False,
                         action='store_true',
@@ -292,7 +271,6 @@ def parse_arguments():
     parser.add_argument('--schedule',
                         default='warmup_poly',
                         type=str)
-    # ---
     args = parser.parse_args()
     
     return args
@@ -301,21 +279,9 @@ def setup_training(args):
 
     assert (torch.cuda.is_available())
 
-    # --- ort training edit
-    if args.use_ort_trainer:
-        global ort_supplement
-        import ort_supplement.ort_supplement as ort_supplement
-        device = ort_supplement.setup_onnxruntime_with_mpi(args)
-    # ---
-    elif args.local_rank == -1:
-        device = torch.device("cuda")
-        args.n_gpu = torch.cuda.device_count()
-    else:
-        torch.cuda.set_device(args.local_rank)
-        device = torch.device("cuda", args.local_rank)
-        # Initializes the distributed backend which will take care of sychronizing nodes/GPUs
-        torch.distributed.init_process_group(backend='nccl', init_method='env://')
-        args.n_gpu = 1
+    global ort_supplement
+    import ort_supplement.ort_supplement as ort_supplement
+    device = ort_supplement.setup_onnxruntime_with_mpi(args)
         
     if is_main_process():
         dllogger.init(backends=[dllogger.JSONStreamBackend(verbosity=dllogger.Verbosity.VERBOSE,
@@ -348,7 +314,7 @@ def setup_training(args):
 
     return device, args
 
-def prepare_model_and_optimizer(args, device):
+def prepare_model(args, device):
 
     # Prepare model
     config = modeling.BertConfig.from_json_file(args.config_file)
@@ -357,20 +323,12 @@ def prepare_model_and_optimizer(args, device):
     if config.vocab_size % 8 != 0:
         config.vocab_size += 8 - (config.vocab_size % 8)
 
-    # --- ort training edit
-    if not args.use_ort_trainer:
-        modeling.ACT2FN["bias_gelu"] = torch.jit.script(modeling.ACT2FN["bias_gelu"])
-    # ---
-
     model = modeling.BertForPreTraining(config)
     criterion = BertPretrainingCriterion(config.vocab_size, args.train_batch_size, args.max_seq_length)
 
-    # --- ort training edit
-    if args.use_ort_trainer:
-        model.enable_apex(False)
-        model = bert_model_with_loss(model, criterion)
-        model = ort_supplement.create_ort_trainer(args, device, model)
-    # ---
+    model.enable_apex(False)
+    model = bert_model_with_loss(model, criterion)
+    model = ort_supplement.create_ort_trainer(args, device, model)
 
     checkpoint = None
     if not args.resume_from_checkpoint:
@@ -394,130 +352,10 @@ def prepare_model_and_optimizer(args, device):
         if is_main_process():
             print("resume step from ", args.resume_step)
 
-    # --- ort training edit (note: returns early)
-    if args.use_ort_trainer:
-        return model, None, None, checkpoint, global_step, None
-    # ---
-
-    model.to(device)
-    param_optimizer = list(model.named_parameters())
-    no_decay = ['bias', 'gamma', 'beta', 'LayerNorm']
-    
-    optimizer_grouped_parameters = [
-        {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
-        {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}]
-
-    optimizer = FusedLAMB(optimizer_grouped_parameters, 
-                          lr=args.learning_rate)
-    lr_scheduler = PolyWarmUpScheduler(optimizer, 
-                                       warmup=args.warmup_proportion, 
-                                       total_steps=args.max_steps)
-    if args.fp16:
-
-        if args.loss_scale == 0:
-            model, optimizer = amp.initialize(model, optimizer, opt_level="O2", loss_scale="dynamic", cast_model_outputs=torch.float16)
-        else:
-            model, optimizer = amp.initialize(model, optimizer, opt_level="O2", loss_scale=args.loss_scale, cast_model_outputs=torch.float16)
-        amp._amp_state.loss_scalers[0]._loss_scale = 2**20
-
-    model.checkpoint_activations(args.checkpoint_activations)
-
-    if args.resume_from_checkpoint:
-        if args.phase2 or args.init_checkpoint:
-            keys = list(checkpoint['optimizer']['state'].keys())
-            #Override hyperparameters from previous checkpoint
-            for key in keys:
-                checkpoint['optimizer']['state'][key]['step'] = global_step
-            for iter, item in enumerate(checkpoint['optimizer']['param_groups']):
-                checkpoint['optimizer']['param_groups'][iter]['step'] = global_step
-                checkpoint['optimizer']['param_groups'][iter]['t_total'] = args.max_steps
-                checkpoint['optimizer']['param_groups'][iter]['warmup'] = args.warmup_proportion
-                checkpoint['optimizer']['param_groups'][iter]['lr'] = args.learning_rate
-        optimizer.load_state_dict(checkpoint['optimizer'])  # , strict=False)
-
-        # Restore AMP master parameters          
-        if args.fp16:
-            optimizer._lazy_init_maybe_master_weights()
-            optimizer._amp_stash.lazy_init_called = True
-            optimizer.load_state_dict(checkpoint['optimizer'])
-            for param, saved_param in zip(amp.master_params(optimizer), checkpoint['master params']):
-                param.data.copy_(saved_param.data)
-
-    if args.local_rank != -1:
-        if not args.allreduce_post_accumulation:
-            model = DDP(model, message_size=250000000, gradient_predivide_factor=torch.distributed.get_world_size())
-        else:
-            flat_dist_call([param.data for param in model.parameters()], torch.distributed.broadcast, (0,) )
-    elif args.n_gpu > 1:
-        model = torch.nn.DataParallel(model)
-
-    return model, optimizer, lr_scheduler, checkpoint, global_step, criterion
-
-def take_optimizer_step(args, optimizer, model, overflow_buf, global_step):
-
-    global skipped_steps
-    if args.allreduce_post_accumulation:
-        # manually allreduce gradients after all accumulation steps
-        # check for Inf/NaN
-        # 1. allocate an uninitialized buffer for flattened gradient
-        loss_scale = _amp_state.loss_scalers[0].loss_scale() if args.fp16 else 1
-        master_grads = [p.grad for p in amp.master_params(optimizer) if p.grad is not None]
-        flat_grad_size = sum(p.numel() for p in master_grads)
-        allreduce_dtype = torch.float16 if args.allreduce_post_accumulation_fp16 else torch.float32
-        flat_raw = torch.empty(flat_grad_size, device='cuda', dtype=allreduce_dtype)
-        # 2. combine unflattening and predivision of unscaled 'raw' gradient
-        allreduced_views = apex_C.unflatten(flat_raw, master_grads)
-        overflow_buf.zero_()
-        amp_C.multi_tensor_scale(65536,
-            overflow_buf,
-            [master_grads, allreduced_views],
-            loss_scale / (torch.distributed.get_world_size() * args.gradient_accumulation_steps))
-        # 3. sum gradient across ranks. Because of the predivision, this averages the gradient
-        torch.distributed.all_reduce(flat_raw)
-        # 4. combine unscaling and unflattening of allreduced gradient
-        overflow_buf.zero_()
-        amp_C.multi_tensor_scale(65536,
-            overflow_buf,
-            [allreduced_views, master_grads],
-            1./loss_scale)
-        # 5. update loss scale
-        if args.fp16:
-            scaler = _amp_state.loss_scalers[0]
-            old_overflow_buf = scaler._overflow_buf
-            scaler._overflow_buf = overflow_buf
-            had_overflow = scaler.update_scale()
-            scaler._overfloat_buf = old_overflow_buf
-        else:
-            had_overflow = 0
-        # 6. call optimizer step function
-        if had_overflow == 0:
-            optimizer.step()
-            global_step += 1
-        else:
-            # Overflow detected, print message and clear gradients
-            skipped_steps += 1
-            if is_main_process():
-                scaler = _amp_state.loss_scalers[0]
-                dllogger.log(step="PARAMETER", data={"loss_scale": scaler.loss_scale()})
-            if _amp_state.opt_properties.master_weights:
-                for param in optimizer._amp_stash.all_fp32_from_fp16_params:
-                    param.grad = None
-        for param in model.parameters():
-            param.grad = None
-    else:
-        optimizer.step()
-        #optimizer.zero_grad()
-        for param in model.parameters():
-            param.grad = None
-        global_step += 1
-
-    return global_step
+    return model, checkpoint, global_step
 
 def main():
 
-    # --- sukha edit
-    already_saved_onnx_model = False
-    # ---
     args = parse_arguments()
 
     if args.use_env and 'LOCAL_RANK' in os.environ:
@@ -533,7 +371,7 @@ def main():
     dllogger.log(step="PARAMETER", data={"Config": [str(args)]})
 
     # Prepare optimizer
-    model, optimizer, lr_scheduler, checkpoint, global_step, criterion = prepare_model_and_optimizer(args, device)
+    model, checkpoint, global_step = prepare_model(args, device)
 
     if is_main_process():
         dllogger.log(step="PARAMETER", data={"SEED": args.seed})
@@ -572,14 +410,6 @@ def main():
 
             shared_file_list = {}
 
-            # --- ort training edit
-
-            # if torch.distributed.is_initialized() and torch.distributed.get_world_size() > num_files:
-            #     remainder = torch.distributed.get_world_size() % num_files
-            #     data_file = files[(f_start_id*torch.distributed.get_world_size()+torch.distributed.get_rank() + remainder*f_start_id)%num_files]
-            # else:
-            #     data_file = files[(f_start_id*torch.distributed.get_world_size()+torch.distributed.get_rank())%num_files]
-
             if torch.distributed.is_initialized():
                 world_size = torch.distributed.get_world_size()
                 world_rank = torch.distributed.get_rank()
@@ -603,38 +433,24 @@ def main():
 
             train_data = pretraining_dataset(data_file, args.max_predictions_per_seq)
             train_sampler = RandomSampler(train_data)
-            # --- ort training edit: we need to skip last batch when we hard code inputs as an optimization
+            # we need to skip last batch when we hard code inputs as an optimization
             train_dataloader = DataLoader(train_data, sampler=train_sampler,
                                           batch_size=args.train_batch_size * args.n_gpu,
                                           num_workers=4, worker_init_fn=worker_init,
-                                          pin_memory=True, drop_last=args.use_ort_trainer)
-            # ---
-            # shared_file_list["0"] = (train_dataloader, data_file)
+                                          pin_memory=True, drop_last=True)
 
-            overflow_buf = None
-            # --- ort training edit
             gpu_batch_size = args.train_batch_size // args.gradient_accumulation_steps
-            if args.allreduce_post_accumulation and not args.use_ort_trainer:
-                overflow_buf = torch.cuda.IntTensor([0])
-            # ---
             
             if len(files) == 1:
                 f_start_id = -1
             for f_id in range(f_start_id + 1 , len(files)):
                 
-                # --- ort training edit
-                # if torch.distributed.get_world_size() > num_files:
-                #     data_file = files[(f_id*torch.distributed.get_world_size()+torch.distributed.get_rank() + remainder*f_id)%num_files]
-                # else:
-                #     data_file = files[(f_id*torch.distributed.get_world_size()+torch.distributed.get_rank())%num_files]
-
                 if world_size > num_files:
                     data_file = files[(f_id*world_size+world_rank + remainder*f_id)%num_files]
                 elif world_size > 1:
                     data_file = files[(f_id*world_size + world_rank)%num_files]
                 else:
                     data_file = files[f_id%num_files]
-                # ---
 
                 previous_file = data_file
 
@@ -649,35 +465,8 @@ def main():
                     input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels = batch
                     divisor = args.gradient_accumulation_steps
 
-                    # --- ort training edit
-                    if args.use_ort_trainer:
-                        loss, global_step = ort_supplement.run_ort_training_step(args, global_step, training_steps, model, batch)
-                    # ----
-                    else:
-                        prediction_scores, seq_relationship_score = model(input_ids=input_ids, token_type_ids=segment_ids, attention_mask=input_mask)
-                        loss = criterion(prediction_scores, seq_relationship_score, masked_lm_labels, next_sentence_labels)
-                        if args.n_gpu > 1:
-                            loss = loss.mean()  # mean() to average on multi-gpu.
-
-                        if args.gradient_accumulation_steps > 1:
-                            if not args.allreduce_post_accumulation:
-                                # this division was merged into predivision
-                                loss = loss / args.gradient_accumulation_steps
-                                divisor = 1.0
-                        if args.fp16:
-                            with amp.scale_loss(loss, optimizer, delay_overflow_check=args.allreduce_post_accumulation) as scaled_loss:
-                                scaled_loss.backward()
-                        else:
-                            loss.backward()
-
+                    loss, global_step = ort_supplement.run_ort_training_step(args, global_step, training_steps, model, batch)
                     average_loss += loss.item()
-
-                    # --- ort training edit
-                    if not args.use_ort_trainer:
-                    # ---
-                        if training_steps % args.gradient_accumulation_steps == 0:
-                            lr_scheduler.step()  # learning rate warmup
-                            global_step = take_optimizer_step(args, optimizer, model, overflow_buf, global_step)
 
                     if global_step >= args.max_steps:
                         train_time_raw = time.time() - raw_train_start
@@ -695,14 +484,11 @@ def main():
                         throughput =  (args.train_batch_size * args.gradient_accumulation_steps) / (time.time() - prev_step_time)
                         print('throughput = ', throughput ,'seq/sec')
                         prev_step_time = time.time()
+                        sys.stdout.flush()
 
                         if is_main_process():
                             data = {"average_loss": average_loss / (args.log_freq * divisor),
                                     "step_loss": loss.item() * args.gradient_accumulation_steps / divisor}
-                            # --- ort training edit
-                            if not args.use_ort_trainer:
-                                data["learning_rate"] = optimizer.param_groups[0]['lr']
-                            # ---
                             dllogger.log(step=(epoch, global_step, ), data=data)
                         average_loss = 0
 
@@ -720,11 +506,6 @@ def main():
                             if args.do_train:
                                 state = {'model': model_to_save.state_dict(),
                                          'files': [f_id] + files}
-                                # --- ort training edit
-                                if not args.use_ort_trainer:
-                                    state['optimizer'] = optimizer.state_dict()
-                                    state['master params'] = list(amp.master_params(optimizer))
-                                # ---
                                 torch.save(state, output_save_file)
 
                                 most_recent_ckpts_paths.append(output_save_file)
@@ -733,14 +514,12 @@ def main():
                                     os.remove(ckpt_to_be_removed)
 
                         if global_step >= args.max_steps:
-                            # --- ort training edit
-                            if is_main_process() and args.use_ort_trainer:
+                            if is_main_process():
                                 print('-----------------------save onnx model-----------------------')
                                 if not args.phase2:
                                     model_to_save.save_as_onnx('{}/phase1_bert.onnx'.format(args.output_dir))
                                 else:
                                     model_to_save.save_as_onnx('{}/final_bert.onnx'.format(args.output_dir))
-                            # ---
                             del train_dataloader
                             # thread.join()
                             return args, final_loss, train_time_raw
@@ -771,3 +550,4 @@ if __name__ == "__main__":
         dllogger.log(step=tuple(), data={"e2e_train_time": e2e_time, "training_sequences_per_second": training_perf,
                                          "final_loss": final_loss, "raw_train_time": train_time_raw })
     dllogger.flush()
+
