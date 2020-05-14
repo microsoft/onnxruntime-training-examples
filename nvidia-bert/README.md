@@ -74,7 +74,7 @@ gradient_accumulation_steps_phase2=${11:-256}
 ```
 
 Be sure to set the number of GPUs and the per GPU memory limit in GB.
-The per GPU batch size is training batch size / gradient accumulation steps.
+The per GPU batch size will be the training batch size divided by gradient accumulation steps.
 Consult [Parameters](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#parameters) section by NVIDIA for additional details.
 
 Step 7. Launch pretraining run.    
