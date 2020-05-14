@@ -1,53 +1,27 @@
----
-page_type: sample
-languages:
-- csharp
-products:
-- dotnet
-description: "Add 150 character max description"
-urlFragment: "update-this-to-unique-url-stub"
----
+# ONNX Runtime Training Examples
 
-# Official Microsoft Sample
+This repo has examples for using [ONNX Runtime](https://github.com/microsoft/onnxruntime) for accelerating training of [Transformer](https://arxiv.org/abs/1706.03762) models. These examples focus on large scale model training and achieving the best performance in Azure Machine Learning service](https://azure.microsoft.com/en-us/services/machine-learning/) and [NVIDIA DGX-2](https://www.nvidia.com/en-us/data-center/dgx-2). The examples demonstrate how training using ONNX Runtime seamlessly integrates with training scripts implemented in PyTorch by enabling the conversion of the models defined using PyTorch's `torch.nn.module` to [`ORTTrainer`](https://github.com/microsoft/onnxruntime/blob/orttraining_rc1/orttraining/orttraining/python/ort_trainer.py#L480)* API with just a few lines of code change. 
+
+*_A newer version of [ORTTrainer API](https://github.com/microsoft/onnxruntime/blob/orttraining_rc1/orttraining/orttraining/python/ort_trainer.py#L480) is under active development and will be released in a few months._
+
+## Examples
+
+Outline the examples in the repository. 
+
+| Example       | Description                                |
+|-------------------|--------------------------------------------|
+| `nvidia-bert`     | Using ONNX Runtime with PyTorch implementation of BERT pretraining maintained by [nvidia](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT) |
 
 <!-- 
-Guidelines on README format: https://review.docs.microsoft.com/help/onboard/admin/samples/concepts/readme-template?branch=master
-
-Guidance on onboarding samples to docs.microsoft.com/samples: https://review.docs.microsoft.com/help/onboard/admin/samples/process/onboarding?branch=master
-
-Taxonomies for products and languages: https://review.docs.microsoft.com/new-hope/information-architecture/metadata/taxonomies?branch=master
--->
-
-Give a short description for your sample here. What does it do and why is it important?
-
-## Contents
-
-Outline the file contents of the repository. It helps users navigate the codebase, build configuration and any related assets.
-
-| File/folder       | Description                                |
-|-------------------|--------------------------------------------|
-| `src`             | Sample source code.                        |
-| `.gitignore`      | Define what to ignore at commit time.      |
-| `CHANGELOG.md`    | List of changes to the sample.             |
 | `CONTRIBUTING.md` | Guidelines for contributing to the sample. |
-| `README.md`       | This README file.                          |
-| `LICENSE`         | The license for the sample.                |
-
+-->
 ## Prerequisites
 
-Outline the required components and tools that a user might need to have on their machine in order to run the sample. This can be anything from frameworks, SDKs, OS versions or IDE releases.
-
-## Setup
-
-Explain how to prepare the sample once the user clones or downloads the repository. The section should outline every step necessary to install dependencies and set up any settings (for example, API keys and output folders).
+The examples in this repo depend on a Docker image (TODO: add link) that includes ONNX Runtime for training. The Docker image is tested in AzureML and DGX-2 environments. For running the examples in other environments, building a new Docker image may be necessary.
 
 ## Running the sample
 
-Outline step-by-step instructions to execute the sample and see its output. Include steps for executing the sample from the IDE, starting specific services in the Azure portal or anything related to the overall launch of the code.
-
-## Key concepts
-
-Provide users with more context on the tools and services used in the sample. Explain some of the code that is being used and how services interact with each other.
+Readme files for every example listed in the table above provides a step-by-step instructions to execute the example.
 
 ## Contributing
 
