@@ -641,6 +641,7 @@ def main():
                 dataset_future = pool.submit(create_pretraining_dataset, data_file, args.max_predictions_per_seq, shared_file_list, args, worker_init)
 
                 train_iter = tqdm(train_dataloader, desc="Iteration", disable=args.disable_progress_bar) if is_main_process() else train_dataloader
+                prev_step_time = time.time()
                 for step, batch in enumerate(train_iter):
 
                     training_steps += 1
@@ -691,6 +692,10 @@ def main():
                         if is_main_process():
                             dllogger.log(step=(epoch, global_step, ), data={"final_loss": final_loss})
                     elif training_steps % (args.log_freq * args.gradient_accumulation_steps) == 0:
+                        throughput =  (args.train_batch_size * args.gradient_accumulation_steps) / (time.time() - prev_step_time)
+                        print('throughput = ', throughput ,'seq/sec')
+                        prev_step_time = time.time()
+
                         if is_main_process():
                             data = {"average_loss": average_loss / (args.log_freq * divisor),
                                     "step_loss": loss.item() * args.gradient_accumulation_steps / divisor}
