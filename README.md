@@ -10,7 +10,7 @@ Outline the examples in the repository.
 
 | Example       | Description                                |
 |-------------------|--------------------------------------------|
-| `nvidia-bert`     | Using ONNX Runtime with PyTorch implementation of BERT pretraining maintained by [nvidia](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT) |
+| `nvidia-bert`     | Using ONNX Runtime with [BERT pretraining implementation in PyTorch](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT) maintained by nvidia |
 
 <!-- 
 | `CONTRIBUTING.md` | Guidelines for contributing to the sample. |
