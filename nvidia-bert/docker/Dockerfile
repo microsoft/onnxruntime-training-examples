@@ -39,10 +39,6 @@ RUN git clone https://github.com/microsoft/onnxruntime.git &&\
 RUN pip install \
           /src/onnxruntime/build/Linux/RelWithDebInfo/dist/*.whl
 
-# build and install apex
-RUN git clone https://github.com/NVIDIA/apex && cd apex &&\
-    pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
-
 # install additional dependencies for scripts
 RUN apt-get update && apt-get install -y pbzip2 pv bzip2 cabextract
 RUN pip install --no-cache-dir \
