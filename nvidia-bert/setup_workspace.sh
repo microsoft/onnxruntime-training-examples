@@ -13,4 +13,4 @@ mkdir -p workspace &&
     rm -fr nvidia-examples
 
 # add onnxruntime and azureml files into nvidia example
-cp -r ort_patch/* workspace/
+cp -r ort_addon/* workspace/

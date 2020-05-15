@@ -72,9 +72,6 @@ def bert_model_description(args):
     loss_desc = IODescription('loss', [], torch.float32)
     return ModelDescription([input_ids_desc, segment_ids_desc, input_mask_desc, masked_lm_labels_desc, next_sentence_labels_desc], [loss_desc])
 
-# for opset 12
-# from ort_supplement.onnx_transforms.model_transform import add_name, fix_transpose, add_expand_shape, process_concat, process_dropout #, handle_expand_input_is_not_constant_case, fix_dim, fix_expand
-
 # for opset 10
 from ort_supplement.onnx_transforms.model_transform import add_name, fix_transpose, add_expand_shape, process_concat, process_dropout, handle_expand_input_is_not_constant_case, fix_dim, fix_expand
 
@@ -156,4 +153,4 @@ def run_ort_training_step(args, global_step, training_steps, model, batch):
         global_step += 1
 
     return loss, global_step
-    
+ 
