@@ -23,6 +23,8 @@ RUN wget --quiet https://github.com/Kitware/CMake/releases/download/v3.14.3/cmak
     rm -rf cmake-3.14.3-Linux-x86_64.tar.gz
 
 RUN git clone https://github.com/microsoft/onnxruntime.git &&\
+    cp /src/onnxruntime/ThirdPartyNotices.txt /src/ThirdPartyNotices.txt &&\
+    cp /src/onnxruntime/dockerfiles/LICENSE-IMAGE.txt /src/LICENSE-IMAGE.txt &&\
     cd /src/onnxruntime &&\
     git checkout orttraining_rc1 &&\
     /bin/sh ./build.sh \
@@ -35,10 +37,12 @@ RUN git clone https://github.com/microsoft/onnxruntime.git &&\
         --build_wheel \
         --enable_training \
         --parallel \
-        --cmake_extra_defines ONNXRUNTIME_VERSION=`cat ./VERSION_NUMBER`
-RUN pip install \
-          /src/onnxruntime/build/Linux/RelWithDebInfo/dist/*.whl
-
+        --cmake_extra_defines ONNXRUNTIME_VERSION=`cat ./VERSION_NUMBER` &&\
+    pip install \
+          /src/onnxruntime/build/Linux/RelWithDebInfo/dist/*.whl &&\
+    cd .. &&\
+    rm -rf onnxruntime cmake-3.14.3-Linux-x86_64
+          
 # install additional dependencies for scripts
 RUN apt-get update && apt-get install -y pbzip2 pv bzip2 cabextract
 RUN pip install --no-cache-dir \
