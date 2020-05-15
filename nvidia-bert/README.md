@@ -128,7 +128,16 @@ Step 8. Follow further instructions in Python notebook [azureml-notebooks/run-pr
 
 ## For finetuning with SQuAD run, proceed as ..
 
-Step 9. The pretrained BERT representations from above steps can be fine tuned for a state-of-the-art question answering system just an extra output layer. The following script launches fine-tuning for question answering with the SQuAD dataset.
+The following steps launch fine-tuning for question answering with the SQuAD dataset.
+
+Step 1. Launch the interactive container.
+
+```bash
+cd workspace
+bash scripts/docker/launch_ort.sh
+```
+
+Step 2. Run the following script to launch the SQuAD finetuning. Make sure your checkpoint is at /workspace/checkpoints/. 
 
 ```bash
 bash scripts/run_squad_ort.sh /workspace/checkpoints/<downloaded_checkpoint>
