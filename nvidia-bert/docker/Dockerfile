@@ -41,7 +41,7 @@ RUN git clone https://github.com/microsoft/onnxruntime.git &&\
     pip install \
           /src/onnxruntime/build/Linux/RelWithDebInfo/dist/*.whl &&\
     cd .. &&\
-    rm -rf onnxruntime cmake-3.14.3-Linux-x86_64
+    rm -rf onnxruntime /opt/cmake
           
 # install additional dependencies for scripts
 RUN apt-get update && apt-get install -y pbzip2 pv bzip2 cabextract
