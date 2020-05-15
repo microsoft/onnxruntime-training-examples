@@ -134,7 +134,7 @@ Step 1. Launch the interactive container.
 
 ```bash
 cd workspace
-bash scripts/docker/launch_ort.sh
+bash scripts/docker/launch.sh
 ```
 
 Step 2. Run the following script to launch the SQuAD finetuning. Make sure your checkpoint is at /workspace/checkpoints/. 
