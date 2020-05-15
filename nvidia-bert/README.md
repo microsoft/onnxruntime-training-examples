@@ -135,7 +135,7 @@ bash scripts/run_squad_ort.sh /workspace/checkpoints/<downloaded_checkpoint>
 ```
 
 The default arguments are listed below in the order the scripts expects:  
-
+```bash
 Initial checkpoint - The default is /workspace/checkpoints/bert_uncased.pt.  
 Number of training Epochs - The default is 2.  
 Batch size - The default is 3.  
@@ -148,5 +148,6 @@ Vocabulary file (token to ID mapping) - The default is /workspace/bert/vocab/voc
 Output directory for result - The default is /results/SQuAD.  
 Mode (train, eval, train eval, predict) - The default is train.  
 Config file for the BERT model (It should be the same as the pretrained model) - The default is /workspace/bert/bert_config.json.  
+```
 The script saves the final checkpoint to the /results/SQuAD/pytorch_model.bin file.  
 
