@@ -126,7 +126,7 @@ and [az-storage-blob-upload-batch](https://docs.microsoft.com/en-us/cli/azure/st
 
 Step 8. Follow further instructions in Python notebook [azureml-notebooks/run-pretraining.ipynb](azureml-notebooks/run-pretraining.ipynb)
 
-## For finetuning with squad run, proceed as ..
+## For finetuning with SQuAD run, proceed as ..
 
 Step 9. The pretrained BERT representations from above steps can be fine tuned for a state-of-the-art question answering system just an extra output layer. The following script launches fine-tuning for question answering with the SQuAD dataset.
 
@@ -134,18 +134,19 @@ Step 9. The pretrained BERT representations from above steps can be fine tuned f
 bash scripts/run_squad_ort.sh /workspace/checkpoints/<downloaded_checkpoint>
 ```
 
-The default arguments are listed below in the order the scripts expects:
+The default arguments are listed below in the order the scripts expects:  
 
-Initial checkpoint - The default is /workspace/checkpoints/bert_uncased.pt.
-Number of training Epochs - The default is 2.
-Batch size - The default is 3.
-Learning rate - The default is 3e-5.
-Precision (either fp16 or fp32) - The default is fp16.
-Number of GPUs - The default is 8.
-Seed - The default is 1.
-SQuAD directory - The default is /workspace/bert/data/v1.1.
-Vocabulary file (token to ID mapping) - The default is /workspace/bert/vocab/vocab.
-Output directory for result - The default is /results/SQuAD.
-Mode (train, eval, train eval, predict) - The default is train.
-Config file for the BERT model (It should be the same as the pretrained model) - The default is /workspace/bert/bert_config.json.
-The script saves the final checkpoint to the /results/SQuAD/pytorch_model.bin file.
+Initial checkpoint - The default is /workspace/checkpoints/bert_uncased.pt.  
+Number of training Epochs - The default is 2.  
+Batch size - The default is 3.  
+Learning rate - The default is 3e-5.  
+Precision (either fp16 or fp32) - The default is fp16.  
+Number of GPUs - The default is 8.  
+Seed - The default is 1.  
+SQuAD directory - The default is /workspace/bert/data/v1.1.  
+Vocabulary file (token to ID mapping) - The default is /workspace/bert/vocab/vocab.  
+Output directory for result - The default is /results/SQuAD.  
+Mode (train, eval, train eval, predict) - The default is train.  
+Config file for the BERT model (It should be the same as the pretrained model) - The default is /workspace/bert/bert_config.json.  
+The script saves the final checkpoint to the /results/SQuAD/pytorch_model.bin file.  
+
