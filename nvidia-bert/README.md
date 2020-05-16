@@ -1,7 +1,7 @@
 This example shows how ONNX Runtime training can be done on BERT pretraining implementation maintained at https://github.com/NVIDIA/DeepLearningExamples.
 
 ## Preparing data
-Please refer to detailed instructions at [DeepLearningExamples](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#getting-the-data) repo. The following are minimal set of instructions to download and process one of the datasets used for BERT pretraining.
+Please refer to [DeepLearningExamples](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#getting-the-data) repo for detailed instructions for data preparation. The following are minimal set of instructions to download and process one of the datasets used for BERT pretraining.
 
 ### Get Code
 ```bash
