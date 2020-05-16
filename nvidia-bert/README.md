@@ -11,9 +11,6 @@ git config core.sparseCheckout true
 echo "PyTorch/LanguageModeling/BERT/*"> .git/info/sparse-checkout
 git checkout 4733603577080dbd1bdcd51864f31e45d5196704
 cd ..
-
-git clone https://github.com/microsoft/onnxruntime-training-examples.git
-cd onnxruntime-training-examples/nvidia-bert
 ```
 
 ## Setup working directory
