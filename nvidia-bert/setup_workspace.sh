@@ -2,7 +2,7 @@
 set -eo pipefail
 
 # clone nvidia examples repository and checkout specific commit
-git clone git@github.com:NVIDIA/DeepLearningExamples.git nvidia-examples &&
+git clone https://github.com/NVIDIA/DeepLearningExamples nvidia-examples &&
     cd nvidia-examples && 
     git checkout 4733603577080dbd1bdcd51864f31e45d5196704 && 
     cd ..
