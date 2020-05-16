@@ -83,6 +83,8 @@ bash scripts/run_pretraining_ort.sh
 ```
 If you get memory errors, try reducing the batch size or enabling the partition optimizer flag.
 
+For finetuning tasks, follow [model_evaluation.md](model_evaluation.md)
+
 ## For Azure run, proceed as ..
 
 Step 4. Install Azure Cli and Azure ML CLI and SDK
