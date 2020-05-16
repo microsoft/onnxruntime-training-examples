@@ -1,4 +1,4 @@
-This example shows how ONNX Runtime training can be done on BERT pretraining implementation maintained at https://github.com/NVIDIA/DeepLearningExamples.
+This example shows how ONNX Runtime training can be done on BERT pretraining implementation in PyTorch maintained at https://github.com/NVIDIA/DeepLearningExamples.
 
 Steps:
   * [Preparing data](#preparing-data)
@@ -107,46 +107,4 @@ bash scripts/run_pretraining_ort.sh
 ```
 If you get memory errors, try reducing the batch size or enabling the partition optimizer flag.
 
-## For Azure run, proceed as ..
-
-Step 4. Install Azure Cli and Azure ML CLI and SDK
-
-```bash
-curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-az login
-az extension add -n azure-cli-ml
-pip install --upgrade azureml-sdk
-pip install azureml-sdk[notebooks]
-```
-Consult [install-azure-cli](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest) for details.
-
-Step 5. Create Azure machine learning workspace.
-```bash
-az group create --name <resource-group-name> --location <location>
-az ml workspace create -w <workspace-name> -g <resource-group-name>
-```
-Consult [azure-ml-py](https://docs.microsoft.com/en-us/python/api/overview/azure/ml/?view=azure-ml-py) or [how-to-manage-workspace-cli](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-manage-workspace-cli) for details.
-
-Step 6. Create Azure container registry and upload onnxruntime Docker image.
-
-```bash
-az acr create --name <acr-name> --resource-group <resource-group-name> --sku <sku-type>
-az acr login --name <acr-name>
-docker tag bert-onnxruntime <acr-name>.azurecr.io/bert-onnxruntime
-docker push <acr-name>.azurecr.io/bert-onnxruntime
-```
-
-Consult [container-registry-get-started-docker-cli](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-docker-cli) for details.
-
-Step 7. Create storage and upload training data.
-    
-```bash
-az storage account create --resource-group <my-resource-group> --name <storage-name>
-az storage container create --account-name <storage-name> --name <container-name>
-az storage blob upload-batch --account-name <storage-name>  -d <container-name>  -s <path-to-training-data>
-```
-Consult [storage-account-create](https://docs.microsoft.com/en-us/azure/storage/common/storage-account-create?tabs=azure-portal)
-and [az-storage-blob-upload-batch](https://docs.microsoft.com/en-us/cli/azure/storage/blob?view=azure-cli-latest#az-storage-blob-upload-batch) for details.
-
-Step 8. Follow further instructions in Python notebook [azureml-notebooks/run-pretraining.ipynb](azureml-notebooks/run-pretraining.ipynb)
     
