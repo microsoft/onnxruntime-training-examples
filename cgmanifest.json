@@ -4,7 +4,7 @@
          "component": {
             "type": "git",
             "git": {
-               "commitHash": "af32ac2a23c5f44cd415baf099a265b076ad5d16",
+               "commitHash": "4733603577080dbd1bdcd51864f31e45d5196704",
                "repositoryUrl": "https://github.com/NVIDIA/DeepLearningExamples.git"
             }
          }
