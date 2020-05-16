@@ -13,7 +13,7 @@ git checkout 4733603577080dbd1bdcd51864f31e45d5196704
 cd ..
 ```
 
-## Setup working directory
+### Setup working directory
 
 ```bash
 mkdir -p workspace && 
@@ -43,7 +43,14 @@ python3 ./workspace/bert/data/bertPrep.py --action create_hdf5_files --dataset w
 
 ```
 
-## For local run, proceed as ..
+## BERT pretraining with ONNX Runtime in Azure Machine Learning Service
+The pretraining job in Azure ML can be launched using the following options:
+1. Compute Instance
+2. Azure ML CLI or SDK
+
+Follow instructions in Python notebook [azureml-notebooks/run-pretraining.ipynb](azureml-notebooks/run-pretraining.ipynb)
+
+## BERT pretraining with ONNX Runtime in DGX-2
 
 Step 4. Set correct paths to training data for docker image.
 
