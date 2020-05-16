@@ -1,11 +1,11 @@
 This example shows how ONNX Runtime training can be done on BERT pretraining implementation in PyTorch maintained at https://github.com/NVIDIA/DeepLearningExamples.
 
 Steps:
-  * [Preparing data](#preparing-data)
-  * [Running in Azure Machine Learning service](#bert-pretraining-with-onnx-runtime-in-azure-machine-learning-service)
-  * [Running in DGX-2](#bert-pretraining-with-onnx-runtime-in-dgx-2)
+  * [Prepare data](#prepare-data)
+  * [Run in Azure Machine Learning service](#bert-pretraining-with-onnx-runtime-in-azure-machine-learning-service)
+  * [Run in DGX-2](#bert-pretraining-with-onnx-runtime-in-dgx-2)
 
-## Preparing data
+## Prepare data
 Please refer to [DeepLearningExamples](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#getting-the-data) repo for detailed instructions for data preparation. The following are minimal set of instructions to download and process one of the datasets used for BERT pretraining.
 
 ### Get Code
@@ -47,6 +47,9 @@ python3 ./workspace/bert/data/bertPrep.py --action create_hdf5_files --dataset w
  --max_predictions_per_seq 80 --vocab_file ./workspace/bert/data/download/google_pretrained_weights/uncased_L-24_H-1024_A-16/vocab.txt --do_lower_case 1
 
 ```
+
+### Make data accessible for training
+Data prepared using the steps above need to be available for training. Follow instructions in the sections below to learn steps required for making data accessbile to training process depending on the environment where BERT pretraining will be done.
 
 ## BERT pretraining with ONNX Runtime in Azure Machine Learning Service
 The pretraining job in Azure ML can be launched using the following options:
