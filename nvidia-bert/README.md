@@ -20,7 +20,7 @@ mkdir -p workspace &&
     mv DeepLearningExamples/PyTorch/LanguageModeling/BERT/ workspace/
 ```
 ### Download and process data
-Download and prepare training data in HDF5 format. 
+Download and prepare Wikicorpus training data in HDF5 format. If you want to include additional datasets referenced in [DeepLearningExamples](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#getting-the-data), you need to update the following instructions to include them.
 
 ```bash
 # Download
