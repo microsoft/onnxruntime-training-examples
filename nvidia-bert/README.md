@@ -1,8 +1,9 @@
-#
-# Instructions:
+This example shows how ONNX Runtime training can be done on BERT pretraining implementation maintained at https://github.com/NVIDIA/DeepLearningExamples.
 
-Step 0. Clone this repository and switch to this BERT example directory. 
+## Preparing data
+Please refer to detailed instructions at [DeepLearningExamples](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#getting-the-data) repo. The following are minimal set of instructions to download and process one of the datasets used for BERT pretraining.
 
+### Get Code
 ```bash
 git clone --no-checkout https://github.com/NVIDIA/DeepLearningExamples.git
 cd DeepLearningExamples/
@@ -15,16 +16,14 @@ git clone https://github.com/microsoft/onnxruntime-training-examples.git
 cd onnxruntime-training-examples/nvidia-bert
 ```
 
-Step 1. Setup the BERT project workspace.
+## Setup working directory
 
 ```bash
 mkdir -p workspace && 
     mv DeepLearningExamples/PyTorch/LanguageModeling/BERT/ workspace/
 ```
-
-This downloads the NVIDIA PyTorch BERT example and adds in files to use onnxruntime as backend.
-
-Step 3. Download and prepare training data in HDF5 format. For details follow [Getting the data](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#getting-the-data) section by NVIDIA. 
+### Download and process data
+Download and prepare training data in HDF5 format. 
 
 ```bash
 # Download
@@ -40,7 +39,6 @@ python3 ./workspace/bert/data/bertPrep.py --action sharding --dataset wikicorpus
 # Create HDF5 files Phase 1
 python3 ./workspace/bert/data/bertPrep.py --action create_hdf5_files --dataset wikicorpus_en --max_seq_length 128 \
  --max_predictions_per_seq 20 --vocab_file ./workspace/bert/data/download/google_pretrained_weights/uncased_L-24_H-1024_A-16/vocab.txt --do_lower_case 1
-
 
 # Create HDF5 files Phase 2
 python3 ./workspace/bert/data/bertPrep.py --action create_hdf5_files --dataset wikicorpus_en --max_seq_length 512 \
