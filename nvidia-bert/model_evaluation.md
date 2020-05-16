@@ -1,6 +1,6 @@
 ## Finetuning changes required to run GLUE or SQuAD
 
-Some changes maybe required in the model state dict to run evaluation or finetuning like GLUE or SQuAD on the pretrained model. Run the following script to convert your model checkpoint to nvidia bert format.
+Some changes maybe required in the model state dict to run evaluation or finetuning like GLUE or SQuAD on the pretrained model. Run the following script to convert the ORT model checkpoint to NVIDIA BERTformat.
 
 ```bash
 python convertCheckpoint.py /workspace/checkpoints/<ort_pretrained_checkpoint>   /workspace/checkpoints/<new checkpoint name>
