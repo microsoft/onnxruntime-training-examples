@@ -1,8 +1,16 @@
+#
 # Instructions:
 
 Step 0. Clone this repository and switch to this BERT example directory. 
 
 ```bash
+git clone --no-checkout https://github.com/NVIDIA/DeepLearningExamples.git
+cd DeepLearningExamples/
+git config core.sparseCheckout true
+echo "PyTorch/LanguageModeling/BERT/*"> .git/info/sparse-checkout
+git checkout 4733603577080dbd1bdcd51864f31e45d5196704
+cd ..
+
 git clone https://github.com/microsoft/onnxruntime-training-examples.git
 cd onnxruntime-training-examples/nvidia-bert
 ```
@@ -10,25 +18,34 @@ cd onnxruntime-training-examples/nvidia-bert
 Step 1. Setup the BERT project workspace.
 
 ```bash
-./setup_workspace.sh
+mkdir -p workspace && 
+    mv DeepLearningExamples/PyTorch/LanguageModeling/BERT/ workspace/
 ```
 
 This downloads the NVIDIA PyTorch BERT example and adds in files to use onnxruntime as backend.
 
-Step 2. Build onnxruntime into Docker image.
-```bash
-cd docker
-docker build --network=host -t bert-onnxruntime .
-```
-This builds onnxruntime from source and contains CUDA 10.1, MPI, and PyTorch 1.5.
-
-Step 3. Download and parse training data into HDF5 format. For details follow [Getting the data](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#getting-the-data) section by NVIDIA. 
+Step 3. Download and prepare training data in HDF5 format. For details follow [Getting the data](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#getting-the-data) section by NVIDIA. 
 
 ```bash
-cd workspace
-bash scripts/docker/build.sh
-bash scripts/docker/launch.sh
-bash data/create_datasets_from_start.sh 
+# Download
+python3 ./workspace/bert/data/bertPrep.py --action download --dataset wikicorpus_en
+python3 ./workspace/bert/data/bertPrep.py --action download --dataset google_pretrained_weights
+
+# Properly format the text files
+python3 ./workspace/bert/data/bertPrep.py --action text_formatting --dataset wikicorpus_en
+
+# Shard the text files
+python3 ./workspace/bert/data/bertPrep.py --action sharding --dataset wikicorpus_en
+
+# Create HDF5 files Phase 1
+python3 ./workspace/bert/data/bertPrep.py --action create_hdf5_files --dataset wikicorpus_en --max_seq_length 128 \
+ --max_predictions_per_seq 20 --vocab_file ./workspace/bert/data/download/google_pretrained_weights/uncased_L-24_H-1024_A-16/vocab.txt --do_lower_case 1
+
+
+# Create HDF5 files Phase 2
+python3 ./workspace/bert/data/bertPrep.py --action create_hdf5_files --dataset wikicorpus_en --max_seq_length 512 \
+ --max_predictions_per_seq 80 --vocab_file ./workspace/bert/data/download/google_pretrained_weights/uncased_L-24_H-1024_A-16/vocab.txt --do_lower_case 1
+
 ```
 
 ## For local run, proceed as ..
