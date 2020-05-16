@@ -45,10 +45,10 @@ python3 ./workspace/bert/data/bertPrep.py --action create_hdf5_files --dataset w
 
 ## BERT pretraining with ONNX Runtime in Azure Machine Learning Service
 The pretraining job in Azure ML can be launched using the following options:
-1. Compute Instance
-2. Azure ML CLI or SDK
+1. Azure ML [Compute Instance](https://docs.microsoft.com/en-us/azure/machine-learning/concept-compute-instance)
+2. Azure ML [CLI](https://docs.microsoft.com/en-us/azure/machine-learning/tutorial-train-deploy-model-cli) or [SDK](https://docs.microsoft.com/en-us/python/api/overview/azure/ml/?view=azure-ml-py)
 
-Follow instructions in Python notebook [azureml-notebooks/run-pretraining.ipynb](azureml-notebooks/run-pretraining.ipynb)
+For instructions to use Python SDK follow the steps in the Python notebook [azureml-notebooks/run-pretraining.ipynb](azureml-notebooks/run-pretraining.ipynb).
 
 ## BERT pretraining with ONNX Runtime in DGX-2
 
