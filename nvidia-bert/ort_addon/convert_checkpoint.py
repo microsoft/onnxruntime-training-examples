@@ -5,8 +5,8 @@ import torch
 import sys
 
 # Usage:
-# convertCheckpoint.py <input checkpoint> <save location>
-# Example : convertCheckpoint.py /workspace/checkpoints/bert_ort.pt /workspace/checkpoints/bert_ort_converted.pt 
+# convert_checkpoint.py <input checkpoint> <save location>
+# Example : convert_checkpoint.py /workspace/checkpoints/bert_ort.pt /workspace/checkpoints/bert_ort_converted.pt 
 
 inputFile=sys.argv[1]
 outputFile=sys.argv[2]
