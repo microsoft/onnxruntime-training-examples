@@ -28,23 +28,24 @@ mkdir -p workspace &&
 Download and prepare Wikicorpus training data in HDF5 format. If you want to include additional datasets referenced in [DeepLearningExamples](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#getting-the-data), you need to update the following instructions to include them.
 
 ```bash
+export BERT_PREP_WORKING_DIR=./workspace/BERT/data/
 # Download
-python3 ./workspace/bert/data/bertPrep.py --action download --dataset wikicorpus_en
-python3 ./workspace/bert/data/bertPrep.py --action download --dataset google_pretrained_weights
+python3 ./workspace/BERT/data/bertPrep.py --action download --dataset wikicorpus_en
+python3 ./workspace/BERT/data/bertPrep.py --action download --dataset google_pretrained_weights
 
 # Properly format the text files
-python3 ./workspace/bert/data/bertPrep.py --action text_formatting --dataset wikicorpus_en
+python3 ./workspace/BERT/data/bertPrep.py --action text_formatting --dataset wikicorpus_en
 
 # Shard the text files
-python3 ./workspace/bert/data/bertPrep.py --action sharding --dataset wikicorpus_en
+python3 ./workspace/BERT/data/bertPrep.py --action sharding --dataset wikicorpus_en
 
 # Create HDF5 files Phase 1
-python3 ./workspace/bert/data/bertPrep.py --action create_hdf5_files --dataset wikicorpus_en --max_seq_length 128 \
- --max_predictions_per_seq 20 --vocab_file ./workspace/bert/data/download/google_pretrained_weights/uncased_L-24_H-1024_A-16/vocab.txt --do_lower_case 1
+python3 ./workspace/BERT/data/bertPrep.py --action create_hdf5_files --dataset wikicorpus_en --max_seq_length 128 \
+ --max_predictions_per_seq 20 --vocab_file ./workspace/BERT/data/download/google_pretrained_weights/uncased_L-24_H-1024_A-16/vocab.txt --do_lower_case 1
 
 # Create HDF5 files Phase 2
-python3 ./workspace/bert/data/bertPrep.py --action create_hdf5_files --dataset wikicorpus_en --max_seq_length 512 \
- --max_predictions_per_seq 80 --vocab_file ./workspace/bert/data/download/google_pretrained_weights/uncased_L-24_H-1024_A-16/vocab.txt --do_lower_case 1
+python3 ./workspace/BERT/data/bertPrep.py --action create_hdf5_files --dataset wikicorpus_en --max_seq_length 512 \
+ --max_predictions_per_seq 80 --vocab_file ./workspace/BERT/data/download/google_pretrained_weights/uncased_L-24_H-1024_A-16/vocab.txt --do_lower_case 1
 
 ```
 
