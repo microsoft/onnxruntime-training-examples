@@ -1,5 +1,10 @@
 This example shows how ONNX Runtime training can be done on BERT pretraining implementation maintained at https://github.com/NVIDIA/DeepLearningExamples.
 
+Steps:
+  * [Preparing data](#preparing-data)
+  * [Running in Azure Machine Learning service](#bert-pretraining-with-onnx-runtime-in-azure-machine-learning-service)
+  * [Running in DGX-2](#bert-pretraining-with-onnx-runtime-in-dgx-2)
+
 ## Preparing data
 Please refer to [DeepLearningExamples](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#getting-the-data) repo for detailed instructions for data preparation. The following are minimal set of instructions to download and process one of the datasets used for BERT pretraining.
 
