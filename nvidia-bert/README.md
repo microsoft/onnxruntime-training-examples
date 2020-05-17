@@ -24,6 +24,7 @@ cd ..
 
 ```bash
 mkdir -p workspace && mv DeepLearningExamples/PyTorch/LanguageModeling/BERT/ workspace/
+rm -rf DeepLearningExamples
 cd workspace
 git clone https://github.com/attardi/wikiextractor.git
 cd ..
