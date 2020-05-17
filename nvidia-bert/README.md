@@ -25,6 +25,9 @@ cd ..
 ```bash
 mkdir -p workspace && 
     mv DeepLearningExamples/PyTorch/LanguageModeling/BERT/ workspace/
+cd workspace
+git clone https://github.com/attardi/wikiextractor.git
+cd ..
 ```
 ### Download and process data
 Download and prepare Wikicorpus training data in HDF5 format. If you want to include additional datasets referenced in [DeepLearningExamples](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#getting-the-data), you need to update the following instructions to include them.
@@ -37,6 +40,8 @@ python3 ./workspace/BERT/data/bertPrep.py --action download --dataset wikicorpus
 python3 ./workspace/BERT/data/bertPrep.py --action download --dataset google_pretrained_weights
 
 # Properly format the text files
+# fixing path issue in the code (it should have used BERT_PREP_WORKING_DIR as prefix instead of hardcoded path)
+sed -i "s/path_to_wikiextractor_in_container = '/path_to_wikiextractor_in_container = '\./g" bertPrep.py
 python3 ./workspace/BERT/data/bertPrep.py --action text_formatting --dataset wikicorpus_en
 
 # Shard the text files
