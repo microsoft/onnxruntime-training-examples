@@ -8,7 +8,7 @@ Steps:
 ## Prepare data
 Please refer to [DeepLearningExamples](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#getting-the-data) repo for detailed instructions for data preparation. The following are minimal set of instructions to download and process one of the datasets used for BERT pretraining.
 
-Note that the datasets used for BERT pretraining are large and need lot of disk space to downloand process the data. After processing, data should be made available for training. Due to the large size of the data copy, it is recommended to the execute the steps below in the training environment itself or in an environment from where data transfer to training environment will be fast and efficient. See specific instructions for Azure ML and DGx-2 in the respective sections below.
+Note that the datasets used for BERT pretraining are large and need lot of disk space to downloand process the data. After processing, data should be made available for training. Due to the large size of the data copy, it is recommended to the execute the steps below in the training environment itself or in an environment from where data transfer to training environment will be fast and efficient. See specific data prepration instructions for Azure ML and DGx-2 in the respective sections below.
 
 ### Get Code
 ```bash
@@ -55,6 +55,14 @@ python3 ./workspace/BERT/data/bertPrep.py --action create_hdf5_files --dataset w
 Data prepared using the steps above need to be available for training. Follow instructions in the sections below to learn steps required for making data accessbile to training process depending on the environment where BERT pretraining will be done.
 
 ## BERT pretraining with ONNX Runtime in Azure Machine Learning service
+
+#### Environment for data preparation for use in Azure ML
+Please refer to the [stroage guidance](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-access-data#storage-guidance) for details on using Azure storage account for training in AzureML. To use data in distributed training, the recommendation in Azure ML is to host the data in a blob container in an Azure Storage account, register that blob container as a data store and mount it in the compute targets used for training. If the data to use with pretraing is already processed and available, it should be transferred to a blob container. 
+
+To do data preparation from scratch and use it in a non-production setup, it is easier to execute the steps in an Azure ML compute instance and directly in the path associated with mounted workspacefilestore (the path will look like `/mnt/batch/tasks/shared/LS_root/mounts/clusters/<compute_instance_name>`). This will help with making the processed data available in the training compute target by simply attaching the workspacefilestore. For high performance in scenarios involving large datasets, workspacefilestore may not be used and a blob based datastore in standard or premium storage is recommended.
+
+#### Pretraining
+
 The pretraining job in Azure ML can be launched using the following options:
 1. Azure ML [Compute Instance](https://docs.microsoft.com/en-us/azure/machine-learning/concept-compute-instance)
 2. Azure ML [CLI](https://docs.microsoft.com/en-us/azure/machine-learning/tutorial-train-deploy-model-cli) or [SDK](https://docs.microsoft.com/en-us/python/api/overview/azure/ml/?view=azure-ml-py)
