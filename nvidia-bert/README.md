@@ -18,12 +18,14 @@ git config core.sparseCheckout true
 echo "PyTorch/LanguageModeling/BERT/*"> .git/info/sparse-checkout
 git checkout 4733603577080dbd1bdcd51864f31e45d5196704
 cd ..
+cp -r ./nvidia-bert/ort_addon/* workspace/
 ```
 
 ### Setup working directory
 
 ```bash
 mkdir -p workspace && mv DeepLearningExamples/PyTorch/LanguageModeling/BERT/ workspace/
+rm -rf DeepLearningExamples
 cd workspace
 git clone https://github.com/attardi/wikiextractor.git
 cd ..
@@ -31,27 +33,31 @@ cd ..
 ### Download and process data
 Download and prepare Wikicorpus training data in HDF5 format. If you want to include additional datasets referenced in [DeepLearningExamples](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#getting-the-data), you need to update the following instructions to include them.
 
+__Pre-requisite__ 
+* Install Natural Language Toolkit (NLTK) `python3-pip install nltk`
+* Python 3.6 is required for this sample.
+
 ```bash
 export BERT_PREP_WORKING_DIR=./workspace/BERT/data/
 
 # Download
-python3 ./workspace/BERT/data/bertPrep.py --action download --dataset wikicorpus_en
-python3 ./workspace/BERT/data/bertPrep.py --action download --dataset google_pretrained_weights
+python ./workspace/BERT/data/bertPrep.py --action download --dataset wikicorpus_en
+python ./workspace/BERT/data/bertPrep.py --action download --dataset google_pretrained_weights
 
 # Properly format the text files
 # fixing path issue in code (it should have used BERT_PREP_WORKING_DIR as prefix for path instead of hardcoded prefix)
-sed -i "s/path_to_wikiextractor_in_container = '/path_to_wikiextractor_in_container = '\./g" bertPrep.py
-python3 ./workspace/BERT/data/bertPrep.py --action text_formatting --dataset wikicorpus_en
+sed -i "s/path_to_wikiextractor_in_container = '/path_to_wikiextractor_in_container = './g" ./workspace/BERT/data/bertPrep.py
+python ./workspace/BERT/data/bertPrep.py --action text_formatting --dataset wikicorpus_en
 
 # Shard the text files
-python3 ./workspace/BERT/data/bertPrep.py --action sharding --dataset wikicorpus_en
+python ./workspace/BERT/data/bertPrep.py --action sharding --dataset wikicorpus_en
 
 # Create HDF5 files Phase 1
-python3 ./workspace/BERT/data/bertPrep.py --action create_hdf5_files --dataset wikicorpus_en --max_seq_length 128 \
+python ./workspace/BERT/data/bertPrep.py --action create_hdf5_files --dataset wikicorpus_en --max_seq_length 128 \
  --max_predictions_per_seq 20 --vocab_file ./workspace/BERT/data/download/google_pretrained_weights/uncased_L-24_H-1024_A-16/vocab.txt --do_lower_case 1
 
 # Create HDF5 files Phase 2
-python3 ./workspace/BERT/data/bertPrep.py --action create_hdf5_files --dataset wikicorpus_en --max_seq_length 512 \
+python ./workspace/BERT/data/bertPrep.py --action create_hdf5_files --dataset wikicorpus_en --max_seq_length 512 \
  --max_predictions_per_seq 80 --vocab_file ./workspace/BERT/data/download/google_pretrained_weights/uncased_L-24_H-1024_A-16/vocab.txt --do_lower_case 1
 
 ```
@@ -68,11 +74,13 @@ To do data preparation from scratch and use it in a non-production setup, it is 
 
 #### Pretraining
 
-The BERT pretraining job in Azure ML can be launched using the following options:
-1. Azure ML [Compute Instance](https://docs.microsoft.com/en-us/azure/machine-learning/concept-compute-instance)
-2. Azure ML [CLI](https://docs.microsoft.com/en-us/azure/machine-learning/tutorial-train-deploy-model-cli) or [SDK](https://docs.microsoft.com/en-us/python/api/overview/azure/ml/?view=azure-ml-py)
+The BERT pretraining job in Azure ML can be launched using either of these environments:
+1. Azure ML [Compute Instance](https://docs.microsoft.com/en-us/azure/machine-learning/concept-compute-instance) to run the Jupyter notebook.
+2. Azure ML [SDK](https://docs.microsoft.com/en-us/python/api/overview/azure/ml/?view=azure-ml-py)
 
-For instructions to use Python SDK follow the steps in the Python notebook [azureml-notebooks/run-pretraining.ipynb](azureml-notebooks/run-pretraining.ipynb). If you have a local setup to run an Azure ML notebook, you could run the steps in the notebook in that environment. Otherwise, a compute instance in AzureML could be created and used to run the steps.
+You will need a [GPU optimized compute target](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-set-up-training-targets#amlcompute) - _either NCv3 or NDv2 series_, to execute this pre-training job.
+
+Execute the steps in the Python notebook [azureml-notebooks/run-pretraining.ipynb](azureml-notebooks/run-pretraining.ipynb) within your environment. If you have a local setup to run an Azure ML notebook, you could run the steps in the notebook in that environment. Otherwise, a compute instance in AzureML could be created and used to run the steps.
 
 ## BERT pretraining with ONNX Runtime in DGX-2
 
