@@ -42,7 +42,7 @@ python3 ./workspace/BERT/data/bertPrep.py --action download --dataset google_pre
 
 # Properly format the text files
 # fixing path issue in code (it should have used BERT_PREP_WORKING_DIR as prefix for path instead of hardcoded prefix)
-sed -i "s/path_to_wikiextractor_in_container = '/path_to_wikiextractor_in_container = '\./g" bertPrep.py
+sed -i "s/path_to_wikiextractor_in_container = '/path_to_wikiextractor_in_container = '\./g" ./workspace/BERT/data/bertPrep.py
 python3 ./workspace/BERT/data/bertPrep.py --action text_formatting --dataset wikicorpus_en
 
 # Shard the text files
