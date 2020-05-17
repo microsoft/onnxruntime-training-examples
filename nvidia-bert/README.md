@@ -8,6 +8,8 @@ Steps:
 ## Prepare data
 Please refer to [DeepLearningExamples](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#getting-the-data) repo for detailed instructions for data preparation. The following are minimal set of instructions to download and process one of the datasets used for BERT pretraining.
 
+Note that the datasets used for BERT pretraining are large and need lot of disk space to downloand process the data. After processing, data should be made available for training. Due to the large size of the data copy, it is recommended to the execute the steps below in the training environment itself or in an environment from where data transfer to training environment will be fast and efficient. See specific instructions for Azure ML and DGx-2 in the respective sections below.
+
 ### Get Code
 ```bash
 git clone --no-checkout https://github.com/NVIDIA/DeepLearningExamples.git
@@ -52,7 +54,7 @@ python3 ./workspace/BERT/data/bertPrep.py --action create_hdf5_files --dataset w
 ### Make data accessible for training
 Data prepared using the steps above need to be available for training. Follow instructions in the sections below to learn steps required for making data accessbile to training process depending on the environment where BERT pretraining will be done.
 
-## BERT pretraining with ONNX Runtime in Azure Machine Learning Service
+## BERT pretraining with ONNX Runtime in Azure Machine Learning service
 The pretraining job in Azure ML can be launched using the following options:
 1. Azure ML [Compute Instance](https://docs.microsoft.com/en-us/azure/machine-learning/concept-compute-instance)
 2. Azure ML [CLI](https://docs.microsoft.com/en-us/azure/machine-learning/tutorial-train-deploy-model-cli) or [SDK](https://docs.microsoft.com/en-us/python/api/overview/azure/ml/?view=azure-ml-py)
