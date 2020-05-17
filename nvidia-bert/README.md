@@ -31,7 +31,9 @@ cd ..
 ### Download and process data
 Download and prepare Wikicorpus training data in HDF5 format. If you want to include additional datasets referenced in [DeepLearningExamples](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#getting-the-data), you need to update the following instructions to include them.
 
-__Pre-requisite__ Instal Natural Language Toolkit (NLTK) `pip install nltk`
+__Pre-requisite__ 
+* Instal Natural Language Toolkit (NLTK) `pip install nltk`
+* Ensure the `python` is sym-linked to `python3` `sudo ln -s /usr/bin/python3 /usr/bin/python`
 
 ```bash
 export BERT_PREP_WORKING_DIR=./workspace/BERT/data/
