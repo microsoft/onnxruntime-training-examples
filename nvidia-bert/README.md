@@ -31,6 +31,7 @@ Download and prepare Wikicorpus training data in HDF5 format. If you want to inc
 
 ```bash
 export BERT_PREP_WORKING_DIR=./workspace/BERT/data/
+
 # Download
 python3 ./workspace/BERT/data/bertPrep.py --action download --dataset wikicorpus_en
 python3 ./workspace/BERT/data/bertPrep.py --action download --dataset google_pretrained_weights
@@ -63,11 +64,11 @@ To do data preparation from scratch and use it in a non-production setup, it is 
 
 #### Pretraining
 
-The pretraining job in Azure ML can be launched using the following options:
+The BERT pretraining job in Azure ML can be launched using the following options:
 1. Azure ML [Compute Instance](https://docs.microsoft.com/en-us/azure/machine-learning/concept-compute-instance)
 2. Azure ML [CLI](https://docs.microsoft.com/en-us/azure/machine-learning/tutorial-train-deploy-model-cli) or [SDK](https://docs.microsoft.com/en-us/python/api/overview/azure/ml/?view=azure-ml-py)
 
-For instructions to use Python SDK follow the steps in the Python notebook [azureml-notebooks/run-pretraining.ipynb](azureml-notebooks/run-pretraining.ipynb).
+For instructions to use Python SDK follow the steps in the Python notebook [azureml-notebooks/run-pretraining.ipynb](azureml-notebooks/run-pretraining.ipynb). If you have a local setup to run an Azure ML notebook, you could run the steps in the notebook in that environment. Otherwise, a compute instance in AzureML could be created and used to run the steps.
 
 ## BERT pretraining with ONNX Runtime in DGX-2
 
