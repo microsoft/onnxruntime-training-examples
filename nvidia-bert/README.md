@@ -18,6 +18,7 @@ git config core.sparseCheckout true
 echo "PyTorch/LanguageModeling/BERT/*"> .git/info/sparse-checkout
 git checkout 4733603577080dbd1bdcd51864f31e45d5196704
 cd ..
+cp -r ./nvidia-bert/ort_addon/* workspace/
 ```
 
 ### Setup working directory
