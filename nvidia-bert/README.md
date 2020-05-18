@@ -83,6 +83,8 @@ bash scripts/run_pretraining_ort.sh
 ```
 If you get memory errors, try reducing the batch size or enabling the partition optimizer flag.
 
+For finetuning tasks, follow [model_evaluation.md](model_evaluation.md)
+
 ## For Azure run, proceed as ..
 
 Step 4. Install Azure Cli and Azure ML CLI and SDK
@@ -125,4 +127,7 @@ Consult [storage-account-create](https://docs.microsoft.com/en-us/azure/storage/
 and [az-storage-blob-upload-batch](https://docs.microsoft.com/en-us/cli/azure/storage/blob?view=azure-cli-latest#az-storage-blob-upload-batch) for details.
 
 Step 8. Follow further instructions in Python notebook [azureml-notebooks/run-pretraining.ipynb](azureml-notebooks/run-pretraining.ipynb)
-    
+   
+
+For finetuning tasks, follow [model_evaluation.md](model_evaluation.md)
+
