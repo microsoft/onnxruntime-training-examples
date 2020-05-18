@@ -67,7 +67,12 @@ python ./workspace/BERT/data/bertPrep.py --action create_hdf5_files --dataset wi
 ```
 
 ### Make data accessible for training
-Data prepared using the steps above need to be available for training. Follow instructions in the sections below to learn steps required for making data accessbile to training process depending on the environment where BERT pretraining will be done.
+After completing the steps above, data in hdf5 format will be available at the following locations: 
+
+* Phase 1 data: `./workspace/BERT/data/hdf5_lower_case_1_seq_len_128_max_pred_20_masked_lm_prob_0.15_random_seed_12345_dupe_factor_5/wikicorpus_en/`
+* Phase 2 data: `./workspace/BERT/data/hdf5_lower_case_1_seq_len_512_max_pred_80_masked_lm_prob_0.15_random_seed_12345_dupe_factor_5/wikicorpus_en/`
+
+These data files need to be made available for training. Follow instructions in the sections below to learn steps required for making data accessbile to training process depending on the environment where BERT pretraining will be done.
 
 ## BERT pretraining with ONNX Runtime in Azure Machine Learning service
 
