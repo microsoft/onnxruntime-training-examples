@@ -1,5 +1,5 @@
 #!/bin/bash
-
+  
 CMD=${1:-/bin/bash}
 NV_VISIBLE_DEVICES=${2:-"all"}
 DOCKER_BRIDGE=${3:-"host"}

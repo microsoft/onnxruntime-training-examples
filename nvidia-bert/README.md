@@ -103,13 +103,13 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 1. Build docker image
 
     ```bash
-    cd workspace
-    bash scripts/docker/build.sh
+    cd docker
+    bash build.sh
     ```
 
 2. Set correct paths to training data for docker image.
 
-   Within workspace/scripts/docker/launch_ort.sh:
+   Edit docker/launch.sh:
 
    ```bash
    ...
@@ -121,8 +121,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 3. Launch interactive container.
 
     ```bash
-    cd workspace
-    bash scripts/docker/launch_ort.sh
+    bash docker/launch.sh
     ```
 
 4. Modify default training parameters as needed.
@@ -158,7 +157,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 5. Launch pre-training run
 
     ```bash
-    bash scripts/run_pretraining_ort.sh
+    bash ort_addon/scripts/run_pretraining_ort.sh
     ```
 
     If you get memory errors, try reducing the batch size or enabling the partition optimizer flag.
