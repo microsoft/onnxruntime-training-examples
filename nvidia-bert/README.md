@@ -143,4 +143,5 @@ bash scripts/run_pretraining_ort.sh
 ```
 If you get memory errors, try reducing the batch size or enabling the partition optimizer flag.
 
-    
+### Finetuning
+For finetuning tasks, follow [model_evaluation.md](model_evaluation.md)
