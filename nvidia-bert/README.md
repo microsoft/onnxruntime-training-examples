@@ -180,3 +180,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
     ```
 
     If you get memory errors, try reducing the batch size or enabling the partition optimizer flag.
+
+## Finetuning
+
+For finetuning tasks, follow [model_evaluation.md](model_evaluation.md)
