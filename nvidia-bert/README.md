@@ -1,4 +1,4 @@
-This example shows how ONNX Runtime training can be done on BERT pretraining implementation in PyTorch maintained at https://github.com/NVIDIA/DeepLearningExamples.
+This example shows how ONNX Runtime training can accelerate BERT pretraining implementation in PyTorch maintained at https://github.com/NVIDIA/DeepLearningExamples.
 
 Steps:
   * [Prepare data](#prepare-data)
