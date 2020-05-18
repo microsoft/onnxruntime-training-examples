@@ -2,7 +2,7 @@
 
 This example uses ONNX Runtime to pre-train the BERT PyTorch model maintained at https://github.com/NVIDIA/DeepLearningExamples.
 
-You can run the training in Azure Machine Learning or on a DGX-2 NVIDIA VM.
+You can run the training in Azure Machine Learning or on an NVIDIA DGX-2.
 
 ## Setup
 
@@ -13,7 +13,7 @@ You can run the training in Azure Machine Learning or on a DGX-2 NVIDIA VM.
     cd onnxruntime-training-examples
     ```
 
-2. Clone download code
+2. Clone download code and model
 
     ```bash
     git clone --no-checkout https://github.com/NVIDIA/DeepLearningExamples.git
@@ -58,13 +58,17 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
     python ./workspace/BERT/data/bertPrep.py --action download --dataset wikicorpus_en
     python ./workspace/BERT/data/bertPrep.py --action download --dataset google_pretrained_weights
 
-    # Properly format the text files
-    # Fix path issue to use BERT_PREP_WORKING_DIR as prefix for path instead of hardcoded prefix
+    # Fix path issue to use BERT_PREP_WORKING_DIR as prefix for path instead of hard-coded prefix
     sed -i "s/path_to_wikiextractor_in_container = '/path_to_wikiextractor_in_container = './g" ./workspace/BERT/data/bertPrep.py
+
+    # Format text files
     python ./workspace/BERT/data/bertPrep.py --action text_formatting --dataset wikicorpus_en
 
-    # Shard the text files
+    # Shard text files
     python ./workspace/BERT/data/bertPrep.py --action sharding --dataset wikicorpus_en
+
+    # Fix path to workspace to allow running outside of the docker container
+    sed -i "s/python \/workspace/python .\/workspace/g" ./workspace/BERT/data/bertPrep.py
 
     # Create HDF5 files Phase 1
     python ./workspace/BERT/data/bertPrep.py --action create_hdf5_files --dataset wikicorpus_en --max_seq_length 128 \
@@ -108,16 +112,15 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
     * Docker
     * [NVIDIA docker toolkit](https://github.com/NVIDIA/nvidia-docker)
 
-2. Build docker image
+2. Pull the ONNX Runtime training docker image
 
     ```bash
-    cd docker
-    bash build.sh
+    docker image pull <TODO INSERT MCR DOCKER IMAGE PATH HERE >
     ```
 
 3. Set correct paths to training data for docker image.
 
-   Edit docker/launch.sh:
+   Edit `nvida-bert/docker/launch.sh`.
 
    ```bash
    ...
@@ -129,12 +132,12 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 4. Launch interactive container.
 
     ```bash
-    bash docker/launch.sh
+    bash nvida-bert/docker/launch.sh
     ```
 
 5. Modify default training parameters as needed.
 
-    Edit scripts/run_pretraining_ort.sh
+    Edit `workspace/scripts/run_pretraining_ort.sh`
 
     ```bash
     seed=${12:-42}
