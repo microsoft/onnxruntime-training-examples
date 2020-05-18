@@ -132,17 +132,25 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 4. Launch interactive container.
 
     ```bash
-    bash nvida-bert/docker/launch.sh
+    cd workspace/BERT
+    bash ../nvida-bert/docker/launch.sh
     ```
 
-5. Modify default training parameters as needed.
+5. Set the number of GPUs and per GPU limit.
 
-    Edit `workspace/scripts/run_pretraining_ort.sh`
+    Edit `/workspace/bert/scripts/run_pretraining_ort.sh` inside the container.
+
+    ```bash
+    num_gpus=${4:-8}
+    gpu_memory_limit_gb=${26:-"32"}
+    ```
+
+6. Modify other training parameters as needed.
+
+    Edit `/workspace/bert/scripts/run_pretraining_ort.sh` inside the container.
 
     ```bash
     seed=${12:-42}
-    num_gpus=${4:-4}
-    gpu_memory_limit_gb=${26:-"32"}
 
     accumulate_gradients=${10:-"true"}
     partition_optimizer=${27:-"false"}
@@ -161,14 +169,14 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
     gradient_accumulation_steps_phase2=${11:-256}
     ```
 
-    Be sure to set the number of GPUs and the per GPU memory limit in GB.
     The per GPU batch size will be the training batch size divided by gradient accumulation steps.
+
     Consult [Parameters](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#parameters) section by NVIDIA for additional details.
 
-6. Launch pre-training run
+7. Launch pre-training run
 
     ```bash
-    bash ort_addon/scripts/run_pretraining_ort.sh
+    bash /workspace/bert/scripts/run_pretraining_ort.sh
     ```
 
     If you get memory errors, try reducing the batch size or enabling the partition optimizer flag.

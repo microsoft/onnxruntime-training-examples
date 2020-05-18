@@ -16,7 +16,7 @@
 echo "Container nvidia build = " $NVIDIA_BUILD_ID
 
 precision=${3:-"fp16"}
-num_gpus=${4:-4}
+num_gpus=${4:-8}
 gpu_memory_limit_gb=${26:-"32"}
 
 seed=${12:-42}
