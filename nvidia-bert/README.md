@@ -28,9 +28,9 @@ You can run the training in Azure Machine Learning or on an NVIDIA DGX-2.
 
     ```bash
     mkdir -p workspace
-    cp -r ./nvidia-bert/ort_addon/* workspace
     mv DeepLearningExamples/PyTorch/LanguageModeling/BERT/ workspace
     rm -rf DeepLearningExamples
+    cp -r ./nvidia-bert/ort_addon/* workspace/BERT
     cd workspace
     git clone https://github.com/attardi/wikiextractor.git
     cd ..
@@ -133,12 +133,12 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 
     ```bash
     cd workspace/BERT
-    bash ../nvida-bert/docker/launch.sh
+    bash ../../nvidia-bert/docker/launch.sh
     ```
 
 5. Set the number of GPUs and per GPU limit.
 
-    Edit `/workspace/bert/scripts/run_pretraining_ort.sh` inside the container.
+    Edit `/workspace/scripts/run_pretraining_ort.sh` inside the container.
 
     ```bash
     num_gpus=${4:-8}
@@ -147,7 +147,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 
 6. Modify other training parameters as needed.
 
-    Edit `/workspace/bert/scripts/run_pretraining_ort.sh` inside the container.
+    Edit `/workspace/scripts/run_pretraining_ort.sh` inside the container.
 
     ```bash
     seed=${12:-42}
@@ -176,7 +176,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 7. Launch pre-training run
 
     ```bash
-    bash /workspace/bert/scripts/run_pretraining_ort.sh
+    bash /workspace/scripts/run_pretraining_ort.sh
     ```
 
     If you get memory errors, try reducing the batch size or enabling the partition optimizer flag.
