@@ -24,7 +24,7 @@ You can run the training in Azure Machine Learning or on a DGX-2 NVIDIA VM.
     cd ..
     ```
 
-3. Create workspace
+3. Create working directory
 
     ```bash
     mkdir -p workspace
@@ -46,8 +46,8 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 
 1. Check pre-requisites
 
-* Install Natural Language Toolkit (NLTK) `python3-pip install nltk`
-* Python 3.6 is required for this sample.
+    * Natural Language Toolkit (NLTK) `python3-pip install nltk`
+    * Python 3.6
 
 2. Download and prepare Wikicorpus training data in HDF5 format.
 
@@ -77,22 +77,24 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 
 3. Make data accessible for training
 
-    Data prepared using the steps above need to be available for training. Follow instructions in the sections below to learn steps required for making data accessible to training process depending on the environment where BERT pre-training will be done.
+    Data prepared using the steps above need to be available for training. Follow instructions in the sections below to learn steps required for making data accessible to training process depending on the training environment.
 
 ## BERT pre-training with ONNX Runtime in Azure Machine Learning
 
 1. Setup environment
 
-    Please refer to the [storage guidance](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-access-data#storage-guidance) for details on using Azure storage account for training in Azure Machine Learning. To use data in distributed training, the recommendation in Azure ML is to host the data in a blob container in an Azure Storage account, register that blob container as a data store and mount it in the compute targets used for training. If the data to use with pre-training is already processed and available, it should be transferred to a blob container.
+    * Transfer training data to Azure blob storage
+    * Register the blob container as a data store
+    * Mount the data store in the compute targets used for training
 
-    To do data preparation from scratch and use it in a non-production setup, it is easier to execute the steps in an Azure Machine Learning compute instance and directly in the path associated with mounted `workspacefilestore` (the path will look like `/mnt/batch/tasks/shared/LS_root/mounts/clusters/<compute_instance_name>`). This will help with making the processed data available in the training compute target by simply attaching `workspacefilestore`. For high performance in scenarios involving large datasets, `workspacefilestore` may not be used and a blob based datastore in standard or premium storage is recommended.
+    Please refer to the [storage guidance](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-access-data#storage-guidance) for more details on using Azure storage account for training in Azure Machine Learning.
 
 2. Execute pre-training
 
     The BERT pre-training job in Azure Machine Learning can be launched using either of these environments:
 
-    * Azure ML [Compute Instance](https://docs.microsoft.com/en-us/azure/machine-learning/concept-compute-instance) to run the Jupyter notebook.
-    * Azure ML [SDK](https://docs.microsoft.com/en-us/python/api/overview/azure/ml/?view=azure-ml-py)
+    * Azure Machine Learning [Compute Instance](https://docs.microsoft.com/en-us/azure/machine-learning/concept-compute-instance) to run the Jupyter notebook.
+    * Azure Machine Learning [SDK](https://docs.microsoft.com/en-us/python/api/overview/azure/ml/?view=azure-ml-py)
 
     You will need a [GPU optimized compute target](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-set-up-training-targets#amlcompute) - _either NCv3 or NDv2 series_, to execute this pre-training job.
 
@@ -100,14 +102,20 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 
 ## BERT pre-training with ONNX Runtime on a DGX-2
 
-1. Build docker image
+1. Check pre-requisites
+
+    * CUDA 10.1
+    * Docker
+    * [NVIDIA docker toolkit](https://github.com/NVIDIA/nvidia-docker)
+
+2. Build docker image
 
     ```bash
     cd docker
     bash build.sh
     ```
 
-2. Set correct paths to training data for docker image.
+3. Set correct paths to training data for docker image.
 
    Edit docker/launch.sh:
 
@@ -118,13 +126,13 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
    ...
    ```
 
-3. Launch interactive container.
+4. Launch interactive container.
 
     ```bash
     bash docker/launch.sh
     ```
 
-4. Modify default training parameters as needed.
+5. Modify default training parameters as needed.
 
     Edit scripts/run_pretraining_ort.sh
 
@@ -154,7 +162,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
     The per GPU batch size will be the training batch size divided by gradient accumulation steps.
     Consult [Parameters](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#parameters) section by NVIDIA for additional details.
 
-5. Launch pre-training run
+6. Launch pre-training run
 
     ```bash
     bash ort_addon/scripts/run_pretraining_ort.sh
