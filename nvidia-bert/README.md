@@ -12,7 +12,7 @@ You can run the training in Azure Machine Learning or on a DGX-2 NVIDIA VM.
     git clone https://github.com/microsoft/onnxruntime-training-examples.git
     cd onnxruntime-training-examples
     ```
-
+    
 2. Clone download code
 
     ```bash
