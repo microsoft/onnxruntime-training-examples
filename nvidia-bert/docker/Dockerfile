@@ -1,33 +1,106 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-FROM mcr.microsoft.com/azureml/base-gpu:openmpi3.1.2-cuda10.1-cudnn7-ubuntu18.04
-RUN apt update -y && pip install --upgrade pip
+FROM nvcr.io/nvidia/pytorch:20.03-py3
 
-# set paths for cmake, miniconda, and cuda
-ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:/opt/cmake/bin:/opt/miniconda/bin:${PATH}
-ENV LD_LIBRARY_PATH /opt/miniconda/lib:$LD_LIBRARY_PATH
+# Environment variables
+ENV STAGE_DIR=/root/gpu/install \
+    CUDNN_DIR=/usr/local/cudnn \
+    CUDA_DIR=/usr/local/cuda-10.1 \
+    CUDA_HOME=/usr/local/cuda \
+    CUDNN_HOME=/usr/lib/x86_64-linux-gnu \
+    CUDACXX=/usr/local/cuda/bin/nvcc
 
-# install pytorch stable using CUDA 10.1
-RUN pip install torch==1.5.0+cu101 torchvision==0.6.0+cu101 -f https://download.pytorch.org/whl/torch_stable.html
+RUN mkdir -p $STAGE_DIR
+
+RUN apt-get -y update && \
+    apt-get -y install \
+      build-essential \
+      autotools-dev \
+      rsync \
+      curl \
+      wget \
+      jq \
+      openssh-server \
+      openssh-client \
+    # No longer in 'minimal set of packages'
+      sudo \
+    # Needed by OpenMPI
+      cmake \
+      g++ \
+      gcc \
+    # ifconfig
+      net-tools && \
+    apt-get autoremove
+
+
+# Labels for the docker
+LABEL description="This docker sets up the environment to run Nvidia bert with ORT Training"
+
+# Everything above this line is required for the docker.
+# Add your personalized features below here.
+
+##
+# Infiniband setup
+ENV MOFED_VERSION=4.7-3.2.9.0
+ENV MOFED_OS=ubuntu18.04
+ENV MOFED_FILENAME=MLNX_OFED_LINUX-${MOFED_VERSION}-${MOFED_OS}-x86_64
+RUN curl -fSsL https://www.mellanox.com/downloads/ofed/MLNX_OFED-${MOFED_VERSION}/${MOFED_FILENAME}.tgz |    tar -zxpf -
+RUN cd MLNX_OFED_LINUX-${MOFED_VERSION}-${MOFED_OS}-x86_64 && \
+    ./mlnxofedinstall --force --user-space-only --without-fw-update && \
+    cd .. && \
+    rm -r MLNX_OFED_LINUX-${MOFED_VERSION}-${MOFED_OS}-x86_64
+
+# ORT requirement
+
+WORKDIR $STAGE_DIR
+ENV OPENMPI_BASEVERSION=4.0
+ENV OPENMPI_VERSION=${OPENMPI_BASEVERSION}.2
+RUN cd ${STAGE_DIR} && \
+    wget -q -O - https://download.open-mpi.org/release/open-mpi/v${OPENMPI_BASEVERSION}/openmpi-${OPENMPI_VERSION}.tar.gz | tar xzf - && \
+    cd openmpi-${OPENMPI_VERSION} && \
+    ./configure --enable-mca-no-build=btl-uct --prefix=/usr/local/openmpi-${OPENMPI_VERSION} && \
+    make -j"$(nproc)" install && \
+    ln -s /usr/local/openmpi-${OPENMPI_VERSION} /usr/local/mpi4 && \
+    # Sanity check:
+    test -f /usr/local/mpi4/bin/mpic++ && \
+    cd ${STAGE_DIR} && \
+    rm -r ${STAGE_DIR}/openmpi-${OPENMPI_VERSION}
+ENV PATH=/usr/local/mpi4/bin:${PATH} \
+    LD_LIBRARY_PATH=/usr/local/lib:/usr/local/mpi4/lib:/usr/local/mpi4/lib64:${LD_LIBRARY_PATH}
+# Create a wrapper for OpenMPI to allow running as root by default
+RUN mv /usr/local/mpi4/bin/mpirun /usr/local/mpi4/bin/mpirun.real && \
+    echo '#!/bin/bash' > /usr/local/mpi4/bin/mpirun && \
+    echo 'mpirun.real --allow-run-as-root --prefix /usr/local/mpi4 "$@"' >> /usr/local/mpi4/bin/mpirun && \
+    chmod a+x /usr/local/mpi4/bin/mpirun
+
+ENV CMAKE_VERSION=3.16.4
+RUN cd /usr/local && \
+    wget -q -O - https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-Linux-x86_64.tar.gz | tar zxf -
+ENV PATH=/usr/local/cmake-${CMAKE_VERSION}-Linux-x86_64/bin:${PATH}
+
+RUN apt-get -y update && \
+    apt-get install -y bc tar sudo git bash
+
+RUN apt-get update && apt-get install -y pbzip2 pv bzip2 cabextract
+
+WORKDIR /workspace
+
+# additional dependencies for scripts
+RUN pip install --no-cache-dir \
+    tqdm boto3 requests six ipdb \
+    h5py html2text nltk progressbar \
+    mpi4py git+https://github.com/NVIDIA/dllogger
 
 # add pytorch patch for opset 10
 COPY pyt_patch /tmp/pyt_patch
-RUN cp /tmp/pyt_patch/symbolic_opset10.py /opt/miniconda/lib/python3.7/site-packages/torch/onnx/
+RUN cp /tmp/pyt_patch/symbolic_opset10.py /opt/conda/lib/python3.6/site-packages/torch/onnx/
 
-# build and install onnxruntime
-WORKDIR /src
-RUN wget --quiet https://github.com/Kitware/CMake/releases/download/v3.14.3/cmake-3.14.3-Linux-x86_64.tar.gz &&\
-    tar zxf cmake-3.14.3-Linux-x86_64.tar.gz &&\
-    mv cmake-3.14.3-Linux-x86_64 /opt/cmake &&\
-    rm -rf cmake-3.14.3-Linux-x86_64.tar.gz
-
+# Build onnxruntime training wheel from orttraining_rc1 branch
 RUN git clone https://github.com/microsoft/onnxruntime.git &&\
-    cp /src/onnxruntime/ThirdPartyNotices.txt /src/ThirdPartyNotices.txt &&\
-    cp /src/onnxruntime/dockerfiles/LICENSE-IMAGE.txt /src/LICENSE-IMAGE.txt &&\
-    cd /src/onnxruntime &&\
+    cd onnxruntime &&\
     git checkout orttraining_rc1 &&\
-    /bin/sh ./build.sh \
+    python tools/ci_build/build.py \
         --config RelWithDebInfo \
         --use_cuda \
         --cuda_home /usr/local/cuda \
@@ -37,17 +110,13 @@ RUN git clone https://github.com/microsoft/onnxruntime.git &&\
         --build_wheel \
         --enable_training \
         --parallel \
+        --build_dir build \
+        --skip_tests \
         --cmake_extra_defines ONNXRUNTIME_VERSION=`cat ./VERSION_NUMBER` &&\
     pip install \
-          /src/onnxruntime/build/Linux/RelWithDebInfo/dist/*.whl &&\
+          build/RelWithDebInfo/dist/*.whl &&\
     cd .. &&\
     rm -rf onnxruntime /opt/cmake
-          
-# install additional dependencies for scripts
-RUN apt-get update && apt-get install -y pbzip2 pv bzip2 cabextract
-RUN pip install --no-cache-dir \
- tqdm boto3 requests six ipdb h5py html2text nltk progressbar mpi4py \
- git+https://github.com/NVIDIA/dllogger
 
 RUN apt-get install -y iputils-ping
 RUN ldconfig
