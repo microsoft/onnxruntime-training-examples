@@ -121,7 +121,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
     bash build.sh
     cd ../..
     ```    
-    - Tag this image __bert-onnxruntime__`
+    - Tag this image __onnxruntime-bert__`
 
 3. Set correct paths to training data for docker image.
 
