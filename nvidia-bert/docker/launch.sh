@@ -15,4 +15,4 @@ docker run -it --rm \
   -v $PWD:/workspace/bert \
   -v $PWD/results:/results \
   --workdir=/workspace/bert \
-  bert-onnxruntime $CMD
+  onnxruntime-bert $CMD

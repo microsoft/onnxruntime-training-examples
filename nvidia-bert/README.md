@@ -112,15 +112,17 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
     * Docker
     * [NVIDIA docker toolkit](https://github.com/NVIDIA/nvidia-docker)
 
-2. Pull the ONNX Runtime training docker image
+2. Build the ONNX Runtime training docker image
 
     ```bash
-    docker image pull <TODO INSERT MCR DOCKER IMAGE PATH HERE >
+    cd nvidia-bert/docker
+    bash build.sh
+    cd ../..
     ```
 
 3. Set correct paths to training data for docker image.
 
-   Edit `nvida-bert/docker/launch.sh`.
+   Edit `nvidia-bert/docker/launch.sh`.
 
    ```bash
    ...
@@ -129,25 +131,20 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
    ...
    ```
 
-4. Launch interactive container.
+   The two directories must contain the hdf5 training files.
 
-    ```bash
-    cd workspace/BERT
-    bash ../../nvidia-bert/docker/launch.sh
-    ```
+4. Set the number of GPUs and per GPU limit.
 
-5. Set the number of GPUs and per GPU limit.
-
-    Edit `/workspace/scripts/run_pretraining_ort.sh` inside the container.
+    Edit `workspace/BERT/scripts/run_pretraining_ort.sh`.
 
     ```bash
     num_gpus=${4:-8}
     gpu_memory_limit_gb=${26:-"32"}
     ```
 
-6. Modify other training parameters as needed.
+5. Modify other training parameters as needed.
 
-    Edit `/workspace/scripts/run_pretraining_ort.sh` inside the container.
+    Edit `workspace/BERT/scripts/run_pretraining_ort.sh`.
 
     ```bash
     seed=${12:-42}
@@ -173,14 +170,21 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 
     Consult [Parameters](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#parameters) section by NVIDIA for additional details.
 
+6. Launch interactive container.
+
+    ```bash
+    cd workspace/BERT
+    bash ../../nvidia-bert/docker/launch.sh
+    ```
+
 7. Launch pre-training run
 
     ```bash
-    bash /workspace/scripts/run_pretraining_ort.sh
+    bash /workspace/bert/scripts/run_pretraining_ort.sh
     ```
 
     If you get memory errors, try reducing the batch size or enabling the partition optimizer flag.
 
-## Finetuning
+## Fine-tuning
 
-For finetuning tasks, follow [model_evaluation.md](model_evaluation.md)
+For fine-tuning tasks, follow [model_evaluation.md](model_evaluation.md)
