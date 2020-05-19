@@ -5,8 +5,8 @@ FROM nvidia/cuda:10.1-cudnn7-devel
 RUN apt-get update &&\
     apt-get install -y sudo git bash
 
-RUN apt-get update && apt-get install -y --no-install-recommends &&\
-    wget zip ca-certificates build-essential curl libcurl4-openssl-dev &&\
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget zip ca-certificates build-essential curl libcurl4-openssl-dev \
     libssl-dev python3-dev python3.6 python3-pip
 
 # set paths for cmake, miniconda, and cuda
