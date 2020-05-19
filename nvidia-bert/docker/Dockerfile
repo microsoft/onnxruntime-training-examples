@@ -92,9 +92,6 @@ RUN pip install --no-cache-dir \
     h5py html2text nltk progressbar \
     mpi4py git+https://github.com/NVIDIA/dllogger
 
-# install pytorch stable using CUDA 10.1
-RUN pip install torch==1.5.0+cu101 torchvision==0.6.0+cu101 -f https://download.pytorch.org/whl/torch_stable.html
-
 # add pytorch patch for opset 10
 COPY pyt_patch /tmp/pyt_patch
 RUN cp /tmp/pyt_patch/symbolic_opset10.py /opt/conda/lib/python3.6/site-packages/torch/onnx/
