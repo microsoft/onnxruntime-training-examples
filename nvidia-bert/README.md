@@ -115,7 +115,9 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 2. Build the ONNX Runtime training docker image
 
     ```bash
-    bash nvidia-bert/docker/build.sh
+    cd nvidia-bert/docker
+    bash build.sh
+    cd ../..
     ```
 
 3. Set correct paths to training data for docker image.
