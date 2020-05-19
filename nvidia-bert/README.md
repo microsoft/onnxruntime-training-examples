@@ -93,10 +93,16 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 1. Setup environment
 
     * Transfer training data to Azure blob storage
+
+    To transfer the data to an Azure blob storage using [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest), use command:
+    ```bash
+    az storage blob upload-batch --account-name <storage-name> -d <container-name> -s ./workspace/BERT/data
+    ```
+
     * Register the blob container as a data store
     * Mount the data store in the compute targets used for training
 
-    Please refer to the [storage guidance](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-access-data#storage-guidance) for more details on using Azure storage account for training in Azure Machine Learning.
+    Please refer to the [storage guidance](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-access-data#storage-guidance) for details on using Azure storage account for training in Azure Machine Learning. 
 
 2. Execute pre-training
 
@@ -117,16 +123,17 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
     * Docker
     * [NVIDIA docker toolkit](https://github.com/NVIDIA/nvidia-docker)
 
-2. Build the ONNX Runtime training Python wheel and docker image
+2. Build the ONNX Runtime Docker image
 
-    - Built the onnxruntime wheel from souce. The build steps are [here](https://github.com/microsoft/onnxruntime/blob/master/BUILD.md#Training)
-    - Copy and `pip install` the wheel file in your container environment. *here is a sample to build the docker image*
+    Build the onnxruntime wheel from source into a Docker image.
     ```bash
     cd nvidia-bert/docker
     bash build.sh
     cd ../..
     ```    
     - Tag this image __onnxruntime-bert__`
+    
+    To build and install the onnxruntime wheel on the host machine, follow steps [here](https://github.com/microsoft/onnxruntime/blob/master/BUILD.md#Training)
 
 3. Set correct paths to training data for docker image.
 
