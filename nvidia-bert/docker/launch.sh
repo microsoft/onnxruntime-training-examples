@@ -15,4 +15,4 @@ docker run -it --rm \
   -v $PWD:/workspace/bert \
   -v $PWD/results:/results \
   --workdir=/workspace/bert \
-  bert-onnxruntime $CMD
+  mcr.microsoft.com/azureml/onnxruntime-training:0.1-rc1-openmpi4.0-cuda10.1-cudnn7.6-nccl2.4.8 $CMD

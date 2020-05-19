@@ -115,7 +115,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 2. Pull the ONNX Runtime training docker image
 
     ```bash
-    docker image pull <TODO INSERT MCR DOCKER IMAGE PATH HERE >
+    docker pull mcr.microsoft.com/azureml/onnxruntime-training:0.1-rc1-openmpi4.0-cuda10.1-cudnn7.6-nccl2.4.8
     ```
 
 3. Set correct paths to training data for docker image.
@@ -181,6 +181,6 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 
     If you get memory errors, try reducing the batch size or enabling the partition optimizer flag.
 
-## Finetuning
+## Fine-tuning
 
-For finetuning tasks, follow [model_evaluation.md](model_evaluation.md)
+For fine-tuning tasks, follow [model_evaluation.md](model_evaluation.md)
