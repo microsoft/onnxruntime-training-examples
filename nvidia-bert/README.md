@@ -112,15 +112,15 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
     * Docker
     * [NVIDIA docker toolkit](https://github.com/NVIDIA/nvidia-docker)
 
-2. Pull the ONNX Runtime training docker image
+2. Build the ONNX Runtime training docker image
 
     ```bash
-    docker pull mcr.microsoft.com/azureml/onnxruntime-training:0.1-rc1-openmpi4.0-cuda10.1-cudnn7.6-nccl2.4.8
+    bash nvidia-bert/docker/build.sh
     ```
 
 3. Set correct paths to training data for docker image.
 
-   Edit `nvida-bert/docker/launch.sh`.
+   Edit `nvidia-bert/docker/launch.sh`.
 
    ```bash
    ...
