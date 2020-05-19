@@ -7,7 +7,7 @@ RUN apt-get update &&\
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget zip ca-certificates build-essential curl libcurl4-openssl-dev \
-    libssl-dev python3-dev python3.6 python3-pip
+    libssl-dev python3-dev python3.6 python3-pip python3-setuptools
 
 # set paths for cmake, miniconda, and cuda
 ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:/opt/cmake/bin:/opt/miniconda/bin:${PATH}
