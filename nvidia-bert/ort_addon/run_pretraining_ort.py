@@ -32,12 +32,21 @@ from tqdm import tqdm, trange
 import os
 import numpy as np
 import torch
+import torch.distributed as dist
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, Dataset
 import math
 import multiprocessing
 import modeling
 
-from utils import is_main_process, format_step
+from utils import format_step
+
+# replace routine from utils.py as we dont use torch.distributed
+def is_main_process(args):
+    if hasattr(args, 'world_rank'):
+        return args.world_rank == 0
+    if dist.is_available() and dist.is_initialized():
+        return dist.get_rank() == 0
+    return True
 
 import dllogger
 from concurrent.futures import ProcessPoolExecutor
@@ -250,7 +259,7 @@ def parse_arguments():
                         default=False,
                         action='store_true',
                         help="Whether to run training.")
-    parser.add_argument('--json-summary', type=str, default="_dllogger.json_",
+    parser.add_argument('--json-summary', type=str, default="dllogger.json",
                         help='If provided, the json summary will be written to'
                              'the specified file.')
     parser.add_argument("--use_env",
@@ -287,7 +296,7 @@ def setup_training(args):
     import ort_supplement.ort_supplement as ort_supplement
     device = ort_supplement.setup_onnxruntime_with_mpi(args)
         
-    if is_main_process():
+    if is_main_process(args):
         dllogger.init(backends=[dllogger.JSONStreamBackend(verbosity=dllogger.Verbosity.VERBOSE,
                                                            filename=args.json_summary),
                                 dllogger.StdOutBackend(verbosity=dllogger.Verbosity.VERBOSE, step_format=format_step)])
@@ -313,7 +322,7 @@ def setup_training(args):
             os.listdir(args.output_dir) and any([i.startswith('ckpt') for i in os.listdir(args.output_dir)])):
         raise ValueError("Output directory ({}) already exists and is not empty.".format(args.output_dir))
 
-    if (not args.resume_from_checkpoint or not os.path.exists(args.output_dir)) and is_main_process():
+    if (not args.resume_from_checkpoint or not os.path.exists(args.output_dir)) and is_main_process(args):
         os.makedirs(args.output_dir, exist_ok=True)
 
     return device, args
@@ -353,11 +362,11 @@ def prepare_model(args, device):
         
         if args.phase2 and not args.init_checkpoint:
             global_step -= args.phase1_end_step
-        if is_main_process():
+        if is_main_process(args):
             print("resume step from ", args.resume_step)
 
     return model, checkpoint, global_step
-
+    
 def main():
 
     args = parse_arguments()
@@ -377,12 +386,12 @@ def main():
     # Prepare optimizer
     model, checkpoint, global_step = prepare_model(args, device)
 
-    if is_main_process():
+    if is_main_process(args):
         dllogger.log(step="PARAMETER", data={"SEED": args.seed})
 
     raw_train_start = time.time()
     if args.do_train:
-        if is_main_process():
+        if is_main_process(args):
             dllogger.log(step="PARAMETER", data={"train_start": True})
             dllogger.log(step="PARAMETER", data={"batch_size_per_gpu": args.train_batch_size})
             dllogger.log(step="PARAMETER", data={"learning_rate": args.learning_rate})
@@ -460,7 +469,7 @@ def main():
 
                 dataset_future = pool.submit(create_pretraining_dataset, data_file, args.max_predictions_per_seq, shared_file_list, args, worker_init)
 
-                train_iter = tqdm(train_dataloader, desc="Iteration", disable=args.disable_progress_bar) if is_main_process() else train_dataloader
+                train_iter = tqdm(train_dataloader, desc="Iteration", disable=args.disable_progress_bar) if is_main_process(args) else train_dataloader
                 prev_step_time = time.time()
                 for step, batch in enumerate(train_iter):
 
@@ -482,7 +491,7 @@ def main():
                             average_loss /= torch.distributed.get_world_size()
                             torch.distributed.all_reduce(average_loss)
                         final_loss = average_loss.item()
-                        if is_main_process():
+                        if is_main_process(args):
                             dllogger.log(step=(epoch, global_step, ), data={"final_loss": final_loss})
                     elif training_steps % (args.log_freq * args.gradient_accumulation_steps) == 0:
                         throughput =  (args.train_batch_size * args.gradient_accumulation_steps) / (time.time() - prev_step_time)
@@ -490,7 +499,7 @@ def main():
                         prev_step_time = time.time()
                         sys.stdout.flush()
 
-                        if is_main_process():
+                        if is_main_process(args):
                             data = {"average_loss": average_loss / (args.log_freq * divisor),
                                     "step_loss": loss.item() * args.gradient_accumulation_steps / divisor}
                             dllogger.log(step=(epoch, global_step, ), data=data)
@@ -498,7 +507,7 @@ def main():
 
                     if global_step >= args.max_steps or training_steps % (
                             args.num_steps_per_checkpoint * args.gradient_accumulation_steps) == 0:
-                        if is_main_process() and not args.skip_checkpoint:
+                        if is_main_process(args) and not args.skip_checkpoint:
                             # Save a trained model
                             dllogger.log(step="PARAMETER", data={"checkpoint_step": global_step})
                             model_to_save = model.module if hasattr(model,
@@ -518,7 +527,7 @@ def main():
                                     os.remove(ckpt_to_be_removed)
 
                         if global_step >= args.max_steps:
-                            if is_main_process():
+                            if is_main_process(args):
                                 print('-----------------------save onnx model-----------------------')
                                 if not args.phase2:
                                     model_to_save.save_as_onnx('{}/phase1_bert.onnx'.format(args.output_dir))
@@ -547,7 +556,7 @@ if __name__ == "__main__":
         args.resume_step = 0
     if torch.distributed.is_initialized():
         gpu_count = torch.distributed.get_world_size()
-    if is_main_process():
+    if is_main_process(args):
         e2e_time = time.time() - now
         training_perf = args.train_batch_size * args.gradient_accumulation_steps * gpu_count\
                         * (args.max_steps - args.resume_step + skipped_steps) / train_time_raw
