@@ -88,7 +88,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 
     Below instructions refer to these hdf5 data files as the data to make accessible to training process.
 
-    To transfer the data to Azure using [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest), use command:
+    To transfer the data to an Azure blob storage using [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest), use command:
     ```bash
     az storage blob upload-batch --account-name <storage-name> -d <container-name> -s ./workspace/BERT/data
     ```
