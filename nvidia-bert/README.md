@@ -129,25 +129,18 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
    ...
    ```
 
-4. Launch interactive container.
+4. Set the number of GPUs and per GPU limit.
 
-    ```bash
-    cd workspace/BERT
-    bash ../../nvidia-bert/docker/launch.sh
-    ```
-
-5. Set the number of GPUs and per GPU limit.
-
-    Edit `/workspace/scripts/run_pretraining_ort.sh` inside the container.
+    Edit `workspace/BERT/scripts/run_pretraining_ort.sh`.
 
     ```bash
     num_gpus=${4:-8}
     gpu_memory_limit_gb=${26:-"32"}
     ```
 
-6. Modify other training parameters as needed.
+5. Modify other training parameters as needed.
 
-    Edit `/workspace/scripts/run_pretraining_ort.sh` inside the container.
+    Edit `workspace/BERT/scripts/run_pretraining_ort.sh`.
 
     ```bash
     seed=${12:-42}
@@ -173,10 +166,17 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 
     Consult [Parameters](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#parameters) section by NVIDIA for additional details.
 
+6. Launch interactive container.
+
+    ```bash
+    cd workspace/BERT
+    bash ../../nvidia-bert/docker/launch.sh
+    ```
+
 7. Launch pre-training run
 
     ```bash
-    bash /workspace/scripts/run_pretraining_ort.sh
+    bash /workspace/bert/scripts/run_pretraining_ort.sh
     ```
 
     If you get memory errors, try reducing the batch size or enabling the partition optimizer flag.
