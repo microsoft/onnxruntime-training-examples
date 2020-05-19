@@ -115,9 +115,13 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 2. Build the ONNX Runtime training Python wheel and docker image
 
     - Built the onnxruntime wheel from souce. The build steps are [here](https://github.com/microsoft/onnxruntime/blob/master/BUILD.md#Training)
-    - Copy and `pip install` the wheel file in your container environment. 
-    **the steps to build the container is not covered here**
-    - Tag this container image `bert-onnxruntime`
+    - Copy and `pip install` the wheel file in your container environment. *here is a sample to build the docker image*
+    ```bash
+    cd nvidia-bert/docker
+    bash build.sh
+    cd ../..
+    ```    
+    - Tag this image __bert-onnxruntime__`
 
 3. Set correct paths to training data for docker image.
 
