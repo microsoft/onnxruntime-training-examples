@@ -88,16 +88,17 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 
     Below instructions refer to these hdf5 data files as the data to make accessible to training process.
 
-    To transfer the data to an Azure blob storage using [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest), use command:
-    ```bash
-    az storage blob upload-batch --account-name <storage-name> -d <container-name> -s ./workspace/BERT/data
-    ```
-
 ## BERT pre-training with ONNX Runtime in Azure Machine Learning
 
 1. Setup environment
 
     * Transfer training data to Azure blob storage
+
+    To transfer the data to an Azure blob storage using [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest), use command:
+    ```bash
+    az storage blob upload-batch --account-name <storage-name> -d <container-name> -s ./workspace/BERT/data
+    ```
+
     * Register the blob container as a data store
     * Mount the data store in the compute targets used for training
 
