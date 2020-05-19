@@ -1,8 +1,19 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-FROM mcr.microsoft.com/azureml/base-gpu:openmpi3.1.2-cuda10.1-cudnn7-ubuntu18.04
-RUN apt update -y && pip install --upgrade pip
+FROM nvidia/cuda:10.1-cudnn7-devel
+
+RUN apt-get update &&\
+    apt-get install -y sudo git bash
+
+RUN apt-get update && apt-get install -y --no-install-recommends &&\
+    wget zip ca-certificates build-essential curl libcurl4-openssl-dev &&\
+    libssl-dev python3-dev
+
+# Cmake
+RUN wget --quiet https://github.com/Kitware/CMake/releases/download/v3.14.3/cmake-3.14.3-Linux-x86_64.tar.gz &&\
+    tar zxf cmake-3.14.3-Linux-x86_64.tar.gz &&\
+    rm -rf cmake-3.14.3-Linux-x86_64.tar.gz
 
 # set paths for cmake, miniconda, and cuda
 ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:/opt/cmake/bin:/opt/miniconda/bin:${PATH}
