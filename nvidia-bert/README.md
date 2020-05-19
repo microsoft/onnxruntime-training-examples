@@ -115,7 +115,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 2. Pull the ONNX Runtime training docker image
 
     ```bash
-    docker pull onnxruntimeregistry.azurecr.io/public/azureml/onnxruntime-training:0.1-rc1-openmpi4.0-cuda10.1-cudnn7.6-nccl2.4.8
+    docker pull mcr.microsoft.com/azureml/onnxruntime-training:0.1-rc1-openmpi4.0-cuda10.1-cudnn7.6-nccl2.4.8
     ```
 
 3. Set correct paths to training data for docker image.
