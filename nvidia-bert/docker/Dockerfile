@@ -9,6 +9,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget zip ca-certificates build-essential curl libcurl4-openssl-dev \
     libssl-dev python3-dev python3.6 python3-pip python3-setuptools
 
+# install OpenMPI
+RUN wget https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.0.tar.gz &&\
+    tar zxf openmpi-4.0.0.tar.gz &&\
+    cd openmpi-4.0.0 &&\
+    ./configure --enable-orterun-prefix-by-default &&\
+    make -j $(nproc) all &&\
+    make install
+    
 # set paths for cmake, miniconda, and cuda
 ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:/opt/cmake/bin:/opt/miniconda/bin:${PATH}
 ENV LD_LIBRARY_PATH /opt/miniconda/lib:$LD_LIBRARY_PATH
