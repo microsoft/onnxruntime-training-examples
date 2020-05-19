@@ -1,133 +1,186 @@
-# Instructions:
+# Accelerate BERT pre-training with ONNX Runtime
 
-Step 0. Clone this repository and switch to this BERT example directory. 
+This example uses ONNX Runtime to pre-train the BERT PyTorch model maintained at https://github.com/NVIDIA/DeepLearningExamples.
 
-```bash
-git clone https://github.com/microsoft/onnxruntime-training-examples.git
-cd onnxruntime-training-examples/nvidia-bert
-```
+You can run the training in Azure Machine Learning or on an NVIDIA DGX-2.
 
-Step 1. Setup the BERT project workspace.
+## Setup
 
-```bash
-./setup_workspace.sh
-```
+1. Clone this repo
 
-This downloads the NVIDIA PyTorch BERT example and adds in files to use onnxruntime as backend.
+    ```bash
+    git clone https://github.com/microsoft/onnxruntime-training-examples.git
+    cd onnxruntime-training-examples
+    ```
 
-Step 2. Build onnxruntime into Docker image.
-```bash
-cd docker
-docker build --network=host -t bert-onnxruntime .
-```
-This builds onnxruntime from source and contains CUDA 10.1, MPI, and PyTorch 1.5.
+2. Clone download code and model
 
-Step 3. Download and parse training data into HDF5 format. For details follow [Getting the data](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#getting-the-data) section by NVIDIA. 
+    ```bash
+    git clone --no-checkout https://github.com/NVIDIA/DeepLearningExamples.git
+    cd DeepLearningExamples/
+    git config core.sparseCheckout true
+    echo "PyTorch/LanguageModeling/BERT/*"> .git/info/sparse-checkout
+    git checkout 4733603577080dbd1bdcd51864f31e45d5196704
+    cd ..
+    ```
 
-```bash
-cd workspace
-bash scripts/docker/build.sh
-bash scripts/docker/launch.sh
-bash data/create_datasets_from_start.sh 
-```
+3. Create working directory
 
-## For local run, proceed as ..
+    ```bash
+    mkdir -p workspace
+    mv DeepLearningExamples/PyTorch/LanguageModeling/BERT/ workspace
+    rm -rf DeepLearningExamples
+    cp -r ./nvidia-bert/ort_addon/* workspace/BERT
+    cd workspace
+    git clone https://github.com/attardi/wikiextractor.git
+    cd ..
+    ```
 
-Step 4. Set correct paths to training data for docker image.
+## Download and prepare data
 
-Within workspace/scripts/docker/launch_ort.sh:
-```bash
-...
--v <replace-with-path-to-phase1-hdf5-training-data>:/data/128 
--v <replace-with-path-to-phase2-hdf5-training-data>:/data/512
-...
-```
-Step 5. Launch interactive container.
-```bash
-cd workspace
-bash scripts/docker/launch_ort.sh
-```
+The following are a minimal set of instructions to download and process one of the datasets used for BERT pre-training.
 
-Step 6. Modify default training parameters as needed.
+To include additional datasets, and for more details, refer to [DeepLearningExamples](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#getting-the-data).
 
-Edit scripts/run_pretraining_ort.sh
-```bash
-seed=${12:-42}
-num_gpus=${4:-4}
-gpu_memory_limit_gb=${26:-"32"}
+Note that the datasets used for BERT pre-training need a large amount of disk space. After processing, the data should be made available for training. Due to the large size of the data copy, we recommend that you execute the steps below in the training environment itself or in an environment from where data transfer to training environment will be fast and efficient.
 
-accumulate_gradients=${10:-"true"}
-partition_optimizer=${27:-"false"}
+1. Check pre-requisites
 
-train_batch_size=${1:-8192} 
-learning_rate=${2:-"6e-3"}
-warmup_proportion=${5:-"0.2843"}
-train_steps=${6:-7038}
-accumulate_gradients=${10:-"true"}
-gradient_accumulation_steps=${11:-128}
+    * Natural Language Toolkit (NLTK) `python3-pip install nltk`
+    * Python 3.6
 
-train_batch_size_phase2=${17:-4096}
-learning_rate_phase2=${18:-"4e-3"}
-warmup_proportion_phase2=${19:-"0.128"}
-train_steps_phase2=${20:-1563}
-gradient_accumulation_steps_phase2=${11:-256} 
-```
+2. Download and prepare Wikicorpus training data in HDF5 format.
 
-Be sure to set the number of GPUs and the per GPU memory limit in GB.
-The per GPU batch size will be the training batch size divided by gradient accumulation steps.
-Consult [Parameters](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#parameters) section by NVIDIA for additional details.
+    ```bash
+    export BERT_PREP_WORKING_DIR=./workspace/BERT/data/
 
-Step 7. Launch pretraining run.    
-```bash
-bash scripts/run_pretraining_ort.sh
-```
-If you get memory errors, try reducing the batch size or enabling the partition optimizer flag.
+    # Download
+    python ./workspace/BERT/data/bertPrep.py --action download --dataset wikicorpus_en
+    python ./workspace/BERT/data/bertPrep.py --action download --dataset google_pretrained_weights
+
+    # Fix path issue to use BERT_PREP_WORKING_DIR as prefix for path instead of hard-coded prefix
+    sed -i "s/path_to_wikiextractor_in_container = '/path_to_wikiextractor_in_container = './g" ./workspace/BERT/data/bertPrep.py
+
+    # Format text files
+    python ./workspace/BERT/data/bertPrep.py --action text_formatting --dataset wikicorpus_en
+
+    # Shard text files
+    python ./workspace/BERT/data/bertPrep.py --action sharding --dataset wikicorpus_en
+
+    # Fix path to workspace to allow running outside of the docker container
+    sed -i "s/python \/workspace/python .\/workspace/g" ./workspace/BERT/data/bertPrep.py
+
+    # Create HDF5 files Phase 1
+    python ./workspace/BERT/data/bertPrep.py --action create_hdf5_files --dataset wikicorpus_en --max_seq_length 128 \
+      --max_predictions_per_seq 20 --vocab_file ./workspace/BERT/data/download/google_pretrained_weights/uncased_L-24_H-1024_A-16/vocab.txt --do_lower_case 1
+
+    # Create HDF5 files Phase 2
+    python ./workspace/BERT/data/bertPrep.py --action create_hdf5_files --dataset wikicorpus_en --max_seq_length 512 \
+    --max_predictions_per_seq 80 --vocab_file ./workspace/BERT/data/download/google_pretrained_weights/uncased_L-24_H-1024_A-16/vocab.txt --do_lower_case 1
+    ```
+
+3. Make data accessible for training
+
+    Data prepared using the steps above need to be available for training. Follow instructions in the sections below to learn steps required for making data accessible to training process depending on the training environment.
+
+## BERT pre-training with ONNX Runtime in Azure Machine Learning
+
+1. Setup environment
+
+    * Transfer training data to Azure blob storage
+    * Register the blob container as a data store
+    * Mount the data store in the compute targets used for training
+
+    Please refer to the [storage guidance](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-access-data#storage-guidance) for more details on using Azure storage account for training in Azure Machine Learning.
+
+2. Execute pre-training
+
+    The BERT pre-training job in Azure Machine Learning can be launched using either of these environments:
+
+    * Azure Machine Learning [Compute Instance](https://docs.microsoft.com/en-us/azure/machine-learning/concept-compute-instance) to run the Jupyter notebook.
+    * Azure Machine Learning [SDK](https://docs.microsoft.com/en-us/python/api/overview/azure/ml/?view=azure-ml-py)
+
+    You will need a [GPU optimized compute target](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-set-up-training-targets#amlcompute) - _either NCv3 or NDv2 series_, to execute this pre-training job.
+
+    Execute the steps in the Python notebook [azureml-notebooks/run-pretraining.ipynb](azureml-notebooks/run-pretraining.ipynb) within your environment. If you have a local setup to run an Azure ML notebook, you could run the steps in the notebook in that environment. Otherwise, a compute instance in Azure Machine Learning could be created and used to run the steps.
+
+## BERT pre-training with ONNX Runtime on a DGX-2
+
+1. Check pre-requisites
+
+    * CUDA 10.1
+    * Docker
+    * [NVIDIA docker toolkit](https://github.com/NVIDIA/nvidia-docker)
+
+2. Pull the ONNX Runtime training docker image
+
+    ```bash
+    docker image pull <TODO INSERT MCR DOCKER IMAGE PATH HERE >
+    ```
+
+3. Set correct paths to training data for docker image.
+
+   Edit `nvida-bert/docker/launch.sh`.
+
+   ```bash
+   ...
+   -v <replace-with-path-to-phase1-hdf5-training-data>:/data/128
+   -v <replace-with-path-to-phase2-hdf5-training-data>:/data/512
+   ...
+   ```
+
+4. Launch interactive container.
+
+    ```bash
+    cd workspace/BERT
+    bash ../../nvidia-bert/docker/launch.sh
+    ```
+
+5. Set the number of GPUs and per GPU limit.
+
+    Edit `/workspace/scripts/run_pretraining_ort.sh` inside the container.
+
+    ```bash
+    num_gpus=${4:-8}
+    gpu_memory_limit_gb=${26:-"32"}
+    ```
+
+6. Modify other training parameters as needed.
+
+    Edit `/workspace/scripts/run_pretraining_ort.sh` inside the container.
+
+    ```bash
+    seed=${12:-42}
+
+    accumulate_gradients=${10:-"true"}
+    partition_optimizer=${27:-"false"}
+
+    train_batch_size=${1:-8192}
+    learning_rate=${2:-"6e-3"}
+    warmup_proportion=${5:-"0.2843"}
+    train_steps=${6:-7038}
+    accumulate_gradients=${10:-"true"}
+    gradient_accumulation_steps=${11:-128}
+
+    train_batch_size_phase2=${17:-4096}
+    learning_rate_phase2=${18:-"4e-3"}
+    warmup_proportion_phase2=${19:-"0.128"}
+    train_steps_phase2=${20:-1563}
+    gradient_accumulation_steps_phase2=${11:-256}
+    ```
+
+    The per GPU batch size will be the training batch size divided by gradient accumulation steps.
+
+    Consult [Parameters](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#parameters) section by NVIDIA for additional details.
+
+7. Launch pre-training run
+
+    ```bash
+    bash /workspace/scripts/run_pretraining_ort.sh
+    ```
+
+    If you get memory errors, try reducing the batch size or enabling the partition optimizer flag.
+
+## Finetuning
 
 For finetuning tasks, follow [model_evaluation.md](model_evaluation.md)
-
-## For Azure run, proceed as ..
-
-Step 4. Install Azure Cli and Azure ML CLI and SDK
-
-```bash
-curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-az login
-az extension add -n azure-cli-ml
-pip install --upgrade azureml-sdk
-pip install azureml-sdk[notebooks]
-```
-Consult [install-azure-cli](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest) for details.
-
-Step 5. Create Azure machine learning workspace.
-```bash
-az group create --name <resource-group-name> --location <location>
-az ml workspace create -w <workspace-name> -g <resource-group-name>
-```
-Consult [azure-ml-py](https://docs.microsoft.com/en-us/python/api/overview/azure/ml/?view=azure-ml-py) or [how-to-manage-workspace-cli](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-manage-workspace-cli) for details.
-
-Step 6. Create Azure container registry and upload onnxruntime Docker image.
-
-```bash
-az acr create --name <acr-name> --resource-group <resource-group-name> --sku <sku-type>
-az acr login --name <acr-name>
-docker tag bert-onnxruntime <acr-name>.azurecr.io/bert-onnxruntime
-docker push <acr-name>.azurecr.io/bert-onnxruntime
-```
-
-Consult [container-registry-get-started-docker-cli](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-docker-cli) for details.
-
-Step 7. Create storage and upload training data.
-    
-```bash
-az storage account create --resource-group <my-resource-group> --name <storage-name>
-az storage container create --account-name <storage-name> --name <container-name>
-az storage blob upload-batch --account-name <storage-name>  -d <container-name>  -s <path-to-training-data>
-```
-Consult [storage-account-create](https://docs.microsoft.com/en-us/azure/storage/common/storage-account-create?tabs=azure-portal)
-and [az-storage-blob-upload-batch](https://docs.microsoft.com/en-us/cli/azure/storage/blob?view=azure-cli-latest#az-storage-blob-upload-batch) for details.
-
-Step 8. Follow further instructions in Python notebook [azureml-notebooks/run-pretraining.ipynb](azureml-notebooks/run-pretraining.ipynb)
-   
-
-For finetuning tasks, follow [model_evaluation.md](model_evaluation.md)
-

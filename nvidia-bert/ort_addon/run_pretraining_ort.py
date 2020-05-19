@@ -250,7 +250,7 @@ def parse_arguments():
                         default=False,
                         action='store_true',
                         help="Whether to run training.")
-    parser.add_argument('--json-summary', type=str, default="results/dllogger.json",
+    parser.add_argument('--json-summary', type=str, default="_dllogger.json_",
                         help='If provided, the json summary will be written to'
                              'the specified file.')
     parser.add_argument("--use_env",
