@@ -131,6 +131,8 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
    ...
    ```
 
+   The two directories must contain the hdf5 training files.
+
 4. Set the number of GPUs and per GPU limit.
 
     Edit `workspace/BERT/scripts/run_pretraining_ort.sh`.
