@@ -98,7 +98,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 
     Please refer to the [storage guidance](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-access-data#storage-guidance) for details on using Azure storage account for training in Azure Machine Learning. 
 
-    With the [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest), the data folder can be transferred to an Azure blob storage using
+    The transfer the data to Azure using [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest) with command:
     ```bash
     az storage blob upload-batch --account-name <storage-name> -d <container-name> -s ./workspace/BERT/data
     ```
