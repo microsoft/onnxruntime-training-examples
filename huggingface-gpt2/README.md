@@ -71,9 +71,9 @@ Below instructions refer to these hdf5 data files as the data to make accessible
     ```    
     - Push the image to a container registry. You can find additional [details](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-docker-cli) about tagging the image and pushing to an [Azure Container Registry](https://docs.microsoft.com/en-us/azure/container-registry/).
     
-2. Execute pre-training
+2. Execute finetuning
 
-    The GPT2 finetunin job in Azure Machine Learning can be launched using either of these environments:
+    The GPT2 finetuning job in Azure Machine Learning can be launched using either of these environments:
 
     * Azure Machine Learning [Compute Instance](https://docs.microsoft.com/en-us/azure/machine-learning/concept-compute-instance) to run the Jupyter notebook.
     * Azure Machine Learning [SDK](https://docs.microsoft.com/en-us/python/api/overview/azure/ml/?view=azure-ml-py)
@@ -95,14 +95,14 @@ Below instructions refer to these hdf5 data files as the data to make accessible
     ```bash
     cd transformers
     docker build --network=host -f docker/transformers-ort-gpu/Dockerfile . --rm --pull -t onnxruntime-gpt
-    cd ../..
+    cd ..
     ```    
 
     To build and install the onnxruntime wheel on the host machine, follow steps [here](https://github.com/microsoft/onnxruntime/blob/master/BUILD.md#Training)
 
 3. Set correct paths to training data for docker image.
 
-   Edit `huggingface-gpt2/docker/launch.sh`.
+   Edit `docker/launch.sh`.
 
    ```bash
    ...
@@ -112,16 +112,9 @@ Below instructions refer to these hdf5 data files as the data to make accessible
 
    The directory must contain the training and validation files.
 
-4. Launch interactive container.
-
-    ```bash
-    cd workspace/BERT
-    bash ../../nvidia-bert/docker/launch.sh
-    ```
-
 5. Set the number of GPUs and switch for ORT or PyTorch run.
 
-    Edit `workspace/transformers/scripts/run_lm_gpt2.sh`.
+    Edit `transformers/scripts/run_lm_gpt2.sh`.
 
     ```bash
     num_gpus=4
@@ -130,7 +123,7 @@ Below instructions refer to these hdf5 data files as the data to make accessible
 
 5. Modify other training parameters as needed.
 
-    Edit `workspace/transformers/scripts/run_lm_gpt2.sh`.
+    Edit `transformers/scripts/run_lm_gpt2.sh`.
 
     ```bash
         --model_type=gpt2 
@@ -147,6 +140,12 @@ Below instructions refer to these hdf5 data files as the data to make accessible
     ```
 
     Consult the huggingface transformers [training_args](https://github.com/huggingface/transformers/blob/master/src/transformers/training_args.py) for additional details.
+
+4. Launch interactive container.
+
+    ```bash
+    bash docker/launch.sh
+    ```
 
 5. Launch the fine-tuning run
 

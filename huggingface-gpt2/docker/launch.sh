@@ -14,5 +14,5 @@ docker run -it --rm \
   -v $DATA_DIR:/data/ \
   -v $PWD:/workspace/ \
   -v $PWD/results:/results \
-  --workdir=/workspace/transformers \
+  --workdir=/workspace/ \
   onnxruntime-gpt $CMD
