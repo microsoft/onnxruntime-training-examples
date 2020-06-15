@@ -71,7 +71,7 @@ Below instructions refer to these hdf5 data files as the data to make accessible
     ```    
     - Push the image to a container registry. You can find additional [details](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-docker-cli) about tagging the image and pushing to an [Azure Container Registry](https://docs.microsoft.com/en-us/azure/container-registry/).
     
-2. Execute finetuning
+3. Execute finetuning
 
     The GPT2 finetuning job in Azure Machine Learning can be launched using either of these environments:
 
@@ -112,7 +112,7 @@ Below instructions refer to these hdf5 data files as the data to make accessible
 
    The directory must contain the training and validation files.
 
-5. Set the number of GPUs and switch for ORT or PyTorch run.
+4. Set the number of GPUs and switch for ORT or PyTorch run.
 
     Edit `transformers/scripts/run_lm_gpt2.sh`.
 
@@ -141,28 +141,16 @@ Below instructions refer to these hdf5 data files as the data to make accessible
 
     Consult the huggingface transformers [training_args](https://github.com/huggingface/transformers/blob/master/src/transformers/training_args.py) for additional details.
 
-4. Launch interactive container.
+6. Launch interactive container.
 
     ```bash
     bash docker/launch.sh
     ```
 
-5. Launch the fine-tuning run
+7. Launch the fine-tuning run
 
     ```bash
     bash /workspace/transformers/scripts/run_lm_gpt2.sh
     ```
 
     If you get memory errors, try reducing the batch size. You can find the recommended batch sizes for ORT and PyTorch [here](azureml-notebooks/run-finetuning.ipynb###Creat-Estimator).
-
-
-
-
-
-
-
-
-
-## Fine-tuning
-
-For fine-tuning tasks, follow [model_evaluation.md](model_evaluation.md)
