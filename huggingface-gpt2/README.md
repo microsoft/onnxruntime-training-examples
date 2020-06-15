@@ -32,8 +32,8 @@ You can run the training in Azure Machine Learning or locally.
 
 The following are a minimal set of instructions to download one of the datasets used for GPT2 finetuning for the language modeling task.
 
-Refer to the readme at [transformers](https://github.com/huggingface/transformers/tree/master/examples/language-modeling#language-model-training) for additional details.
 Download the word-level dataset [WikiText-103](https://blog.einstein.ai/the-wikitext-long-term-dependency-language-modeling-dataset/) for this sample.
+Refer to the readme at [transformers](https://github.com/huggingface/transformers/tree/master/examples/language-modeling#language-model-training) for additional details.
 
 Download the data and export path as $DATA_DIR: 
 ```bash
