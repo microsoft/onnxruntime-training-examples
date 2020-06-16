@@ -130,8 +130,10 @@ class bert_model_with_loss(torch.nn.Module):
         self.loss_fn_ = loss_fn
 
     def forward(self, input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels):
-        preds_score, seq_relation_score = self.model_(input_ids, segment_ids, input_mask)
-        return self.loss_fn_(preds_score, seq_relation_score, masked_lm_labels, next_sentence_labels)
+        total_loss, mlm_acc = self.model_(input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels)
+        return total_loss
+        # preds_score, seq_relation_score = self.model_(input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels)
+        # return self.loss_fn_(preds_score, seq_relation_score, masked_lm_labels, next_sentence_labels)
 
 def parse_arguments():
 
@@ -336,10 +338,15 @@ def prepare_model(args, device):
     if config.vocab_size % 8 != 0:
         config.vocab_size += 8 - (config.vocab_size % 8)
 
+    config.fused_mha = False
+    config.fused_gelu_bias = False
+    config.dense_seq_output = True
+    config.max_prediction_count = args.max_predictions_per_seq * args.train_batch_size
+
     model = modeling.BertForPreTraining(config)
     criterion = BertPretrainingCriterion(config.vocab_size, args.train_batch_size, args.max_seq_length)
 
-    model.enable_apex(False)
+    # model.enable_apex(False)
     model = bert_model_with_loss(model, criterion)
     model = ort_supplement.create_ort_trainer(args, device, model)
 

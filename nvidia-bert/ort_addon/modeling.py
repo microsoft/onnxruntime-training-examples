@@ -634,12 +634,12 @@ class BertPreTrainingHeads(nn.Module):
         self.max_prediction_count = config.max_prediction_count
         self.hidden_size = config.hidden_size
 
-    def forward(self, sequence_output, pooled_output, mlm_indices):
+    def forward(self, sequence_output, pooled_output, masked_lm_labels):
         if self.dense_seq_output:
             # We are masking out elements that won't contribute to loss because of masked lm labels
             # sequence_flattened = torch.index_select(sequence_output.view(-1,sequence_output.shape[-1]), 0, torch.nonzero(masked_lm_labels.view(-1) != -1).squeeze())
-            # sequence_flattened = torch.index_select(sequence_output.view(-1, self.hidden_size), 0, torch.nonzero(masked_lm_labels.view(-1) != -1).squeeze())
-            sequence_flattened = torch.index_select(sequence_output.view(-1, self.hidden_size), 0, mlm_indices)
+            sequence_flattened = torch.index_select(sequence_output.view(-1, self.hidden_size), 0, torch.nonzero(masked_lm_labels.view(-1) != -1).squeeze())
+            # sequence_flattened = torch.index_select(sequence_output.view(-1, self.hidden_size), 0, mlm_indices)
             sequence_output = sequence_flattened
         prediction_scores = self.predictions(sequence_output)
         seq_relationship_score = self.seq_relationship(pooled_output)
@@ -908,13 +908,13 @@ class BertForPreTraining(BertPreTrainedModel):
 
         mlm_indices = None
         if self.dense_seq_output:
-            # masked_lm_labels_flat = masked_lm_labels.view(-1)
-            # mlm_labels = masked_lm_labels_flat[masked_lm_labels_flat != -1]
-            topk_result = torch.topk(masked_lm_labels.view(-1).double(), self.max_prediction_count)
-            mlm_labels, mlm_indices = topk_result.values.long(), topk_result.indices
+            masked_lm_labels_flat = masked_lm_labels.view(-1)
+            mlm_labels = masked_lm_labels_flat[masked_lm_labels_flat != -1]
+            # topk_result = torch.topk(masked_lm_labels.view(-1).double(), self.max_prediction_count)
+            # mlm_labels, mlm_indices = topk_result.values.long(), topk_result.indices
 
-        # prediction_scores, seq_relationship_score = self.cls(sequence_output, pooled_output, masked_lm_labels)
-        prediction_scores, seq_relationship_score = self.cls(sequence_output, pooled_output, mlm_indices)
+        prediction_scores, seq_relationship_score = self.cls(sequence_output, pooled_output, masked_lm_labels)
+        # prediction_scores, seq_relationship_score = self.cls(sequence_output, pooled_output, mlm_indices)
 
         if masked_lm_labels is not None and next_sentence_label is not None:
             loss_fct = CrossEntropyLoss(ignore_index=-1)
