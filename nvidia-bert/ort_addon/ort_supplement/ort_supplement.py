@@ -72,11 +72,21 @@ def bert_model_description(args):
     loss_desc = IODescription('loss', [], torch.float32)
     return ModelDescription([input_ids_desc, segment_ids_desc, input_mask_desc, masked_lm_labels_desc, next_sentence_labels_desc], [loss_desc])
 
-def postprocess_model(model):
-    import onnx
-    import onnx.helper
-    onnx.save(model, "after_postprocess.onnx")
+# for opset 10
+from ort_supplement.onnx_transforms.model_transform import add_name, fix_transpose, add_expand_shape, process_concat, process_dropout, handle_expand_input_is_not_constant_case, fix_dim, fix_expand
 
+from ort_supplement.onnx_transforms.layer_norm_transform import layer_norm_transform
+
+def postprocess_model(model):
+    add_name(model)
+    # for opset 10 ..
+    handle_expand_input_is_not_constant_case(model)
+    fix_expand(model)
+    fix_dim(model)
+    process_dropout(model)
+    # --- 
+    add_expand_shape(model)
+    layer_norm_transform(model)
 
 def create_ort_trainer(args, device, model):
     # set GPU memory limitation
@@ -102,8 +112,7 @@ def create_ort_trainer(args, device, model):
     model = ORTTrainer(model, None, bert_model_description(args), "LambOptimizer", 
         map_optimizer_attributes,
         IODescription('Learning_Rate', [1,], torch.float32),
-        device, 
-        _enable_internal_postprocess=True, _extra_postprocess=postprocess_model, 
+        device, postprocess_model=postprocess_model, 
         gradient_accumulation_steps=args.gradient_accumulation_steps,
         world_rank=args.world_rank, world_size=args.world_size,
         use_mixed_precision = True if args.fp16 else False,
