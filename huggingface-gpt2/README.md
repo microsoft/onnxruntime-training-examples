@@ -29,8 +29,7 @@ You can run the training in Azure Machine Learning or locally.
     cd ..
     ```
 
-4. Build the docker image
-    Install the dependencies of the transformer examples and modified transformers into the base ORT Docker image.
+4. Build the docker image: Install the dependencies of the transformer examples and modified transformers into the base ORT Docker image.
 
     ```bash
     docker build --network=host -f docker/Dockerfile . --rm --pull -t onnxruntime-gpt
@@ -50,8 +49,6 @@ Download the data and export path as $DATA_DIR:
 
 * TRAIN_FILE: `$DATA_DIR/wiki.train.tokens`
 * TEST_FILE: `$DATA_DIR/wiki.test.tokens`
-
-Below instructions refer to these hdf5 data files as the data to make accessible to training process.
 
 ## GPT2 Language Modeling fine-tuning with ONNX Runtime Training in Azure Machine Learning
 
