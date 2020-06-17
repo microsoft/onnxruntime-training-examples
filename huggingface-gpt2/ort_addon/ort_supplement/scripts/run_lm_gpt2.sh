@@ -7,7 +7,7 @@ use_ort=true
 export TRAIN_FILE=/data/wiki.train.tokens
 export TEST_FILE=/data/wiki.test.tokens
 
-RUN_FILE=/workspace/transformers/examples/run_language_modeling_ort.py
+RUN_FILE=/workspace/transformers/examples/run_language_modeling.py
 RESULT_DIR=/workspace/results
 
 if [ "$use_ort" = true ] ; then

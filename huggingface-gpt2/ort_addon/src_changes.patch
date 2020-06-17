@@ -269,7 +269,7 @@ index af32eac..395746d 100644
  
  from .file_utils import cached_property, is_torch_available, torch_required
 -
-+from .azureml_adapter import set_environment_variables_for_nccl_backend, get_local_rank, get_world_rank, get_global_size, get_local_size 
++from .azureml_adapter import set_environment_variables_for_nccl_backend, get_local_rank, get_world_rank, get_global_size, get_local_size
  
  if is_torch_available():
      import torch
@@ -290,13 +290,13 @@ index af32eac..395746d 100644
      def n_gpu(self):
          return self._setup_devices[1]
 -
-+    
++
      def to_json_string(self):
          """
          Serializes this instance to a JSON string.
          """
          return json.dumps(dataclasses.asdict(self), indent=2)
-+   
++
 +    def update_args(self):
 +        from mpi4py import MPI
 +        comm = MPI.COMM_WORLD
@@ -308,7 +308,7 @@ index af32eac..395746d 100644
 +            if(self.world_size > 1):
 +                self.local_rank = comm.Get_rank() % torch.cuda.device_count()
 +                self.world_rank = comm.Get_rank()
-+            
++
 +
 +            os.environ['RANK'] = str(self.world_rank)
 +            os.environ['WORLD_SIZE'] = str(self.world_size)
@@ -327,3 +327,61 @@ index af32eac..395746d 100644
 +        print('World rank: {}'.format(self.world_rank))
 +        print('World size: {}'.format(self.world_size))
 +        print('CUDA device: {}'.format(self.local_rank))
+diff --git a/examples/run_language_modeling.py b/examples/run_language_modeling.py
+index 660a652..c18319d 100644
+--- a/examples/run_language_modeling.py
++++ b/examples/run_language_modeling.py
+@@ -19,7 +19,6 @@ GPT and GPT-2 are fine-tuned using a causal language modeling (CLM) loss while B
+ using a masked language modeling (MLM) loss.
+ """
+ 
+-
+ import logging
+ import math
+ import os
+@@ -38,6 +37,7 @@ from transformers import (
+     PreTrainedTokenizer,
+     TextDataset,
+     Trainer,
++    OrtTrainer,
+     TrainingArguments,
+     set_seed,
+ )
+@@ -45,6 +45,9 @@ from transformers import (
+ 
+ logger = logging.getLogger(__name__)
+ 
++from azureml.core.run import Run
++# get the Azure ML run object
++run = Run.get_context()
+ 
+ MODEL_CONFIG_CLASSES = list(MODEL_WITH_LM_HEAD_MAPPING.keys())
+ MODEL_TYPES = tuple(conf.model_type for conf in MODEL_CONFIG_CLASSES)
+@@ -135,6 +138,8 @@ def main():
+     parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
+     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
+ 
++    training_args.update_args()
++
+     if data_args.eval_data_file is None and training_args.do_eval:
+         raise ValueError(
+             "Cannot do evaluation without an evaluation data file. Either supply a file to --eval_data_file "
+@@ -234,8 +239,9 @@ def main():
+         tokenizer=tokenizer, mlm=data_args.mlm, mlm_probability=data_args.mlm_probability
+     )
+ 
++    trainer = OrtTrainer if training_args.ort_trainer else Trainer
+     # Initialize our Trainer
+-    trainer = Trainer(
++    trainer = trainer(
+         model=model,
+         args=training_args,
+         data_collator=data_collator,
+@@ -274,6 +280,7 @@ def main():
+             for key in sorted(result.keys()):
+                 logger.info("  %s = %s", key, str(result[key]))
+                 writer.write("%s = %s\n" % (key, str(result[key])))
++                run.log(key,result[key])
+ 
+         results.update(result)
+ 

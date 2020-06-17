@@ -1,6 +1,6 @@
-# Accelerate GPT2 fine-tuning with ONNX Runtime
+# Accelerate GPT2 fine-tuning with ONNX Runtime Training 
 
-This example uses ONNX Runtime to fine-tune the GPT2 PyTorch model maintained at https://github.com/huggingface/transformers.
+This example uses ONNX Runtime Training to fine-tune the GPT2 PyTorch model maintained at https://github.com/huggingface/transformers.
 
 You can run the training in Azure Machine Learning or locally.
 
@@ -13,7 +13,7 @@ You can run the training in Azure Machine Learning or locally.
     cd onnxruntime-training-examples/huggingface-gpt2
     ```
 
-2. Clone download code and model
+2. Clone download code and model from the [HuggingFace](https://github.com/huggingface/transformers) repo
 
     ```bash
     git clone https://github.com/huggingface/transformers.git
@@ -26,6 +26,7 @@ You can run the training in Azure Machine Learning or locally.
     ```bash
     git apply ../ort_addon/src_changes.patch
     cp -r ../ort_addon/ort_supplement/* ./
+    cd ..
     ```
 
 ## Download and prepare data
@@ -45,7 +46,7 @@ Download the data and export path as $DATA_DIR:
 
 Below instructions refer to these hdf5 data files as the data to make accessible to training process.
 
-## GPT2 Language Modeling fine-tuning with ONNX Runtime in Azure Machine Learning
+## GPT2 Language Modeling fine-tuning with ONNX Runtime Training in Azure Machine Learning
 
 1. Setup environment
 
@@ -61,13 +62,12 @@ Below instructions refer to these hdf5 data files as the data to make accessible
 
     Please refer to the [storage guidance](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-access-data#storage-guidance) for details on using Azure storage account for training in Azure Machine Learning. 
 
-2. Build the docker image
+2. Build the docker image for AML
 
     Install the dependencies of the transformer examples and modified transformers into the base ORT Docker image.
     ```bash
-    cd transformers
-    docker build --network=host -f docker/transformers-ort-gpu/Dockerfile . --rm --pull -t onnxruntime-gpt
-    cd ../..
+    cd /path/to/onnxruntime-training-examples/huggingface-gpt2
+    docker build --network=host -f docker/Dockerfile . --rm --pull -t onnxruntime-gpt
     ```    
     - Push the image to a container registry. You can find additional [details](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-docker-cli) about tagging the image and pushing to an [Azure Container Registry](https://docs.microsoft.com/en-us/azure/container-registry/).
     
@@ -82,20 +82,19 @@ Below instructions refer to these hdf5 data files as the data to make accessible
 
     Execute the steps in the Python notebook [azureml-notebooks/run-finetuning.ipynb](azureml-notebooks/run-finetuning.ipynb) within your environment. If you have a local setup to run an Azure ML notebook, you could run the steps in the notebook in that environment. Otherwise, a compute instance in Azure Machine Learning could be created and used to run the steps.
 
-## GPT2 Language Modeling fine-tuning with ONNX Runtime locally
+## GPT2 Language Modeling fine-tuning with ONNX Runtime Training locally
 
 1. Check pre-requisites
 
     * CUDA 10.1
     * Docker
 
-2. Build the ONNX Runtime Docker image
+2. Build the docker image
 
     Install the dependencies of the transformer examples and modified transformers into the base ORT Docker image.
     ```bash
-    cd transformers
-    docker build --network=host -f docker/transformers-ort-gpu/Dockerfile . --rm --pull -t onnxruntime-gpt
-    cd ..
+    cd /path/to/onnxruntime-training-examples/huggingface-gpt2
+    docker build --network=host -f docker/Dockerfile . --rm --pull -t onnxruntime-gpt
     ```    
 
     To build and install the onnxruntime wheel on the host machine, follow steps [here](https://github.com/microsoft/onnxruntime/blob/master/BUILD.md#Training)

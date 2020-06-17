@@ -29,14 +29,6 @@ def find_output_node(model, arg):
                 result.append(node)
     return result[0] if len(result) == 1 else None
 
-def find_output_nodes(model, arg):
-    result = []
-    for node in model.graph.node:
-        for input in node.input:
-            if input == arg:
-                result.append(node)
-    return result
-
 def find_initializer(model, arg):
     for initializer in model.graph.initializer:
         if initializer.name == arg:
@@ -93,7 +85,6 @@ def process_concat(model):
     for node in model.graph.node:
         if node.op_type != 'Concat':
             continue
-        # print(f"Concat node: {node.name}")
         skip = False
         input_nodes = []
         for input in node.input:
@@ -103,14 +94,8 @@ def process_concat(model):
             input_nodes.append(concat_input_node)
 
         if skip == True:
-            # print(f'Skipping...')
             continue
-        #bugbug
-        special2=False
-        if len(input_nodes) == 2:
-            # print(f'2 inputs...')
-            special2=True
-            # continue
+
         #figure out target shape
         shape = []
         special=True
@@ -127,15 +112,7 @@ def process_concat(model):
                 assert attr[0].type == 4
                 data = numpy_helper.to_array(attr[0].t)
                 shape.append(np.asscalar(data))
-        # if shape == [-1,0]:
-        #     print(f"Shape is [-1,0], skipping the reshape")
-        #     continue
-        # if special==True:
-        #     print(f'Skipping as none of the inputs were constants....')
-        #     continue
-        # print('concat node: %s, new_shape is: %s' % (node.name, shape))
-        # import pdb; pdb.set_trace()
-        
+
         reshape_node = find_output_node(model, node.output[0])
         if reshape_node:
             assert reshape_node.op_type == 'Reshape'
@@ -150,8 +127,6 @@ def process_concat(model):
     #insert new shape to reshape
     index = 0
     for reshape_node_index in new_nodes:
-        # print(f"Adding shape node for reshape node: {model.graph.node[reshape_node_index].name}")
-        # print(f'Concat shape node index: {index}')
         shape_tensor = numpy_helper.from_array(np.asarray(new_nodes[reshape_node_index], dtype=np.int64))
         const_node = add_const(model, 'concat_shape_node_%d' % index, 'concat_shape_%d' % index, shape_tensor)
         index+=1
@@ -159,9 +134,7 @@ def process_concat(model):
         reshape_node.input[1] = const_node.output[0]
     #delete nodes
     delete_nodes.sort(reverse=True)
-    # print("Deleting nodes:")
     for delete_node in delete_nodes:
-        # print(model.graph.node[delete_node].name)
         del model.graph.node[delete_node]
 
 def replace_input_arg(model, arg, new_arg):
@@ -229,13 +202,10 @@ def fix_transpose(model):
     old_graph_inputs.sort(reverse=True)
 
     for g_i in old_graph_inputs:
-        # print(model.graph.input[g_i].name)
         del model.graph.input[g_i]
 
-    # print("clean up old weights")
-
+    #clean up old weights
     for w_i in old_ws:
-        # print(model.graph.initializer[w_i].name)
         del model.graph.initializer[w_i]
 
 def process_dropout(model):
@@ -246,12 +216,12 @@ def process_dropout(model):
             new_dropout = model.graph.node.add()
             new_dropout.op_type = 'TrainableDropout'
             new_dropout.name = 'TrainableDropout_%d' % index
-            #make ratio node
+
+            # make ratio node
             ratio = np.asarray([node.attribute[0].f], dtype=np.float32)
-            # print(ratio.shape)
             ratio_value = numpy_helper.from_array(ratio)
             ratio_node = add_const(model, 'dropout_node_ratio_%d' % index, 'dropout_node_ratio_%d' % index, t_value=ratio_value)
-            # print (ratio_node)
+
             new_dropout.input.extend([node.input[0], ratio_node.output[0]])
             new_dropout.output.extend(node.output)
             dropouts.append(get_node_index(model, node))
@@ -287,28 +257,24 @@ def fix_split(model):
                     break
                 index += 1
             if need_remove:
-                print("Removing attribute split for ", node.name)
                 del node.attribute[index]
 
 def transform_gpt2(model):
     #add name to nodes
     add_name(model)
+
     #replace garther&concat to reshape
     process_concat(model)
-    #constant fold transpose
     
+    #constant fold transpose
     fix_transpose(model)
 
     #replace dropout with trainable dropout
     process_dropout(model)
     
-    fix_split(model)
+    # fix_split(model)
     
     #set opset version to 11
     model.opset_import[0].version = 11
 
-    print("******************transformation done.")
-    # To be removed. For debug only.
-    # input_model_name = "models/gpt2_after_postprocessing_1L_allop.onnx"
-    # onnx.save(model, input_model_name)
 

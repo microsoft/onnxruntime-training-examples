@@ -24,7 +24,6 @@ from onnxruntime.capi.ort_trainer import LossScaler
 
 from .data.data_collator import DataCollator, DefaultDataCollator
 from .modeling_utils import PreTrainedModel
-from .optimization_ort import linear_schedule_with_warmup
 from .training_args import TrainingArguments
 from .trainer import PredictionOutput, TrainOutput, EvalPrediction, set_seed
 
@@ -65,6 +64,25 @@ logger = logging.getLogger(__name__)
 
 PREFIX_CHECKPOINT_DIR = "ort_checkpoint"
 
+class linear_schedule_with_warmup():
+    def __init__(self, num_warmup_steps, num_training_steps, last_epoch=-1):
+        """ Create a schedule with a learning rate that decreases linearly after
+        linearly increasing during a warmup period.
+        """
+        self.num_warmup_steps = num_warmup_steps
+        self.num_training_steps = num_training_steps
+        self.last_epoch = last_epoch
+
+    def lr_lambda(self, current_step):
+        if current_step < self.num_warmup_steps:
+            return float(current_step) / float(max(1, self.num_warmup_steps))
+        return max(
+            0.0, float(self.num_training_steps - current_step) / float(max(1, self.num_training_steps - self.num_warmup_steps))
+        )
+
+    def get_lr_this_step(self, current_step, base_lr):
+
+        return self.lr_lambda(current_step) * base_lr
 
 class OrtTrainer:
     """
@@ -160,7 +178,6 @@ class OrtTrainer:
         return IODescription('Learning_Rate', [1,], torch.float32)
 
     def to_ort_model(self,model, config, args):
-        # model_desc = gpt2_model_description(12, 50257, 1024, 6, 1024)
         model_desc = self.gpt2_model_description(config.n_head, config.vocab_size, config.n_embd, config.n_layer, config.n_ctx, args.per_gpu_train_batch_size)
         learning_rate_description = self.ort_trainer_learning_rate_description()
 
@@ -192,7 +209,6 @@ class OrtTrainer:
             learning_rate_description,
             args.device, postprocess_model=transform_gpt2, 
             gradient_accumulation_steps=args.gradient_accumulation_steps, 
-            # BertLAMB default initial settings: b1=0.9, b2=0.999, e=1e-6
             world_rank = self.args.world_rank,
             world_size = self.args.world_size,
             use_mixed_precision =  self.args.fp16,
@@ -200,7 +216,6 @@ class OrtTrainer:
             _opset_version=11,
             frozen_weights = frozen_weights,
             )
-            # frozen_weights=['model_.transformer.h.0.attn.bias','model_.transformer.h.0.attn.masked_bias'])
         
         logger.info("****************************Model converted to ORT")
         return model
@@ -237,15 +252,6 @@ class OrtTrainer:
             collate_fn=self.data_collator.collate_batch,
         )
 
-    def get_optimizers(
-        self, num_training_steps: int
-        ) -> Tuple[torch.optim.Optimizer, torch.optim.lr_scheduler.LambdaLR]:
-        # Prepare optimizer and schedule (linear warmup and decay)
-        optimizer = None
-        scheduler = linear_schedule_with_warmup(num_warmup_steps=self.args.warmup_steps, num_training_steps=num_training_steps
-        )
-        return optimizer, scheduler
-
     def train(self, model_path: Optional[str] = None):
         """
         Main training entry point.
@@ -266,7 +272,8 @@ class OrtTrainer:
             t_total = int(len(train_dataloader) // self.args.gradient_accumulation_steps * self.args.num_train_epochs)
             num_train_epochs = self.args.num_train_epochs
 
-        _, scheduler = self.get_optimizers(num_training_steps=t_total)
+        scheduler = linear_schedule_with_warmup(num_warmup_steps=self.args.warmup_steps, num_training_steps=t_total)
+
         loss_scaler = LossScaler(self.ort_model.loss_scale_input_name, True, up_scale_window=2000, loss_scale=float(1 << 20)) if self.args.fp16 else 1
 
         model = self.ort_model
@@ -397,9 +404,6 @@ class OrtTrainer:
         self, model: nn.Module, inputs: Dict[str, torch.Tensor], learning_rate, loss_scaler
         ) -> float:
         model.train()
-        # import pdb; pdb.set_trace()
-        # for k, v in inputs.items():
-        #     inputs[k] = v.to(self.args.device)
 
         if self.args.fp16:
             loss_scale = torch.tensor([loss_scaler.loss_scale_])
