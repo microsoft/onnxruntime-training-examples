@@ -29,6 +29,13 @@ You can run the training in Azure Machine Learning or locally.
     cd ..
     ```
 
+4. Build the docker image
+    Install the dependencies of the transformer examples and modified transformers into the base ORT Docker image.
+
+    ```bash
+    docker build --network=host -f docker/Dockerfile . --rm --pull -t onnxruntime-gpt
+    ```
+
 ## Download and prepare data
 
 The following are a minimal set of instructions to download one of the datasets used for GPT2 finetuning for the language modeling task.
@@ -62,13 +69,10 @@ Below instructions refer to these hdf5 data files as the data to make accessible
 
     Please refer to the [storage guidance](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-access-data#storage-guidance) for details on using Azure storage account for training in Azure Machine Learning. 
 
-2. Build the docker image for AML
+2. Prepare the docker image for AML
 
-    Install the dependencies of the transformer examples and modified transformers into the base ORT Docker image.
-    ```bash
-    cd /path/to/onnxruntime-training-examples/huggingface-gpt2
-    docker build --network=host -f docker/Dockerfile . --rm --pull -t onnxruntime-gpt
-    ```    
+    Follow the instructions in [setup](#Setup) to build a docker image with the required dependencies installed.
+
     - Push the image to a container registry. You can find additional [details](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-docker-cli) about tagging the image and pushing to an [Azure Container Registry](https://docs.microsoft.com/en-us/azure/container-registry/).
     
 3. Execute finetuning
@@ -91,11 +95,7 @@ Below instructions refer to these hdf5 data files as the data to make accessible
 
 2. Build the docker image
 
-    Install the dependencies of the transformer examples and modified transformers into the base ORT Docker image.
-    ```bash
-    cd /path/to/onnxruntime-training-examples/huggingface-gpt2
-    docker build --network=host -f docker/Dockerfile . --rm --pull -t onnxruntime-gpt
-    ```    
+    Follow the instructions in [setup](#Setup) to build a docker image with the required dependencies installed.
 
     To build and install the onnxruntime wheel on the host machine, follow steps [here](https://github.com/microsoft/onnxruntime/blob/master/BUILD.md#Training)
 

@@ -245,20 +245,6 @@ def get_nodes_to_remove(input_id):
             break
     return [cast_node3, not_node3, less_node, const_node]
 
-def fix_split(model):
-    # having split attribute, Split op shape inferencing bring 0, so we remove them.
-    for node in model.graph.node:
-        if node.op_type == 'Split':
-            index = 0
-            need_remove = False
-            for attr in node.attribute:
-                if attr.name == 'split':
-                    need_remove = True
-                    break
-                index += 1
-            if need_remove:
-                del node.attribute[index]
-
 def transform_gpt2(model):
     #add name to nodes
     add_name(model)
@@ -271,9 +257,7 @@ def transform_gpt2(model):
 
     #replace dropout with trainable dropout
     process_dropout(model)
-    
-    # fix_split(model)
-    
+
     #set opset version to 11
     model.opset_import[0].version = 11
 

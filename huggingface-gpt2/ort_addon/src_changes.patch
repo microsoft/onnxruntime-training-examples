@@ -305,9 +305,8 @@ index af32eac..395746d 100644
 +        if not has_aml:
 +            print('Detected local run')
 +            self.world_size = comm.Get_size()
-+            if(self.world_size > 1):
-+                self.local_rank = comm.Get_rank() % torch.cuda.device_count()
-+                self.world_rank = comm.Get_rank()
++            self.local_rank = comm.Get_rank() % torch.cuda.device_count()
++            self.world_rank = comm.Get_rank()
 +
 +
 +            os.environ['RANK'] = str(self.world_rank)
