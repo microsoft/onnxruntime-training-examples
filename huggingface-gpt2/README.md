@@ -29,7 +29,9 @@ You can run the training in Azure Machine Learning or locally.
     cd ..
     ```
 
-4. Build the docker image: Install the dependencies of the transformer examples and modified transformers into the base ORT Docker image.
+4. Build the docker image
+    
+    Install the dependencies of the transformer examples and modified transformers into the base ORT Docker image.
 
     ```bash
     docker build --network=host -f docker/Dockerfile . --rm --pull -t onnxruntime-gpt
