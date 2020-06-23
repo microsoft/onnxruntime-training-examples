@@ -75,9 +75,14 @@ def bert_model_description(args):
 # for opset 10
 from ort_supplement.onnx_transforms.model_transform import add_name, fix_transpose, add_expand_shape, process_concat, process_dropout, handle_expand_input_is_not_constant_case, fix_dim, fix_expand
 
-from ort_supplement.onnx_transforms.layer_norm_transform import layer_norm_transform
+from ort_supplement.onnx_transforms.layer_norm_transform import layer_norm_transform as layer_norm_transform_pyt15
+from ort_supplement.onnx_transforms.layer_norm_transform_revised import layer_norm_transform as layer_norm_transform_pyt16
+
 
 def postprocess_model(model):
+    # import onnx
+    # onnx.save(model, "on_export.onnx")
+
     add_name(model)
     # for opset 10 ..
     handle_expand_input_is_not_constant_case(model)
@@ -86,7 +91,10 @@ def postprocess_model(model):
     process_dropout(model)
     # --- 
     add_expand_shape(model)
-    layer_norm_transform(model)
+    layer_norm_transform_pyt15(model)
+    layer_norm_transform_pyt16(model)
+
+    # onnx.save(model, "on_postprocess.onnx")
 
 def create_ort_trainer(args, device, model):
     # set GPU memory limitation
