@@ -29,7 +29,7 @@ You can run the training in Azure Machine Learning or locally.
     cd ..
     ```
 
-4. Build the docker image
+4. Build the Docker image
     
     Install the dependencies of the transformer examples and modified transformers into the base ORT Docker image.
 
@@ -96,6 +96,8 @@ Download the data and export path as $DATA_DIR:
 
     Follow the instructions in [setup](#Setup) to build a docker image with the required dependencies installed.
 
+    The base Docker image used is `mcr.microsoft.com/azureml/onnxruntime-training:0.1-rc1-openmpi4.0-cuda10.1-cudnn7.6-nccl2.4.8`. The Docker image is tested in AzureML and DGX-2 environments. For running the examples in other environments, building a new base Docker image may be necessary by following the directions in the [nvidia-bert sample](../nvidia-bert/README.md).
+
     To build and install the onnxruntime wheel on the host machine, follow steps [here](https://github.com/microsoft/onnxruntime/blob/master/BUILD.md#Training)
 
 3. Set correct paths to training data for docker image.
@@ -152,3 +154,4 @@ Download the data and export path as $DATA_DIR:
     ```
 
     If you get memory errors, try reducing the batch size. You can find the recommended batch sizes for ORT and PyTorch [here](azureml-notebooks/run-finetuning.ipynb###Creat-Estimator).
+    If the flags enabling evaluation and the evaluation data file are passed, the training is followed by evaluation and the perplexity is printed.

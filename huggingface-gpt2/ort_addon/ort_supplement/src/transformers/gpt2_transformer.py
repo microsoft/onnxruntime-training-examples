@@ -249,7 +249,7 @@ def transform_gpt2(model):
     #add name to nodes
     add_name(model)
 
-    #replace garther&concat to reshape
+    #replace shape-gather-unsqueeze-concat of reshape with const shape
     process_concat(model)
     
     #constant fold transpose

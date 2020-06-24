@@ -31,17 +31,6 @@ from azureml.core.run import Run
 # get the Azure ML run object
 run = Run.get_context()
 
-try:
-    from apex import amp
-
-    _has_apex = True
-except ImportError:
-    _has_apex = False
-
-
-def is_apex_available():
-    return _has_apex
-
 
 try:
     from torch.utils.tensorboard import SummaryWriter
