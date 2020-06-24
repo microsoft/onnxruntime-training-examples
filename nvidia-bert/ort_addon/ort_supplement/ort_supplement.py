@@ -141,6 +141,24 @@ def get_lr(args, training_steps, schedule='warmup_poly'):
     schedule_fct = SCHEDULES[schedule]
     return args.learning_rate * schedule_fct(training_steps / args.max_steps, args.warmup_proportion)
 
+def initialize_onnx_model(model, args):
+    
+    # for mlperf, use hidden methods to force
+    # - pytorch to onnx conversion
+    # - training graph creation
+
+    import pickle
+    batch = pickle.load( open( "sample_inputs.pkl", "rb" ) )
+    input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels = batch
+    learning_rate = torch.tensor([get_lr(args, 0, args.schedule)])
+    loss_scale = torch.tensor([args.ort_loss_scale.loss_scale_])
+
+    sample_input, _ = model._prepare_input_and_fetches(
+        model.model_desc_.inputs_, None, None,
+        input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels, learning_rate, loss_scale)
+
+    model._init_onnx_model(sample_input)
+
 def run_ort_training_step(args, global_step, training_steps, model, batch):
     input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels = batch
 
