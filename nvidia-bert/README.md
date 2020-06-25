@@ -167,24 +167,24 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
     accumulate_gradients=${10:-"true"}
     partition_optimizer=${27:-"false"}
 
-    train_batch_size=${1:-8192}
+    train_batch_size=${1:-16320}
     learning_rate=${2:-"6e-3"}
     warmup_proportion=${5:-"0.2843"}
     train_steps=${6:-7038}
     accumulate_gradients=${10:-"true"}
-    gradient_accumulation_steps=${11:-128}
+    gradient_accumulation_steps=${11:-340}
 
-    train_batch_size_phase2=${17:-4096}
+    train_batch_size_phase2=${17:-8160}
     learning_rate_phase2=${18:-"4e-3"}
     warmup_proportion_phase2=${19:-"0.128"}
     train_steps_phase2=${20:-1563}
-    gradient_accumulation_steps_phase2=${11:-256}
+    gradient_accumulation_steps_phase2=${11:-1020}
     ```
     The above defaults are tuned for an Azure NC24rs_v3.
 
     The training batch size refers to the number of samples a single GPU sees before weights are updated. The training is performed over _local_ and _global_ steps. A local step refers to a single backpropagation execution on the model to calculate its gradient. These gradients are accumulated every local step until weights are updated in a global step. The _microbatch_ size is samples a single GPU sees in a single backpropagation execution step. The microbatch size will be the training batch size divided by gradient accumulation steps.
     
-    Note: The effective batch size will be (number of GPUs) x train_batch_size (per GPU). In general we recommend setting the effective batch size to ~16,000. The number of gradient accumulation steps should be minimized without overflowing the GPU memory (i.e. up to the maximum microbatch a single GPU will support to perform a backpropagate step).
+    Note: The effective batch size will be (number of GPUs) x train_batch_size (per GPU). In general we recommend setting the effective batch size to ~64,000 for phase 1 and ~32,000 for phase 2. The number of gradient accumulation steps should be minimized without overflowing the GPU memory (i.e. maximizes microbatch size).
 
     Consult [Parameters](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#parameters) section by NVIDIA for additional details.
 
