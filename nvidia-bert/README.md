@@ -182,9 +182,9 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
     ```
     The above defaults are tuned for an Azure NC24rs_v3.
 
-    The training batch size refers to the number of samples a single GPU sees before weights are updated. The training is performed over _local_ and _global_ steps. A local step refers to a single backpropagation execution on the model to calculate its gradient. These gradients are accumulated every local step until weights are updated in a global step. The _microbatch_ size a single GPU sees in a single backpropagation step will be the training batch size divided by gradient accumulation steps.
+    The training batch size refers to the number of samples a single GPU sees before weights are updated. The training is performed over _local_ and _global_ steps. A local step refers to a single backpropagation execution on the model to calculate its gradient. These gradients are accumulated every local step until weights are updated in a global step. The _microbatch_ size is samples a single GPU sees in a single backpropagation execution step. The microbatch size will be the training batch size divided by gradient accumulation steps.
     
-    Note: The effective batch size will be (number of GPUs) x train_batch_size. In general we recommend setting the effective batch size to ~16,000. The number of gradient accumulation steps should be minimized without overflowing the GPU memory (i.e. up to the maximum microbatch a single GPU will support to perform a backpropagate step).
+    Note: The effective batch size will be (number of GPUs) x train_batch_size (per GPU). In general we recommend setting the effective batch size to ~16,000. The number of gradient accumulation steps should be minimized without overflowing the GPU memory (i.e. up to the maximum microbatch a single GPU will support to perform a backpropagate step).
 
     Consult [Parameters](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#parameters) section by NVIDIA for additional details.
 
