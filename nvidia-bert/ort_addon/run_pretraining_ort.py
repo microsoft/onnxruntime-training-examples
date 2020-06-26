@@ -373,10 +373,8 @@ def prepare_model(args, device):
             print("resume step from ", args.resume_step)
 
     print(' --- BEGIN ONNX CONVERSION ---')
-    print(' --- BEGIN ONNX CONVERSION ---')
-    print(' --- BEGIN ONNX CONVERSION ---')
-
     ort_supplement.initialize_onnx_model(model, args)
+
     return model, checkpoint, global_step
     
 def main():
@@ -485,22 +483,18 @@ def main():
                 prev_step_time = time.time()
 
                 print(' --- BEGIN TRAINING ---')
-                print(' --- BEGIN TRAINING ---')
-                print(' --- BEGIN TRAINING ---')
-
                 for step, batch in enumerate(train_iter):
+
+                    # dump (warning: pickle export includes device info)
+                    # import pickle
+                    # print('Dumping sample_inputs.pkl')
+                    # pickle.dump( batch, open( "sample_inputs.pkl", "wb" ) )
+                    # sys.exit(0)
 
                     training_steps += 1
                     batch = [t.to(device) for t in batch]
                     input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels = batch
                     divisor = args.gradient_accumulation_steps
-
-                    # dump
-                    # import pickle
-                    # print('Dumping sample_inputs.pkl')
-                    # pickle.dump( batch, open( "sample_inputs.pkl", "wb" ) )
-                    # sys.exit(0)
-                    # 
 
                     loss, global_step = ort_supplement.run_ort_training_step(args, global_step, training_steps, model, batch)
                     average_loss += loss.item()

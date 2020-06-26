@@ -143,13 +143,14 @@ def get_lr(args, training_steps, schedule='warmup_poly'):
 
 def initialize_onnx_model(model, args):
     
-    # for mlperf, use hidden methods to force
+    # Need to initialize onnx before training ..
     # - pytorch to onnx conversion
     # - training graph creation
 
     import pickle
     batch = pickle.load( open( "sample_inputs.pkl", "rb" ) )
     input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels = batch
+
     learning_rate = torch.tensor([get_lr(args, 0, args.schedule)])
     loss_scale = torch.tensor([args.ort_loss_scale.loss_scale_])
 
