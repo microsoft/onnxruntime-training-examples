@@ -9,15 +9,6 @@
             }
          }
       },
-      {
-         "component": {
-            "type": "git",
-            "git": {
-               "commitHash": "9a0a8c1c6f4f2f0c80ff07d36713a3ada785eec5",
-               "repositoryUrl": "https://github.com/huggingface/transformers.git"
-            }
-         }
-      }
    ],
    "Version": 1
 }
