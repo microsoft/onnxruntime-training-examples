@@ -2,7 +2,7 @@
 
 This example uses ONNX Runtime Training to fine-tune the GPT2 PyTorch model maintained at https://github.com/huggingface/transformers.
 
-You can run the training in Azure Machine Learning or locally.
+You can run the training in Azure Machine Learning or in other environments.
 
 ## Setup
 
@@ -54,7 +54,7 @@ Download the data and export path as $DATA_DIR:
 
 ## GPT2 Language Modeling fine-tuning with ONNX Runtime Training in Azure Machine Learning
 
-1. Setup environment
+1. Data Transfer
 
     * Transfer training data to Azure blob storage
 
@@ -62,6 +62,9 @@ Download the data and export path as $DATA_DIR:
     ```bash
     az storage blob upload-batch --account-name <storage-name> -d <container-name> -s $DATA_DIR
     ```
+
+    You can also use [azcopy](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10) or [Azure Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/) to copy data.
+    We recommend that you download the data in the training environment itself or in an environment from where data transfer to training environment will be fast and efficient.
 
     * Register the blob container as a data store
     * Mount the data store in the compute targets used for training
@@ -85,7 +88,9 @@ Download the data and export path as $DATA_DIR:
 
     Execute the steps in the Python notebook [azureml-notebooks/run-finetuning.ipynb](azureml-notebooks/run-finetuning.ipynb) within your environment. If you have a local setup to run an Azure ML notebook, you could run the steps in the notebook in that environment. Otherwise, a compute instance in Azure Machine Learning could be created and used to run the steps.
 
-## GPT2 Language Modeling fine-tuning with ONNX Runtime Training locally
+## GPT2 Language Modeling fine-tuning with ONNX Runtime Training in other environments
+
+We recommend running this sample on a system with at least one NVIDIA GPU.
 
 1. Check pre-requisites
 
@@ -96,7 +101,7 @@ Download the data and export path as $DATA_DIR:
 
     Follow the instructions in [setup](#Setup) to build a docker image with the required dependencies installed.
 
-    The base Docker image used is `mcr.microsoft.com/azureml/onnxruntime-training:0.1-rc1-openmpi4.0-cuda10.1-cudnn7.6-nccl2.4.8`. The Docker image is tested in AzureML and DGX-2 environments. For running the examples in other environments, building a new base Docker image may be necessary by following the directions in the [nvidia-bert sample](../nvidia-bert/README.md).
+    The base Docker image used is `mcr.microsoft.com/azureml/onnxruntime-training:0.1-rc1-openmpi4.0-cuda10.1-cudnn7.6-nccl2.4.8`. The Docker image is tested in AzureML environment. For running the examples in other environments, building a new base Docker image may be necessary by following the directions in the [nvidia-bert sample](../nvidia-bert/README.md).
 
     To build and install the onnxruntime wheel on the host machine, follow steps [here](https://github.com/microsoft/onnxruntime/blob/master/BUILD.md#Training)
 
@@ -112,13 +117,12 @@ Download the data and export path as $DATA_DIR:
 
    The directory must contain the training and validation files.
 
-4. Set the number of GPUs and switch for ORT or PyTorch run.
+4. Set the number of GPUs.
 
     Edit `transformers/scripts/run_lm_gpt2.sh`.
 
     ```bash
     num_gpus=4
-    use_ort=true
     ```
 
 5. Modify other training parameters as needed.
@@ -153,5 +157,5 @@ Download the data and export path as $DATA_DIR:
     bash /workspace/transformers/scripts/run_lm_gpt2.sh
     ```
 
-    If you get memory errors, try reducing the batch size. You can find the recommended batch sizes for ORT and PyTorch [here](azureml-notebooks/run-finetuning.ipynb###Creat-Estimator).
+    If you get memory errors, try reducing the batch size. You can find the recommended batch sizes for ORT [here](azureml-notebooks/run-finetuning.ipynb###Creat-Estimator).
     If the flags enabling evaluation and the evaluation data file are passed, the training is followed by evaluation and the perplexity is printed.

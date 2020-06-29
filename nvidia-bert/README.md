@@ -90,7 +90,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 
 ## BERT pre-training with ONNX Runtime in Azure Machine Learning
 
-1. Setup environment
+1. Data Transfer
 
     * Transfer training data to Azure blob storage
 
