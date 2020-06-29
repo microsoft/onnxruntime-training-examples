@@ -112,13 +112,13 @@ def create_ort_trainer(args, device, model):
     model = ORTTrainer(model, None, bert_model_description(args), "LambOptimizer", 
         map_optimizer_attributes,
         IODescription('Learning_Rate', [1,], torch.float32),
-        device, postprocess_model=postprocess_model, 
+        device, 
         gradient_accumulation_steps=args.gradient_accumulation_steps,
         world_rank=args.world_rank, world_size=args.world_size,
         use_mixed_precision = True if args.fp16 else False,
         allreduce_post_accumulation = True if args.allreduce_post_accumulation else False,
         partition_optimizer = True if args.partition_optimizer else False,
-        _opset_version = 10)
+        _opset_version = 12)
 
     if args.fp16:
         setattr(args, 'ort_loss_scale', LossScaler(model.loss_scale_input_name, True, up_scale_window=2000))

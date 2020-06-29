@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-FROM nvcr.io/nvidia/pytorch:20.03-py3
+FROM nvcr.io/nvidia/pytorch:20.06-py3
 
 # Environment variables
 ENV STAGE_DIR=/root/gpu/install \
@@ -92,16 +92,16 @@ RUN pip install --no-cache-dir \
     h5py html2text nltk progressbar \
     mpi4py git+https://github.com/NVIDIA/dllogger
 
-# add pytorch patch for opset 10
-COPY pyt_patch /tmp/pyt_patch
-RUN cp /tmp/pyt_patch/symbolic_opset10.py /opt/conda/lib/python3.6/site-packages/torch/onnx/
+# We need to remove the existing onnxruntime to prevent conflict
+RUN rm /opt/conda/lib/python3.6/site-packages/onnxruntime/capi/onnxruntime_pybind11_state.cpython-36m-x86_64-linux-gnu.so
 
-# Build onnxruntime training wheel from orttraining_rc1 branch
+# Build onnxruntime training wheel
 RUN git clone https://github.com/microsoft/onnxruntime.git &&\
     cd onnxruntime &&\
-    git checkout orttraining_rc1 &&\
+    git checkout fc5e65a22dcd263301522f289a3d1b852f001888 &&\
     python tools/ci_build/build.py \
         --config RelWithDebInfo \
+        --mpi_home /usr/local/mpi4 \
         --use_cuda \
         --cuda_home /usr/local/cuda \
         --cudnn_home /usr/lib/x86_64-linux-gnu/ \
