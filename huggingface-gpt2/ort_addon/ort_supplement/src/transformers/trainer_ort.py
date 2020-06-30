@@ -140,8 +140,7 @@ class OrtTrainer:
                 "Updating weights of torch model from ORT model."
             )
             ort_state_dict = self.ort_model.state_dict()
-            torch_state_dict = dict((key.split('model_.')[1], value) for key, value in ort_state_dict.items())
-            self.model.load_state_dict(torch_state_dict, strict=False)
+            self.model.load_state_dict(ort_state_dict, strict=False)
         else:
             logger.warning(
                 "No ORT model found to update weights from, assuming torch model is up to date."
@@ -186,24 +185,16 @@ class OrtTrainer:
         set_arena_extend_strategy(ArenaExtendStrategy.kSameAsRequested)
         set_cuda_device_id(self.args.local_rank)
 
-        from .gpt2_transformer import transform_gpt2
-
-        frozen_weights = []
-        frozen_weights = list(dict(model.named_buffers()).keys())
-        frozen_weights = ['model_.'+name for name in frozen_weights]
-
-        logger.info("Frozen weights: %s", str(frozen_weights))
         model = ORTTrainer(model, None, model_desc, "AdamOptimizer",
             map_optimizer_attributes,
             learning_rate_description,
-            args.device, postprocess_model=transform_gpt2, 
+            args.device,  
             gradient_accumulation_steps=args.gradient_accumulation_steps, 
             world_rank = self.args.world_rank,
             world_size = self.args.world_size,
             use_mixed_precision =  self.args.fp16,
             allreduce_post_accumulation = True,
-            _opset_version=11,
-            frozen_weights = frozen_weights,
+            _opset_version=12
             )
         
         logger.info("****************************Model converted to ORT")
