@@ -137,8 +137,7 @@ CMD+=" --do_train"
 CMD+=" --json-summary ${RESULTS_DIR}/dllogger.json "
 CMD+=" --gpu_memory_limit_gb=$gpu_memory_limit_gb"
 
-# running within container can be OK with root
-CMD="mpirun --allow-run-as-root -n $num_gpus python $CMD"
+CMD="mpirun -n $num_gpus python $CMD"
 
 if [ "$create_logfile" = "true" ] ; then
   export GBS=$(expr $train_batch_size \* $num_gpus)
@@ -216,8 +215,7 @@ CMD+=" --do_train --phase2 --resume_from_checkpoint --phase1_end_step=$train_ste
 CMD+=" --json-summary ${RESULTS_DIR}/dllogger.json "
 CMD+=" --gpu_memory_limit_gb=$gpu_memory_limit_gb"
 
-# running within container can be OK with root
-CMD="mpirun --allow-run-as-root -n $num_gpus python $CMD"
+CMD="mpirun -n $num_gpus python $CMD"
 
 if [ "$create_logfile" = "true" ] ; then
   export GBS=$(expr $train_batch_size_phase2 \* $num_gpus)
