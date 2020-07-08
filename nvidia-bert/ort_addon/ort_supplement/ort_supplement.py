@@ -72,24 +72,9 @@ def bert_model_description(args):
     loss_desc = IODescription('loss', [], torch.float32)
     return ModelDescription([input_ids_desc, segment_ids_desc, input_mask_desc, masked_lm_labels_desc, next_sentence_labels_desc], [loss_desc])
 
-# for opset 10
-from ort_supplement.onnx_transforms.model_transform import add_name, fix_transpose, add_expand_shape, process_concat, process_dropout, handle_expand_input_is_not_constant_case, fix_dim, fix_expand
-
-from ort_supplement.onnx_transforms.layer_norm_transform import layer_norm_transform
-
-def postprocess_model(model):
-    add_name(model)
-    # for opset 10 ..
-    handle_expand_input_is_not_constant_case(model)
-    fix_expand(model)
-    fix_dim(model)
-    process_dropout(model)
-    # --- 
-    add_expand_shape(model)
-    layer_norm_transform(model)
-
 def create_ort_trainer(args, device, model):
-    # set GPU memory limitation
+    
+    # set GPU memory limitation (per card!)
     from onnxruntime.capi._pybind_state import set_cuda_mem_limit
     ort_cuda_mem_limit_in_gbs = args.gpu_memory_limit_gb
     set_cuda_mem_limit(int(ort_cuda_mem_limit_in_gbs * 1024 * 1024 *1024))
@@ -117,7 +102,7 @@ def create_ort_trainer(args, device, model):
         world_rank=args.world_rank, world_size=args.world_size,
         use_mixed_precision = True if args.fp16 else False,
         allreduce_post_accumulation = True if args.allreduce_post_accumulation else False,
-        partition_optimizer = True if args.partition_optimizer else False,
+        deepspeed_zero_stage = 1 if args.partition_optimizer else 0,
         _opset_version = 12)
 
     if args.fp16:
