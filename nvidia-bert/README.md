@@ -119,7 +119,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 
 1. Check pre-requisites
 
-    * CUDA 10.1
+    * CUDA 10.2
     * Docker
     * [NVIDIA docker toolkit](https://github.com/NVIDIA/nvidia-docker)
 
@@ -131,7 +131,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
     bash build.sh
     cd ../..
     ```    
-    - Tag this image __onnxruntime-bert__`
+    - Tag this image __onnxruntime-pytorch-for-bert__`
     
     To build and install the onnxruntime wheel on the host machine, follow steps [here](https://github.com/microsoft/onnxruntime/blob/master/BUILD.md#Training)
 
@@ -165,7 +165,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
     seed=${12:-42}
 
     accumulate_gradients=${10:-"true"}
-    partition_optimizer=${27:-"false"}
+    deepspeed_zero_stage=${27:-"false"}
 
     train_batch_size=${1:-8192}
     learning_rate=${2:-"6e-3"}

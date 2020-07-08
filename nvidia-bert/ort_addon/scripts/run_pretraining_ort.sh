@@ -28,7 +28,7 @@ allreduce_post_accumulation_fp16=${15:-"true"}
 resume_training=${8:-"false"}
 create_logfile=${9:-"true"}
 accumulate_gradients=${10:-"true"}
-partition_optimizer=${27:-"false"}
+deepspeed_zero_stage=${27:-"false"}
 
 train_batch_size=${1:-4096} 
 learning_rate=${2:-"6e-3"}
@@ -86,9 +86,9 @@ if [ "$accumulate_gradients" == "true" ] ; then
    ACCUMULATE_GRADIENTS="--gradient_accumulation_steps=$gradient_accumulation_steps"
 fi
 
-PARTITION_OPTIMIZER=""
-if [ "$partition_optimizer" == "true" ] ; then
-   PARTITION_OPTIMIZER="--partition_optimizer"
+DEEPSPEED_ZERO_STAGE=""
+if [ "$deepspeed_zero_stage" == "true" ] ; then
+   DEEPSPEED_ZERO_STAGE="--deepspeed_zero_stage"
 fi
 
 CHECKPOINT=""
@@ -132,7 +132,7 @@ CMD+=" $CHECKPOINT"
 CMD+=" $ALL_REDUCE_POST_ACCUMULATION"
 CMD+=" $ALL_REDUCE_POST_ACCUMULATION_FP16"
 CMD+=" $INIT_CHECKPOINT"
-CMD+=" $PARTITION_OPTIMIZER"
+CMD+=" $DEEPSPEED_ZERO_STAGE"
 CMD+=" --do_train"
 CMD+=" --json-summary ${RESULTS_DIR}/dllogger.json "
 CMD+=" --gpu_memory_limit_gb=$gpu_memory_limit_gb"
@@ -210,7 +210,7 @@ CMD+=" $ACCUMULATE_GRADIENTS"
 CMD+=" $CHECKPOINT"
 CMD+=" $ALL_REDUCE_POST_ACCUMULATION"
 CMD+=" $ALL_REDUCE_POST_ACCUMULATION_FP16"
-CMD+=" $PARTITION_OPTIMIZER"
+CMD+=" $DEEPSPEED_ZERO_STAGE"
 CMD+=" --do_train --phase2 --resume_from_checkpoint --phase1_end_step=$train_steps"
 CMD+=" --json-summary ${RESULTS_DIR}/dllogger.json "
 CMD+=" --gpu_memory_limit_gb=$gpu_memory_limit_gb"

@@ -273,7 +273,7 @@ def parse_arguments():
                         default=False,
                         action='store_true',
                         help="Whether to use infiniband on Azure ML submission.")
-    parser.add_argument('--partition_optimizer',
+    parser.add_argument('--deepspeed_zero_stage',
                         default=False,
                         action='store_true',
                         help="Whether ORT will partition optimizer.")
