@@ -89,26 +89,28 @@ ENV LD_LIBRARY_PATH=/opt/ompi4/lib:$LD_LIBRARY_PATH
 # install mpi4py (be sure to link existing /opt/ompi4)
 RUN CC=mpicc MPICC=mpicc pip install mpi4py --no-binary mpi4py
 
-# build pytorch (using v1.6.0-rc2 + patch)
+# build pytorch (using v1.6.0-rc3 + patch)
 # todo: need to update to pytorch 1.6.0 releaase when ready
+COPY FindNCCL.patch /stage/
 ENV CUDA_HOME="/usr/local/cuda" \
     CUDNN_LIBRARY="/usr/lib/x86_64-linux-gnu" \
     NCCL_INCLUDE_DIR="/usr/local/cuda/include" \
     NCCL_LIB_DIR="/usr/local/cuda/lib64" \
     USE_SYSTEM_NCCL=1 
 RUN apt-get -y install git &&\
-    cd /stage && git clone https://github.com/suffiank/pytorch.git &&\
+    cd /stage && git clone https://github.com/pytorch/pytorch.git &&\
     cd pytorch &&\
-    git checkout sukha/v1.6.0-rc2-patch-nccl-check &&\
+    git checkout v1.6.0-rc3 &&\
+    patch cmake/Modules/FindNCCL.cmake /stage/FindNCCL.patch &&\
     git submodule update --init --recursive &&\
     python setup.py bdist_wheel -d build/wheel &&\
     pip install build/wheel/*.whl
 
-# build onnxruntime wheel with cuda and mpi support (based off 6/31 master for now)
+# build onnxruntime wheel with cuda and mpi support (based off 7/10 master for now)
 # todo: need to update to onnxruntime 1.4 releaase when ready
 RUN cd /stage && git clone https://github.com/microsoft/onnxruntime.git &&\
     cd onnxruntime &&\
-    git checkout sukha/for-examples &&\
+    git checkout 6a9a9a35be7a87109a7ab77cfa2db3695a2b2581 &&\
     python tools/ci_build/build.py \
         --cmake_extra_defines \
             ONNXRUNTIME_VERSION=`cat ./VERSION_NUMBER` \
