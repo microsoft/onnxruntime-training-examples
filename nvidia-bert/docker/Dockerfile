@@ -1,12 +1,12 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-FROM nvcr.io/nvidia/pytorch:20.03-py3
+FROM nvcr.io/nvidia/pytorch:20.06-py3
 
 # Environment variables
 ENV STAGE_DIR=/root/gpu/install \
     CUDNN_DIR=/usr/local/cudnn \
-    CUDA_DIR=/usr/local/cuda-10.1 \
+    CUDA_DIR=/usr/local/cuda-11.0 \
     CUDA_HOME=/usr/local/cuda \
     CUDNN_HOME=/usr/lib/x86_64-linux-gnu \
     CUDACXX=/usr/local/cuda/bin/nvcc
@@ -29,10 +29,17 @@ RUN apt-get -y update && \
       cmake \
       g++ \
       gcc \
+      software-properties-common \
     # ifconfig
       net-tools && \
     apt-get autoremove
 
+#RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/cuda-ubuntu1604.pin
+#RUN mv cuda-ubuntu1604.pin /etc/apt/preferences.d/cuda-repository-pin-600
+#RUN apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub
+#RUN add-apt-repository "deb http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/ /"
+#RUN apt-get update
+#RUN apt-get -y install cuda
 
 # Labels for the docker
 LABEL description="This docker sets up the environment to run Nvidia bert with ORT Training"
@@ -99,7 +106,7 @@ RUN cp /tmp/pyt_patch/symbolic_opset10.py /opt/conda/lib/python3.6/site-packages
 # Build onnxruntime training wheel from orttraining_rc1 branch
 RUN git clone https://github.com/microsoft/onnxruntime.git &&\
     cd onnxruntime &&\
-    git checkout orttraining_rc1 &&\
+    git checkout orttraining_wmt &&\
     python tools/ci_build/build.py \
         --config RelWithDebInfo \
         --use_cuda \
