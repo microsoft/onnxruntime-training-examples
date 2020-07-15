@@ -103,6 +103,8 @@ RUN pip install --no-cache-dir \
 COPY pyt_patch /tmp/pyt_patch
 RUN cp /tmp/pyt_patch/symbolic_opset10.py /opt/conda/lib/python3.6/site-packages/torch/onnx/
 
+RUN rm /opt/conda/lib/python3.6/site-packages/onnxruntime/capi/onnxruntime_pybind11_state.cpython-36m-x86_64-linux-gnu.so
+
 # Build onnxruntime training wheel from orttraining_rc1 branch
 RUN git clone https://github.com/microsoft/onnxruntime.git &&\
     cd onnxruntime &&\
