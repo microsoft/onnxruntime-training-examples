@@ -52,6 +52,7 @@ RUN cd /stage && curl -fSsL ${MOFED_URL} | tar -zxpf - &&\
     ./mlnxofedinstall --basic --force --user-space-only --without-fw-update
 
 # build ucx suite (leverages mellanox libraries)
+# note: openmpi will not select ucx without multithreading enabled
 ARG UCX_VERSION
 ARG UCX_TARNAME=ucx-$UCX_VERSION
 ARG UCX_URL=https://github.com/openucx/ucx/releases/download/v${UCX_VERSION}/${UCX_TARNAME}.tar.gz
@@ -60,14 +61,16 @@ RUN apt-get -y install \
     cd /stage && curl -fSsL ${UCX_URL} | tar xzf - &&\
     cd ${UCX_TARNAME} &&\
     ./configure \
-	    --prefix=/opt/ucx \
+	--prefix=/opt/ucx \
         --with-cuda=/usr/local/cuda \
-        --with-verbs=/usr &&\
+        --with-verbs=/usr \
+        --enable-mt &&\
     make -j"$(nproc)" &&\
     make install
 
 # build openmpi (use --prefix /opt/ompi4 to move to runtime image)
 # note: require --enable-orterun-prefix-by-default for Azure machine learning compute
+# note: disable verbs as we use ucx middleware and don't want btl openib warnings
 ARG OPENMPI_VERSION
 ARG OPENMPI_TARNAME=openmpi-${OPENMPI_VERSION}
 ARG OPENMPI_URL=https://download.open-mpi.org/release/open-mpi/v%OMPI_BASE%/${OPENMPI_TARNAME}.tar.gz
@@ -77,6 +80,7 @@ RUN export OMPI_BASE=${OPENMPI_VERSION%.*} &&\
     ./configure \
         --prefix=/opt/ompi4 \
         --with-ucx=/opt/ucx \
+        --without-verbs \
         --with-cuda=/usr/local/cuda \
         --enable-mpirun-prefix-by-default \
         --enable-orterun-prefix-by-default \
@@ -130,11 +134,13 @@ RUN cd /stage && git clone https://github.com/microsoft/onnxruntime.git &&\
     pip install build/RelWithDebInfo/dist/*.whl
 
 # switch to cuda runtime environment
+# note: launch with --gpus all or nvidia-docker
 FROM nvidia/cuda:10.2-cudnn7-runtime-ubuntu18.04
 RUN apt-get -y update
 WORKDIR /stage
 
 # install mellanox libraries (again)
+# note: launch with infiniband drivers and --net=host or docker swarm
 ARG MOFED_VERSION
 COPY --from=build /stage/mofed-${MOFED_VERSION} /stage/mofed-${MOFED_VERSION}
 RUN apt-get install -y build-essential &&\
@@ -142,12 +148,20 @@ RUN apt-get install -y build-essential &&\
     ./mlnxofedinstall --basic --force --user-space-only --without-fw-update
 
 # install ucx
+# note: launch with --cap-add=sys_nice to avoid 'mbind' warnings
 COPY --from=build /opt/ucx /opt/ucx
- 
+ENV PATH=/opt/ucx/bin:$PATH
+ENV LD_LIBRARY_PATH=/opt/ucx/lib:$LD_LIBRARY_PATH
+
 # install openmpi
+# note: permit mpirun as root for Azure cluster submissions
+# note: enforce openmpi select ucx or fail
 COPY --from=build /opt/ompi4 /opt/ompi4
 ENV PATH=/opt/ompi4/bin:$PATH
 ENV LD_LIBRARY_PATH=/opt/ompi4/lib:$LD_LIBRARY_PATH
+ENV OMPI_ALLOW_RUN_AS_ROOT=1
+ENV OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+ENV OMPI_MCA_pml=ucx
 RUN apt-get install -y \
         openssh-server \
         openssh-client \
@@ -158,13 +172,23 @@ RUN apt-get install -y \
 COPY --from=build /opt/conda /opt/conda
 ENV PATH=/opt/conda/bin:${PATH}
 
-# permit mpirun as root for Azure cluster submissions
-ENV OMPI_ALLOW_RUN_AS_ROOT=1
-ENV OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+# make ssh/sshd less strict for wiring containers on Azure VM scale set
+# note: use 'service ssh start' to launch sshd (will fail if 22 in use)
+# note: can also set port != 22 and set port=X in MPI hosts file
+# note: need to setup password free ssh login between MPI hosts
+RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/g' \
+        /etc/ssh/sshd_config &&\
+    sed -i 's/#StrictModes yes/StrictModes no/g' \
+        /etc/ssh/sshd_config &&\
+    sed -i 's/#   StrictHostKeyChecking ask/    StrictHostKeyChecking no/g' \
+        /etc/ssh/ssh_config &&\
+    mkdir /run/sshd &&\
+    chmod u=rwx,go=rx /run/sshd
 
 # clean\finalize environment
 RUN conda remove -y cmake ninja &&\
     apt-get remove -y build-essential &&\
+    apt-get install -y vim &&\
     apt-get autoremove -y &&\
     rm -fr /stage
 WORKDIR /workspace
