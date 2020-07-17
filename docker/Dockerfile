@@ -110,11 +110,10 @@ RUN apt-get -y install git &&\
     python setup.py bdist_wheel -d build/wheel &&\
     pip install build/wheel/*.whl
 
-# build onnxruntime wheel with cuda and mpi support (based off 7/10 master for now)
-# todo: need to update to onnxruntime 1.4 releaase when ready
+# build onnxruntime wheel with cuda and mpi support
 RUN cd /stage && git clone https://github.com/microsoft/onnxruntime.git &&\
     cd onnxruntime &&\
-    git checkout 6a9a9a35be7a87109a7ab77cfa2db3695a2b2581 &&\
+    git checkout v1.4.0 &&\
     python tools/ci_build/build.py \
         --cmake_extra_defines \
             ONNXRUNTIME_VERSION=`cat ./VERSION_NUMBER` \
