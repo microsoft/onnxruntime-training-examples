@@ -95,6 +95,7 @@ RUN CC=mpicc MPICC=mpicc pip install mpi4py --no-binary mpi4py
 
 # build pytorch (using v1.6.0-rc3 + patch)
 # todo: need to update to pytorch 1.6.0 releaase when ready
+# note: FindNCCL.patch is in pytorch master
 COPY FindNCCL.patch /stage/
 ENV CUDA_HOME="/usr/local/cuda" \
     CUDNN_LIBRARY="/usr/lib/x86_64-linux-gnu" \
@@ -187,7 +188,6 @@ RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/g' \
 # clean\finalize environment
 RUN conda remove -y cmake ninja &&\
     apt-get remove -y build-essential &&\
-    apt-get install -y vim &&\
     apt-get autoremove -y &&\
     rm -fr /stage
 WORKDIR /workspace
