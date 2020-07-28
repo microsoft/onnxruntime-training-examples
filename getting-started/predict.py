@@ -64,23 +64,5 @@ print(output_sentence_words)
 
 # Setup a loop to sequence through the words
 
-torch.onnx.export(model,                     # model being run
-                  indexed_sentence,          # model input (or a tuple for multiple inputs)
-                  "model.onnx",              # where to save the model (can be a file or file-like object)
-                  export_params=True,        # store the trained parameter weights inside the model file
-                  opset_version=11,          # the ONNX version to export the model to
-                  do_constant_folding=True,  # whether to execute constant folding for optimization
-                  input_names = ['src'],     # the model's input names
-                  output_names = ['output'], # the model's output names
-                  verbose=True)
-
-
-onnx_model = onnx.load("model.onnx")
-
-# Check that the IR is well formed
-onnx.checker.check_model(onnx_model)
-
-# Print a human readable representation of the graph
-onnx.helper.printable_graph(onnx_model.graph)                  
 
 

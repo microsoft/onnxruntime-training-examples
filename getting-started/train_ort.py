@@ -19,6 +19,7 @@ TEXT = torchtext.data.Field(tokenize=basic_english_tokenizer,
 train_txt, val_txt, test_txt = torchtext.datasets.WikiText2.splits(TEXT)
 TEXT.build_vocab(train_txt)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f'Device: {device}')
 
 bptt = 35
 def get_batch(source, i):
@@ -38,7 +39,8 @@ def batchify(data, bsz):
     return data.to(device)
 
 batch_size = 20
-eval_batch_size = 10
+#eval_batch_size = 10
+eval_batch_size = 20
 train_data = batchify(train_txt, batch_size)
 val_data = batchify(val_txt, eval_batch_size)
 test_data = batchify(test_txt, eval_batch_size)
@@ -52,8 +54,14 @@ dropout = 0.2 # the dropout value
 model = TransformerModel(ntokens, emsize, nhead, nhid, nlayers, dropout).to(device)
 
 criterion = nn.CrossEntropyLoss()
-lr = 5.0 # learning rate
+
+def flat_output_loss(output, target):
+    output = output.view(-1, ntokens)
+    return criterion(output, target)
+    
 #optimizer = torch.optim.SGD(model.parameters(), lr=lr)
+#lr = 5.0 # learning rate
+lr = 0.01 # learning rate
 #scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1.0, gamma=0.95)
 
 def train():
@@ -63,8 +71,11 @@ def train():
     #ntokens = len(TEXT.vocab.stoi)
     for batch, i in enumerate(range(0, train_data.size(0) - 1, bptt)):
         data, targets = get_batch(train_data, i)
+        if len(data) < bptt:
+            print(f"len(data)={len(data)} < {bptt}")
+            continue
         #optimizer.zero_grad()
-        loss = trainer.train_step(data, targets, lr)
+        loss = trainer.train_step(data, targets, torch.tensor([lr]))
         #output = model(data)
         #loss = criterion(output.view(-1, ntokens), targets)
         #loss.backward()
@@ -79,31 +90,36 @@ def train():
             print('| epoch {:3d} | {:5d}/{:5d} batches | '
                   'lr {:02.2f} | ms/batch {:5.2f} | '
                   'loss {:5.2f} | ppl {:8.2f}'.format(
-                    epoch, batch, len(train_data) // bptt, scheduler.get_last_lr()[0],
+#                   epoch, batch, len(train_data) // bptt, scheduler.get_last_lr()[0],
+                    epoch, batch, len(train_data) // bptt, lr,
                     elapsed * 1000 / log_interval,
-                    cur_loss, math.exp(cur_loss)))
+#                   cur_loss, math.exp(cur_loss)))
+                    loss, math.exp(loss)))
             total_loss = 0
             start_time = time.time()
 
 def evaluate(eval_model, data_source):
-    eval_model.eval() # Turn on the evaluation mode
+#   eval_model.eval() # Turn on the evaluation mode
     total_loss = 0.
-    ntokens = len(TEXT.vocab.stoi)
+#   ntokens = len(TEXT.vocab.stoi)
     with torch.no_grad():
         for i in range(0, data_source.size(0) - 1, bptt):
             data, targets = get_batch(data_source, i)
-            output = eval_model(data)
-            output_flat = output.view(-1, ntokens)
-            total_loss += len(data) * criterion(output_flat, targets).item()
+            if len(data) < bptt:
+                print(f"len(data)={len(data)} < {bptt}")
+                continue
+            #output = eval_step(data)
+            #output_flat = output.view(-1, ntokens)
+            #total_loss += len(data) * criterion(output_flat, targets).item()
+            loss = trainer.eval_step(data, targets)
+            total_loss += len(data) * loss.item()
     return total_loss / (len(data_source) - 1)
 
 
 best_val_loss = float("inf")
 epochs = 3 # The number of epochs
-best_model = None
+#best_model = None
 
-# Save the model
-#torch.save(model.state_dict(), 'model.pt')
 
 def model_description():
     input_desc = IODescription('src', [bptt, batch_size], torch.float32)
@@ -114,14 +130,15 @@ def model_description():
 def learning_rate_description():
     return IODescription('Learning_Rate', [lr,], torch.float32)
 
-trainer = ORTTrainer(model,              # model
-                     criterion,          # loss function
-                     model_description,  # model description
-                     "SGDOptimizer",     # optimizer name
-                     None,               # optimizer attributes
-                     learning_rate_description, # learning rate description
-                     device,             # device
-                     _opset_version=12)  # opset version
+
+trainer = ORTTrainer(model,                       # model
+                     flat_output_loss,            # loss function
+                     model_description(),         # model description
+                     "SGDOptimizer",              # optimizer name
+                     None,                        # optimizer attributes
+                     learning_rate_description(), # learning rate description
+                     device,                      # device
+                     _opset_version=12)           # opset version
 
 
 for epoch in range(1, epochs + 1):
@@ -147,4 +164,6 @@ print('| End of training | test loss {:5.2f} | test ppl {:8.2f}'.format(
 print('=' * 89)
 
 
+# Save in ONNX format
+trainer.save_as_onnx("transformer.onnx")
 
