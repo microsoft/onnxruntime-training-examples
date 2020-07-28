@@ -8,7 +8,7 @@
 * onnx
 * onnxruntime-gpu built for training
 
-## Intructions
+## Instructions
 
 * The model is defined in model.py
 * Run `python train.py` to train with PyTorch
