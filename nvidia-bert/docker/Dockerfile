@@ -30,7 +30,19 @@ RUN apt-get -y update && \
       g++ \
       gcc \
     # ifconfig
-      net-tools && \
+      net-tools \
+      binutils \
+      libjpeg-turbo8 \
+	  libsqlite3-0 \
+	  vim \
+	  git \
+	  libgd-tools \
+	  libgd3 \
+	  python2.7 \
+	  python3 \
+	  apt \
+	  ca-certificates \
+      libssl1.1 && \
     apt-get autoremove
 
 
