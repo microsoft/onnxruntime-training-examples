@@ -110,6 +110,8 @@ RUN cp /tmp/pyt_patch/symbolic_opset10.py /opt/conda/lib/python3.6/site-packages
 
 # Build onnxruntime training wheel from orttraining_rc1 branch
 RUN git clone https://github.com/microsoft/onnxruntime.git &&\
+    cp onnxruntime/ThirdPartyNotices.txt ThirdPartyNotices.txt &&\
+    cp onnxruntime/dockerfiles/LICENSE-IMAGE.txt LICENSE-IMAGE.txt &&\
     cd onnxruntime &&\
     git checkout orttraining_rc1_perf &&\
     python tools/ci_build/build.py \
