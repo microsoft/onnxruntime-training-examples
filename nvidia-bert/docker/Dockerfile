@@ -30,7 +30,19 @@ RUN apt-get -y update && \
       g++ \
       gcc \
     # ifconfig
-      net-tools && \
+      net-tools \
+      binutils \
+      libjpeg-turbo8 \
+	  libsqlite3-0 \
+	  vim \
+	  git \
+	  libgd-tools \
+	  libgd3 \
+	  python2.7 \
+	  python3 \
+	  apt \
+	  ca-certificates \
+      libssl1.1 && \
     apt-get autoremove
 
 
@@ -98,6 +110,8 @@ RUN cp /tmp/pyt_patch/symbolic_opset10.py /opt/conda/lib/python3.6/site-packages
 
 # Build onnxruntime training wheel from orttraining_rc1 branch
 RUN git clone https://github.com/microsoft/onnxruntime.git &&\
+    cp onnxruntime/ThirdPartyNotices.txt ThirdPartyNotices.txt &&\
+    cp onnxruntime/dockerfiles/LICENSE-IMAGE.txt LICENSE-IMAGE.txt &&\
     cd onnxruntime &&\
     git checkout orttraining_rc1_perf &&\
     python tools/ci_build/build.py \
