@@ -1,3 +1,4 @@
 .data
-transformer.onnx
-model.pt
+*.onnx
+*.pt
+__pycache__
