@@ -1,4 +1,4 @@
-# Accelerate GPT2 fine-tuning with ONNX Runtime Training 
+# Accelerate GPT2 fine-tuning with ONNX Runtime Training
 
 This example uses ONNX Runtime Training to fine-tune the GPT2 PyTorch model maintained at https://github.com/huggingface/transformers.
 
@@ -30,7 +30,7 @@ You can run the training in Azure Machine Learning or in other environments.
     ```
 
 4. Build the Docker image
-    
+
     Install the dependencies of the transformer examples and modified transformers into the base ORT Docker image.
 
     ```bash
@@ -39,12 +39,13 @@ You can run the training in Azure Machine Learning or in other environments.
 
 ## Download and prepare data
 
-The following are a minimal set of instructions to download one of the datasets used for GPT2 finetuning for the language modeling task.
+The following are a minimal set of instructions to download one of the datasets used for GPT2 fine-tuning for the language modeling task.
 
 Download the word-level dataset [WikiText-103](https://blog.einstein.ai/the-wikitext-long-term-dependency-language-modeling-dataset/) for this sample.
 Refer to the readme at [transformers](https://github.com/huggingface/transformers/tree/master/examples/language-modeling#language-model-training) for additional details.
 
-Download the data and export path as $DATA_DIR: 
+Download the data and export path as $DATA_DIR:
+
 ```bash
     export DATA_DIR=/path/to/downloaded/data/
 ```
@@ -69,22 +70,22 @@ Download the data and export path as $DATA_DIR:
     * Register the blob container as a data store
     * Mount the data store in the compute targets used for training
 
-    Please refer to the [storage guidance](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-access-data#storage-guidance) for details on using Azure storage account for training in Azure Machine Learning. 
+    Please refer to the [storage guidance](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-access-data#storage-guidance) for details on using Azure storage account for training in Azure Machine Learning.
 
 2. Prepare the docker image for AML
 
     Follow the instructions in [setup](#Setup) to build a docker image with the required dependencies installed.
 
     - Push the image to a container registry. You can find additional [details](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-docker-cli) about tagging the image and pushing to an [Azure Container Registry](https://docs.microsoft.com/en-us/azure/container-registry/).
-    
-3. Execute finetuning
 
-    The GPT2 finetuning job in Azure Machine Learning can be launched using either of these environments:
+3. Execute fine-tuning
+
+    The GPT2 fine-tuning job in Azure Machine Learning can be launched using either of these environments:
 
     * Azure Machine Learning [Compute Instance](https://docs.microsoft.com/en-us/azure/machine-learning/concept-compute-instance) to run the Jupyter notebook.
     * Azure Machine Learning [SDK](https://docs.microsoft.com/en-us/python/api/overview/azure/ml/?view=azure-ml-py)
 
-    You will need a [GPU optimized compute target](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-set-up-training-targets#amlcompute) - _either NCv3 or NDv2 series_, to execute this pre-training job.
+    You will need a [GPU optimized compute target](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-set-up-training-targets#amlcompute) - _either NCv3 or NDv2 series_, to execute this fine-tuning job.
 
     Execute the steps in the Python notebook [azureml-notebooks/run-finetuning.ipynb](azureml-notebooks/run-finetuning.ipynb) within your environment. If you have a local setup to run an Azure ML notebook, you could run the steps in the notebook in that environment. Otherwise, a compute instance in Azure Machine Learning could be created and used to run the steps.
 
@@ -105,7 +106,7 @@ We recommend running this sample on a system with at least one NVIDIA GPU.
 
     To build and install the onnxruntime wheel on the host machine, follow steps [here](https://github.com/microsoft/onnxruntime/blob/master/BUILD.md#Training)
 
-3. Set correct paths to training data for docker image.
+3. Set correct paths to training data for docker image
 
    Edit `docker/launch.sh`.
 
@@ -117,7 +118,7 @@ We recommend running this sample on a system with at least one NVIDIA GPU.
 
    The directory must contain the training and validation files.
 
-4. Set the number of GPUs.
+4. Set the number of GPUs
 
     Edit `transformers/scripts/run_lm_gpt2.sh`.
 
@@ -125,27 +126,27 @@ We recommend running this sample on a system with at least one NVIDIA GPU.
     num_gpus=4
     ```
 
-5. Modify other training parameters as needed.
+5. Modify other training parameters as needed
 
     Edit `transformers/scripts/run_lm_gpt2.sh`.
 
     ```bash
-        --model_type=gpt2 
-        --model_name_or_path=gpt2 
+        --model_type=gpt2
+        --model_name_or_path=gpt2
         --tokenizer_name=gpt2  
         --config_name=gpt2  
         --per_gpu_train_batch_size=1  
         --per_gpu_eval_batch_size=4  
-        --gradient_accumulation_steps=16 
+        --gradient_accumulation_steps=16
         --block_size=1024  
         --weight_decay=0.01
-        --logging_steps=100 
-        --num_train_epochs=5 
+        --logging_steps=100
+        --num_train_epochs=5
     ```
 
     Consult the huggingface transformers [training_args](https://github.com/huggingface/transformers/blob/master/src/transformers/training_args.py) for additional details.
 
-6. Launch interactive container.
+6. Launch interactive container
 
     ```bash
     bash docker/launch.sh
