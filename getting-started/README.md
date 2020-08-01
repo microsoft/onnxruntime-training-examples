@@ -91,7 +91,7 @@ def learning_rate_description():
     return IODescription('Learning_Rate', [lr,], torch.float32)
 ```
 
-## Train with docker
+## Run the sample
 
 1. Pre-requisites
 
