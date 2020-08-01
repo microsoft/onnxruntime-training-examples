@@ -157,7 +157,7 @@ src = TEXT.numericalize([tokenized_sentence])
 # Save in ONNX format
 torch.onnx.export(model,                     # model being run
                   src,                       # model input (or a tuple for multiple inputs)
-                  "transformer-pruned.onnx", # where to save the model (can be a file or file-like object)
+                  "transformer.onnx",        # where to save the model (can be a file or file-like object)
                   opset_version=12,          # the ONNX version to export the model to
                   do_constant_folding=True,  # whether to execute constant folding for optimization
                   input_names = ['src'],     # the model's input names
