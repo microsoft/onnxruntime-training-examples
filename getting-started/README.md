@@ -13,8 +13,6 @@ The purpose of this sample is to demonstrate the concepts and usage of ONNX Runt
 * [NVIDIA BERT pre-training](../nvidia-bert)
 * [HuggingFace GPT-2 fine-tuning](../huggingface-gpt2)
 
-A simple inference application is also provided to demonstrate export and usage of the trained model.
-
 All instructions in this sample assume you have cloned this repo and are located in the root directory of the getting-started sample.
 
 ```bash
