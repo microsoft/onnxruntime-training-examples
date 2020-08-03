@@ -76,11 +76,11 @@ Each input and output has a name, shape and type.
 
 ### Optimizer
 
-The training optimizer is specified by supplying one of a fixed number of options:
+The training optimizer is specified by supplying one of a fixed number of options, as a string:
 
-* SGDOptimizer
-* LambOptimizer
-* AdamOptimizer
+* `SGDOptimizer`
+* `LambOptimizer`
+* `AdamOptimizer`
 
 ### Learning rate description
 
@@ -111,13 +111,3 @@ def learning_rate_description():
     ```bash
     docker/launch.sh "python train_ort.py"
     ```
-
-    The training code produces a model file called `transformer.onnx`.
-
-4. Run inference
-
-   ```bash
-   docker/launch.sh "python predict.py"
-   ```
-
-   You can edit the input sentence in the predict code to predict a different next word
