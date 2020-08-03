@@ -57,7 +57,7 @@ def loss_with_flat_output(output, target):
     output = output.view(-1, ntokens)
     return criterion(output, target)
     
-lr = 0.01 # learning rate
+lr = 0.001 # learning rate
 
 def train():
     total_loss = 0.
@@ -76,7 +76,7 @@ def train():
             cur_loss = total_loss / log_interval
             elapsed = time.time() - start_time
             print('| epoch {:3d} | {:5d}/{:5d} batches | '
-                  'lr {:02.2f} | ms/batch {:5.2f} | '
+                  'lr {:03.2f} | ms/batch {:5.2f} | '
                   'loss {:5.2f} | ppl {:8.2f}'.format(
                     epoch, batch, len(train_data) // bptt, lr,
                     elapsed * 1000 / log_interval,
@@ -143,23 +143,4 @@ print('| End of training | test loss {:5.2f} | test ppl {:8.2f}'.format(
     test_loss, math.exp(test_loss)))
 print('=' * 89)
 
-
-# Load trained weighta into the PyTorch model
-model.load_state_dict(trainer.state_dict())
-
-# Generate input for model export 
-example_sentence = "Example input sentence"
-tokenized_sentence = basic_english_tokenizer(example_sentence)
-src = TEXT.numericalize([tokenized_sentence])
-
-# TODO pad out example sentence to maximum fixed sequence length
-
-# Save in ONNX format
-torch.onnx.export(model,                     # model being run
-                  src,                       # model input (or a tuple for multiple inputs)
-                  "transformer.onnx",        # where to save the model (can be a file or file-like object)
-                  opset_version=12,          # the ONNX version to export the model to
-                  do_constant_folding=True,  # whether to execute constant folding for optimization
-                  input_names = ['src'],     # the model's input names
-                  output_names = ['output']) # the model's output names
 
