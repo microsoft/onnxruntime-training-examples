@@ -2,7 +2,7 @@
 
 This example uses ONNX Runtime to pre-train the BERT PyTorch model maintained at https://github.com/NVIDIA/DeepLearningExamples.
 
-You can run the training in Azure Machine Learning or on an NVIDIA DGX-2.
+You can run the training in Azure Machine Learning or on an ND40rs\_v2.
 
 ## Setup
 
@@ -115,7 +115,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 
     Execute the steps in the Python notebook [azureml-notebooks/run-pretraining.ipynb](azureml-notebooks/run-pretraining.ipynb) within your environment. If you have a local setup to run an Azure ML notebook, you could run the steps in the notebook in that environment. Otherwise, a compute instance in Azure Machine Learning could be created and used to run the steps.
 
-## BERT pre-training with ONNX Runtime directly on NVIDIA hardware
+## BERT pre-training with ONNX Runtime directly on ND40rs_v2 
 
 1. Check pre-requisites
 
