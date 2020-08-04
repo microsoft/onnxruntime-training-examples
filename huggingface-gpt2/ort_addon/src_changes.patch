@@ -1,17 +1,3 @@
-diff --git a/examples/requirements.txt b/examples/requirements.txt
-index 33eb2ac..791f49a 100644
---- a/examples/requirements.txt
-+++ b/examples/requirements.txt
-@@ -2,7 +2,6 @@ tensorboardX
- tensorboard
- scikit-learn
- seqeval
--psutil
- sacrebleu
- rouge-score
- tensorflow_datasets
-
-
 diff --git a/examples/run_language_modeling.py b/examples/run_language_modeling.py
 index 660a652..c18319d 100644
 --- a/examples/run_language_modeling.py
