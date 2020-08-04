@@ -126,11 +126,11 @@ class BertPretrainingCriterion(torch.nn.Module):
 class bert_model_with_loss(torch.nn.Module):
     def __init__(self, model, loss_fn):
         super(bert_model_with_loss, self).__init__()
-        self.model_ = model
+        self.wrapper_ = model
         self.loss_fn_ = loss_fn
 
     def forward(self, input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels):
-        preds_score, seq_relation_score = self.model_(input_ids, segment_ids, input_mask)
+        preds_score, seq_relation_score = self.wrapper_(input_ids, segment_ids, input_mask)
         return self.loss_fn_(preds_score, seq_relation_score, masked_lm_labels, next_sentence_labels)
 
 def parse_arguments():
