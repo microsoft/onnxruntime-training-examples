@@ -15,9 +15,10 @@ Outline the examples in the repository.
 <!-- 
 | `CONTRIBUTING.md` | Guidelines for contributing to the sample. |
 -->
+
 ## Prerequisites
 
-The examples in this repo depend on a Docker image that includes ONNX Runtime for training. The docker image is available at `mcr.microsoft.com/azureml/onnxruntime-training:0.1-rc1-openmpi4.0-cuda10.1-cudnn7.6-nccl2.4.8` . The Docker image is tested in AzureML environment. For running the examples in other environments, building a new Docker image may be necessary.
+The examples in this repo depend on a Docker image that includes ONNX Runtime for training. The docker image is available at `mcr.microsoft.com/azureml/onnxruntime-training:0.1-rc2-openmpi4.0-cuda10.2-cudnn7.6-nccl2.7.6` . The Docker image is tested in AzureML and DGX-2 environments. For running the examples in other environments, building a new Docker image may be necessary.
 
 ## Running the sample
 
