@@ -46,6 +46,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 
 1. Check pre-requisites
 
+    * Python 3.6
     * Natural Language Toolkit (NLTK) `python3-pip install nltk`
 
 2. Download and prepare Wikicorpus training data in HDF5 format.
