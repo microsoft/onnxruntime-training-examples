@@ -54,9 +54,16 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
     ```bash
     export BERT_PREP_WORKING_DIR=./workspace/BERT/data/
 
-    # Download
-    python ./workspace/BERT/data/bertPrep.py --action download --dataset wikicorpus_en
+    # Download google_pretrained_weights
     python ./workspace/BERT/data/bertPrep.py --action download --dataset google_pretrained_weights
+
+    # Download wikicorpus_en via wget
+    mkdir -p ./workspace/BERT/data/download/wikicorpus_en
+    cd ./workspace/BERT/data/download/wikicorpus_en
+    wget https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles.xml.bz2
+    bzip2 -dkv enwiki-latest-pages-articles.xml.bz2
+    mv enwiki-latest-pages-articles.xml wikicorpus_en.xml
+    cd ../../../../..
 
     # Fix path issue to use BERT_PREP_WORKING_DIR as prefix for path instead of hard-coded prefix
     sed -i "s/path_to_wikiextractor_in_container = '/path_to_wikiextractor_in_container = './g" ./workspace/BERT/data/bertPrep.py
@@ -68,7 +75,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
     python ./workspace/BERT/data/bertPrep.py --action sharding --dataset wikicorpus_en
 
     # Fix path to workspace to allow running outside of the docker container
-    sed -i "s/python \/workspace/python .\/workspace/g" ./workspace/BERT/data/bertPrep.py
+    sed -i "s/python \/workspace\/bert/python .\/workspace\/BERT/g" ./workspace/BERT/data/bertPrep.py
 
     # Create HDF5 files Phase 1
     python ./workspace/BERT/data/bertPrep.py --action create_hdf5_files --dataset wikicorpus_en --max_seq_length 128 \
