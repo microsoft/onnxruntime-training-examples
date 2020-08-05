@@ -10,11 +10,12 @@ Outline the examples in the repository.
 
 | Example       | Description                                |
 |-------------------|--------------------------------------------|
-| `nvidia-bert`     | Using ONNX Runtime with [BERT pretraining implementation in PyTorch](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT) maintained by nvidia |
-
+| `nvidia-bert`     | Using ONNX Runtime Training with [BERT pretraining implementation in PyTorch](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT) maintained by nvidia |
+| `huggingface-gpt2`     | Using ONNX Runtime Training with [GPT2 finetuning for Language Modeling in PyTorch](https://github.com/huggingface/transformers/tree/master/examples/language-modeling#language-model-training) maintained by huggingface |
 <!-- 
 | `CONTRIBUTING.md` | Guidelines for contributing to the sample. |
 -->
+
 ## Prerequisites
 
 The examples in this repo depend on a Docker image that includes ONNX Runtime for training. The docker image is available at `mcr.microsoft.com/azureml/onnxruntime-training:0.1-rc2-openmpi4.0-cuda10.2-cudnn7.6-nccl2.7.6` . The Docker image is tested in AzureML and DGX-2 environments. For running the examples in other environments, building a new Docker image may be necessary.
