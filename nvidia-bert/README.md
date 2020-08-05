@@ -61,7 +61,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
     mkdir -p ./workspace/BERT/data/download/wikicorpus_en
     cd ./workspace/BERT/data/download/wikicorpus_en
     wget https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles.xml.bz2
-    bzip2 -dkv enwiki-latest-pages-articles.xml.bz2
+    bzip2 -dv enwiki-latest-pages-articles.xml.bz2
     mv enwiki-latest-pages-articles.xml wikicorpus_en.xml
     cd ../../../../..
 
