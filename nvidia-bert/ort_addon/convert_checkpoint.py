@@ -17,7 +17,7 @@ outputFile=sys.argv[2]
 stateDic = torch.load(inputFile)
 
 from collections import OrderedDict
-new_dict = OrderedDict((key.replace('Moment_1_model_', '').replace('model_.', ''), value) for key, value in stateDic.items() if not (("Moment" in key) or ("_fp16" in key) or ("predictions" in key) or ("seq_relationship" in key) or "Step" in key))
+new_dict = OrderedDict((key.replace('Moment_1_model_', '').replace('wrapper_.', ''), value) for key, value in stateDic.items() if not (("Moment" in key) or ("_fp16" in key) or ("predictions" in key) or ("seq_relationship" in key) or "Step" in key))
 
 torch.save(new_dict,outputFile)
 
