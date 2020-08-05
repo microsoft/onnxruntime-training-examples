@@ -18,8 +18,6 @@ You can run the training in Azure Machine Learning or on an Azure VM with NVIDIA
     ```bash
     git clone --no-checkout https://github.com/NVIDIA/DeepLearningExamples.git
     cd DeepLearningExamples/
-    git config core.sparseCheckout true
-    echo "PyTorch/LanguageModeling/BERT/*"> .git/info/sparse-checkout
     git checkout 4733603577080dbd1bdcd51864f31e45d5196704
     cd ..
     ```
