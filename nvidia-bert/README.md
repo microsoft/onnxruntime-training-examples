@@ -33,7 +33,9 @@ You can run the training in Azure Machine Learning or on an Azure VM with NVIDIA
     cp -r ./nvidia-bert/ort_addon/* workspace/BERT
     cd workspace
     git clone https://github.com/attardi/wikiextractor.git
-    cd ..
+    cd wikiextractor/
+    git checkout e4abb4cbd019b0257824ee47c23dd163919b731b
+    cd ../../ 
     ```
 
 ## Download and prepare data
