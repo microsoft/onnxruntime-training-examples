@@ -2,6 +2,7 @@ FROM mcr.microsoft.com/azureml/onnxruntime-training:0.1-rc2-openmpi4.0-cuda10.2-
 WORKDIR /workspace
 RUN python3 -m pip install azureml azureml-core
 COPY transformers/ transformers/
+RUN apt-get update
 RUN apt-get install -y build-essential
 RUN cd transformers/ && \
     python3 -m pip install --no-cache-dir . && \
