@@ -22,7 +22,7 @@ The examples in this repo depend on a Docker image that includes ONNX Runtime fo
 
 ## Running the sample
 
-Readme files for every example listed in the table above provides a step-by-step instructions to execute the example.
+Readme files for every example listed above provide a step-by-step instructions to execute the example.
 
 ## Contributing
 
