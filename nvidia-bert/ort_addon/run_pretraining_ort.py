@@ -396,7 +396,6 @@ def main():
             dllogger.log(step="PARAMETER", data={"batch_size_per_gpu": args.train_batch_size})
             dllogger.log(step="PARAMETER", data={"learning_rate": args.learning_rate})
 
-        model.train()
         most_recent_ckpts_paths = []
         average_loss = 0.0  # averaged loss every args.log_freq steps
         epoch = 0
