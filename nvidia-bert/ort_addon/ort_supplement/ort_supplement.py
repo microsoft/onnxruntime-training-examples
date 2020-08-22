@@ -56,9 +56,23 @@ def setup_onnxruntime_with_mpi(args):
 
     return device
 
+def optimizer_parameters_mutiple_groups(model):
+    '''A method to assign different hyper parameters for different model parameter groups'''
+    no_decay_keys = ["bias", "gamma", "beta", "LayerNorm"]
+    no_decay_param_group = []
+    decay_param_group = []
+    for initializer in model.graph.initializer:
+        if any(key in initializer.name for key in no_decay_keys):
+            no_decay_param_group.append(initializer.name)
+        else:
+            decay_param_group.append(initializer.name)
+    params = [{'params': no_decay_param_group, "alpha": 0.9, "beta": 0.999, "lambda_coef": 0.0, "epsilon": 1e-6},
+              {'params': decay_param_group, "alpha": 0.9, "beta": 0.999, "lambda_coef": 0.01, "epsilon": 1e-6}]
+    return params
+
 def create_ort_trainer(args, device, model):
 
-    # WIP: MODEL DESCRIPTION
+    # MODEL DESCRIPTION
     vocab_size = 30528
     micro_batch = args.train_batch_size // args.gradient_accumulation_steps
     model_desc = {
@@ -74,7 +88,7 @@ def create_ort_trainer(args, device, model):
         ]
     }
 
-    # WIP: OPTIMIZER CONVERSION
+    # OPTIMIZER CONVERSION
     param_optimizer = list(model.named_parameters())
     no_decay = ['bias', 'gamma', 'beta', 'LayerNorm']
     optim_config = optim.LambConfig(
@@ -82,17 +96,21 @@ def create_ort_trainer(args, device, model):
         params = [{
             'params' : [n for n, p in param_optimizer if any(nd in n for nd in no_decay)],
             'alpha': 0.9, 'beta': 0.999, 'lambda_coef': 0.0, 'epsilon': 1e-6
+        },
+        {
+            'params' : [n for n, p in param_optimizer if not any(nd in n for nd in no_decay)],
+            'alpha': 0.9, 'beta': 0.999, 'lambda_coef': 0.01, 'epsilon': 1e-6
         }],
     )
 
-    # WIP: LEARNING RATE SCHEDULER CONVERSION 
+    # LEARNING RATE SCHEDULER CONVERSION 
     lr_scheduler = optim.lr_scheduler.LinearWarmupLRScheduler(
         total_steps=int(args.max_steps), warmup=args.warmup_proportion)
 
-    # WIP: LOSS SCALAR CONVERSION
+    # LOSS SCALAR CONVERSION
     loss_scaler = ort_amp.loss_scaler.DynamicLossScaler()
 
-    # WIP: ORT TRAINER OPTIONS 
+    # ORT TRAINER OPTIONS 
     trainer_config = orttrainer.ORTTrainerOptions({
         'device': {
             'id': str(device), 
@@ -109,15 +127,18 @@ def create_ort_trainer(args, device, model):
         },
         'lr_scheduler': lr_scheduler,
         'mixed_precision': {
-            'enabled': True if args.fp16 else False,
-            'loss_scaler': loss_scaler
+            'enabled': False # True if args.fp16 else False,
+            # 'loss_scaler': loss_scaler
         },
         'debug': {
              'deterministic_compute' : True
+        },
+        '_internal_use': {
+            'onnx_opset_version': 12
         }
     })
 
-    # WIP: ORT TRAINER CONSTRUCTION
+    # ORT TRAINER CONSTRUCTION
     trainer = orttrainer.ORTTrainer(
         model, model_desc, optim_config, loss_fn=None, options=trainer_config)
 
@@ -133,7 +154,7 @@ def run_ort_training_step(args, global_step, training_steps, model, batch):
             assert len(loss) == 2
             loss, all_finite = loss
     else:
-        loss = model(input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels)
+        loss = model.train_step(input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels)
 
     if training_steps % args.gradient_accumulation_steps == 0:
         global_step += 1
