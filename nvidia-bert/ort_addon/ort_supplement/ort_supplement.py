@@ -5,6 +5,8 @@ import os
 import onnx
 from onnxruntime.capi.ort_trainer import ORTTrainer, IODescription, ModelDescription
 from onnxruntime.capi.ort_trainer import LossScaler
+from onnxruntime.experimental import TrainStepInfo
+
 import torch
 from ort_supplement.azureml_adapter import set_environment_variables_for_nccl_backend, get_local_rank, get_local_size, get_global_size, get_world_size, get_world_rank 
 
@@ -72,6 +74,14 @@ def bert_model_description(args):
     loss_desc = IODescription('loss', [], torch.float32)
     return ModelDescription([input_ids_desc, segment_ids_desc, input_mask_desc, masked_lm_labels_desc, next_sentence_labels_desc], [loss_desc])
 
+def legacy_linear_lr_scheduler(global_step, initial_lr, total_steps, warmup):
+    num_warmup_steps = warmup * total_steps
+    if global_step < num_warmup_steps:
+        new_lr = initial_lr * float(global_step) / float(max(1, num_warmup_steps))
+    else:
+        new_lr = initial_lr * max(0.0, float(total_steps - global_step) / float(max(1, total_steps - num_warmup_steps)))
+    return new_lr
+
 def create_ort_trainer(args, device, model):
     
     # set GPU memory limitation (per card!)
@@ -92,6 +102,8 @@ def create_ort_trainer(args, device, model):
         else:
             return {"alpha": 0.9, "beta": 0.999, "lambda": 0.01, "epsilon": 1e-6}
 
+    get_lr_this_step = partial(legacy_linear_lr_scheduler, initial_lr=args.learning_rate, total_steps=args.max_steps, warmup=args.warmup_proportion)
+
     # we request ORTTrainer to create a LambOptimizer with given optimizer_attributes. 
     # train_step does forward, backward, and optimize step.
     model = ORTTrainer(model, None, bert_model_description(args), "LambOptimizer", 
@@ -103,12 +115,15 @@ def create_ort_trainer(args, device, model):
         use_mixed_precision = True if args.fp16 else False,
         allreduce_post_accumulation = True if args.allreduce_post_accumulation else False,
         deepspeed_zero_stage = 1 if args.deepspeed_zero_stage else 0,
+        _get_lr_this_step = get_lr_this_step,
+        _use_deterministic_compute=True,
         _opset_version = 12)
 
     if args.fp16:
         setattr(args, 'ort_loss_scale', LossScaler(model.loss_scale_input_name, True, up_scale_window=2000))
 
     return model
+
 
 from ort_supplement.lr_schedules import SCHEDULES
 def get_lr(args, training_steps, schedule='warmup_poly'):
@@ -126,12 +141,14 @@ def run_ort_training_step(args, global_step, training_steps, model, batch):
     if args.fp16:
         loss_scale = torch.tensor([args.ort_loss_scale.loss_scale_])
         loss = model.train_step(input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels, learning_rate, loss_scale)
+
         all_finite = 1
         if isinstance(loss, (list, tuple)):
             assert len(loss) == 2
             loss, all_finite = loss
     else:
-        loss = model(input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels, learning_rate)
+        # loss = model(input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels, learning_rate)
+        loss = model(input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels)
     if training_steps % args.gradient_accumulation_steps == 0:
         if args.fp16:
             args.ort_loss_scale.update_loss_scale(all_finite.item())
