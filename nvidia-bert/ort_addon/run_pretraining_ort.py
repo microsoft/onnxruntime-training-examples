@@ -69,6 +69,7 @@ class WorkerInitObj(object):
 def create_pretraining_dataset(input_file, max_pred_length, shared_list, args, worker_init):
     train_data = pretraining_dataset(input_file=input_file, max_pred_length=max_pred_length)
     train_sampler = RandomSampler(train_data)
+    # train_sampler = SequentialSampler(train_data)
     # --- ort training edit: we need to skip last batch when hard coding inputs as an optimization
     train_dataloader = DataLoader(train_data, sampler=train_sampler,
                                   batch_size=args.train_batch_size * args.n_gpu, 
@@ -445,6 +446,7 @@ def main():
 
             train_data = pretraining_dataset(data_file, args.max_predictions_per_seq)
             train_sampler = RandomSampler(train_data)
+            # train_sampler = SequentialSampler(train_data)
             # we need to skip last batch when we hard code inputs as an optimization
             train_dataloader = DataLoader(train_data, sampler=train_sampler,
                                           batch_size=args.train_batch_size * args.n_gpu,
