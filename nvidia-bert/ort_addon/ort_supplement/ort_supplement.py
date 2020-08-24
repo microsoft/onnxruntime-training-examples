@@ -6,6 +6,7 @@ import onnx
 from onnxruntime.capi.ort_trainer import ORTTrainer, IODescription, ModelDescription
 from onnxruntime.capi.ort_trainer import LossScaler
 from onnxruntime.experimental import TrainStepInfo
+import functools
 
 import torch
 from ort_supplement.azureml_adapter import set_environment_variables_for_nccl_backend, get_local_rank, get_local_size, get_global_size, get_world_size, get_world_rank 
@@ -45,8 +46,9 @@ def setup_onnxruntime_with_mpi(args):
 
         torch.distributed.init_process_group(backend='nccl')
 
-    from onnxruntime.capi._pybind_state import set_cuda_device_id 
+    from onnxruntime.capi._pybind_state import set_cuda_device_id, set_seed
     set_cuda_device_id(args.local_rank)
+    set_seed(args.seed)
 
     from onnxruntime.capi._pybind_state import set_arena_extend_strategy, ArenaExtendStrategy
     set_arena_extend_strategy(ArenaExtendStrategy.kSameAsRequested)
@@ -102,7 +104,7 @@ def create_ort_trainer(args, device, model):
         else:
             return {"alpha": 0.9, "beta": 0.999, "lambda": 0.01, "epsilon": 1e-6}
 
-    get_lr_this_step = partial(legacy_linear_lr_scheduler, initial_lr=args.learning_rate, total_steps=args.max_steps, warmup=args.warmup_proportion)
+    get_lr_this_step = functools.partial(legacy_linear_lr_scheduler, initial_lr=args.learning_rate, total_steps=args.max_steps, warmup=args.warmup_proportion)
 
     # we request ORTTrainer to create a LambOptimizer with given optimizer_attributes. 
     # train_step does forward, backward, and optimize step.
@@ -115,7 +117,7 @@ def create_ort_trainer(args, device, model):
         use_mixed_precision = True if args.fp16 else False,
         allreduce_post_accumulation = True if args.allreduce_post_accumulation else False,
         deepspeed_zero_stage = 1 if args.deepspeed_zero_stage else 0,
-        _get_lr_this_step = get_lr_this_step,
+        get_lr_this_step = get_lr_this_step,
         _use_deterministic_compute=True,
         _opset_version = 12)
 
@@ -147,7 +149,6 @@ def run_ort_training_step(args, global_step, training_steps, model, batch):
             assert len(loss) == 2
             loss, all_finite = loss
     else:
-        # loss = model(input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels, learning_rate)
         loss = model(input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels)
     if training_steps % args.gradient_accumulation_steps == 0:
         if args.fp16:

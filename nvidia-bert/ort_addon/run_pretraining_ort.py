@@ -63,12 +63,15 @@ class WorkerInitObj(object):
     def __init__(self, seed):
         self.seed = seed
     def __call__(self, id):
-        np.random.seed(seed=self.seed + id)
-        random.seed(self.seed + id)
+        # np.random.seed(seed=self.seed + id)
+        # random.seed(self.seed + id)
+        np.random.seed(seed=self.seed)
+        random.seed(self.seed)
 
 def create_pretraining_dataset(input_file, max_pred_length, shared_list, args, worker_init):
     train_data = pretraining_dataset(input_file=input_file, max_pred_length=max_pred_length)
     train_sampler = RandomSampler(train_data)
+    # train_sampler = SequentialSampler(train_data)
     # --- ort training edit: we need to skip last batch when hard coding inputs as an optimization
     train_dataloader = DataLoader(train_data, sampler=train_sampler,
                                   batch_size=args.train_batch_size * args.n_gpu, 
@@ -446,6 +449,7 @@ def main():
 
             train_data = pretraining_dataset(data_file, args.max_predictions_per_seq)
             train_sampler = RandomSampler(train_data)
+            # train_sampler = SequentialSampler(train_data)
             # we need to skip last batch when we hard code inputs as an optimization
             train_dataloader = DataLoader(train_data, sampler=train_sampler,
                                           batch_size=args.train_batch_size * args.n_gpu,
@@ -474,11 +478,24 @@ def main():
                 for step, batch in enumerate(train_iter):
 
                     training_steps += 1
+
+                    # import pickle
+                    # if training_steps <= 160:
+                    #     # with open('sample_data/batch_input_{}.pkl'.format(training_steps-1), "wb") as samplefile:
+                    #     #     pickle.dump( batch, samplefile)
+                    #     with open('sample_data/batch_input_{}.pkl'.format(training_steps-1), 'rb') as samplefile:
+                    #         batch = pickle.load(samplefile)
+
+                    # if training_steps == 2:
+                    #     print('Dumping onnx model..')
+                    #     model.save_as_onnx('nvbert.onnx')
+
                     batch = [t.to(device) for t in batch]
                     input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels = batch
                     divisor = args.gradient_accumulation_steps
 
                     loss, global_step = ort_supplement.run_ort_training_step(args, global_step, training_steps, model, batch)
+                    # print('\ntraining_step = {}, loss = {}'.format(training_steps, loss.item()))
                     average_loss += loss.item()
 
                     if global_step >= args.max_steps:
