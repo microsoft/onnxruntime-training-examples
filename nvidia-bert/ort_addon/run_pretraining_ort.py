@@ -37,6 +37,7 @@ from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, Datas
 import math
 import multiprocessing
 import modeling
+from onnxruntime.experimental.checkpoint import experimental_state_dict
 
 from utils import format_step
 
@@ -518,7 +519,7 @@ def main():
                             else:
                                 output_save_file = os.path.join(args.output_dir, "ckpt_{}.pt".format(global_step + args.phase1_end_step))
                             if args.do_train:
-                                state = {'model': model_to_save.state_dict(),
+                                state = {'model': model_to_save.state_dict() if hasattr(model_to_save, 'state_dict') else experimental_state_dict(model_to_save),
                                          'files': [f_id] + files}
                                 torch.save(state, output_save_file)
 
