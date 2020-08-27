@@ -37,7 +37,7 @@ from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, Datas
 import math
 import multiprocessing
 import modeling
-from onnxruntime.experimental.checkpoint import experimental_state_dict
+from onnxruntime.experimental.checkpoint import experimental_state_dict, experimental_load_state_dict
 
 from utils import format_step
 
@@ -359,7 +359,7 @@ def prepare_model(args, device):
         else:
             checkpoint = torch.load(args.init_checkpoint, map_location="cpu")
 
-        model.load_state_dict(checkpoint['model'], strict=False)
+        experimental_load_state_dict(model, checkpoint['model'], strict=False)
         
         if args.phase2 and not args.init_checkpoint:
             global_step -= args.phase1_end_step
