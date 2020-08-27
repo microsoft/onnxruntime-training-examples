@@ -19,6 +19,7 @@ def setup_onnxruntime_with_mpi(args):
 
     has_aml = 'AZ_BATCH_MASTER_NODE' in os.environ.keys() or 'AZ_BATCHAI_MPI_MASTER_NODE' in os.environ.keys()
     if not has_aml:
+        # outside of Azure we get MPI context from mpi4py
         print('Detected local run')
         args.local_rank = comm.Get_rank() % torch.cuda.device_count()
         args.world_rank = comm.Get_rank()
@@ -29,6 +30,7 @@ def setup_onnxruntime_with_mpi(args):
         args.n_gpu = 1
 
     else:
+        # on Azure machine learning compute we get MPI context from environment variables
         print('Detected Azure batch run')
         set_environment_variables_for_nccl_backend(get_local_size() == get_global_size(), IB = args.use_ib)
         args.local_rank = get_local_rank()
@@ -48,32 +50,20 @@ def setup_onnxruntime_with_mpi(args):
 
         torch.distributed.init_process_group(backend='nccl')
 
+    # tell onnxruntime which device to use and seed its random generators
     from onnxruntime.capi._pybind_state import set_cuda_device_id, set_seed
     set_cuda_device_id(args.local_rank)
-    set_seed(args.seed)
+    set_seed(args.seed + args.world_rank)
 
+    # tell onnxruntime to only allocate as much memory as strictly required
     from onnxruntime.capi._pybind_state import set_arena_extend_strategy, ArenaExtendStrategy
     set_arena_extend_strategy(ArenaExtendStrategy.kSameAsRequested)
 
     return device
 
-def optimizer_parameters_mutiple_groups(model):
-    '''A method to assign different hyper parameters for different model parameter groups'''
-    no_decay_keys = ["bias", "gamma", "beta", "LayerNorm"]
-    no_decay_param_group = []
-    decay_param_group = []
-    for initializer in model.graph.initializer:
-        if any(key in initializer.name for key in no_decay_keys):
-            no_decay_param_group.append(initializer.name)
-        else:
-            decay_param_group.append(initializer.name)
-    params = [{'params': no_decay_param_group, "alpha": 0.9, "beta": 0.999, "lambda_coef": 0.0, "epsilon": 1e-6},
-              {'params': decay_param_group, "alpha": 0.9, "beta": 0.999, "lambda_coef": 0.01, "epsilon": 1e-6}]
-    return params
-
 def create_ort_trainer(args, device, model):
 
-    # MODEL DESCRIPTION
+    # MODEL INPUT AND OUTPUT DESCRIPTION
     vocab_size = 30528
     micro_batch = args.train_batch_size // args.gradient_accumulation_steps
     model_desc = {
@@ -89,29 +79,26 @@ def create_ort_trainer(args, device, model):
         ]
     }
 
-    # OPTIMIZER CONVERSION
+    # TRAINING OPTIMIZER SPECIFICATION
     param_optimizer = list(model.named_parameters())
     no_decay = ['bias', 'gamma', 'beta', 'LayerNorm']
     optim_config = optim.LambConfig(
         lr=args.learning_rate, alpha=0.9, beta=0.999, lambda_coef=0.01, epsilon=1e-6,
+        do_bias_correction=True,
         params = [{
             'params' : [n for n, p in param_optimizer if any(nd in n for nd in no_decay)],
-            'alpha': 0.9, 'beta': 0.999, 'lambda_coef': 0.0, 'epsilon': 1e-6
-        },
-        {
-            'params' : [n for n, p in param_optimizer if not any(nd in n for nd in no_decay)],
-            'alpha': 0.9, 'beta': 0.999, 'lambda_coef': 0.01, 'epsilon': 1e-6
-        }],
+            'alpha': 0.9, 'beta': 0.999, 'lambda_coef': 0.00, 'epsilon': 1e-6
+        }]
     )
 
-    # LEARNING RATE SCHEDULER CONVERSION 
+    # LEARNING RATE SCHEDULE SPECIFICATION
     lr_scheduler = optim.lr_scheduler.LinearWarmupLRScheduler(
         total_steps=int(args.max_steps), warmup=args.warmup_proportion)
 
-    # LOSS SCALAR CONVERSION
+    # DYNAMIC LOSS SCALING SPECIFICATION (mixed precision only)
     loss_scaler = ort_amp.loss_scaler.DynamicLossScaler()
 
-    # ORT TRAINER OPTIONS 
+    # ONNXRUNTIME TRAINER OPTIONS 
     trainer_config = orttrainer.ORTTrainerOptions({
         'device': {
             'id': str(device), 
@@ -124,41 +111,33 @@ def create_ort_trainer(args, device, model):
             'world_size': args.world_size,
             'world_rank': args.world_rank,
             'allreduce_post_accumulation': True if args.allreduce_post_accumulation else False,
-            # 'missing? deepspeed_zero_stage': 1 if args.deepspeed_zero_stage else 0,
+            'deepspeed_zero_optimization': {
+                'stage': 1 if args.deepspeed_zero_stage else 0,
+            }        
         },
         'lr_scheduler': lr_scheduler,
         'mixed_precision': {
-            'enabled': False # True if args.fp16 else False,
-            # 'loss_scaler': loss_scaler
+            'enabled': True if args.fp16 else False,
+            'loss_scaler': loss_scaler if args.fp16 else None,
         },
-        'debug': {
-             'deterministic_compute' : True
-        },
+        # OOM issue..
+        # 'debug': {
+        #      'deterministic_compute' : True
+        # },
         '_internal_use': {
             'onnx_opset_version': 12
         }
     })
 
-    # ORT TRAINER CONSTRUCTION
+    # ONNXRUNTIME TRAINER CONSTRUCTION (loss fn embedded in model)
     trainer = orttrainer.ORTTrainer(
         model, model_desc, optim_config, loss_fn=None, options=trainer_config)
 
     return trainer
 
-def run_ort_training_step(args, global_step, training_steps, model, batch):
-    input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels = batch
-
-    if args.fp16:
-        loss = model.train_step(input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels)
-        all_finite = 1
-        if isinstance(loss, (list, tuple)):
-            assert len(loss) == 2
-            loss, all_finite = loss
-    else:
-        loss = model.train_step(input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels)
-
+def run_ort_training_step(args, global_step, training_steps, trainer, batch):
+    loss = trainer.train_step(*batch)
     if training_steps % args.gradient_accumulation_steps == 0:
         global_step += 1
-
     return loss, global_step
  
