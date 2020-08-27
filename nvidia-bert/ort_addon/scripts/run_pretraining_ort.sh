@@ -16,9 +16,9 @@ set -e
 
 echo "Container nvidia build = " $NVIDIA_BUILD_ID
 
-precision=${3:-"fp32"}
-num_gpus=${4:-1}
-gpu_memory_limit_gb=${26:-"16"}
+precision=${3:-"fp16"}
+num_gpus=${4:-8}
+gpu_memory_limit_gb=${26:-"32"}
 
 seed=${12:-42}
 job_name=${13:-"bert_lamb_pretraining"}
@@ -30,7 +30,7 @@ create_logfile=${9:-"true"}
 accumulate_gradients=${10:-"true"}
 deepspeed_zero_stage=${27:-"false"}
 
-train_batch_size=${1:-512} 
+train_batch_size=${1:-4096} 
 learning_rate=${2:-"6e-3"}
 warmup_proportion=${5:-"0.2843"}
 train_steps=${6:-7038}
@@ -43,12 +43,10 @@ warmup_proportion_phase2=${19:-"0.128"}
 train_steps_phase2=${20:-1563}
 gradient_accumulation_steps_phase2=${11:-256} 
 
-# PATH_TO_PHASE1_TRAINING_DATA=/data/128
-PATH_TO_PHASE1_TRAINING_DATA=/bert_data/hdf5_lower_case_1_seq_len_128_max_pred_20_masked_lm_prob_0.15_random_seed_12345_dupe_factor_5/books_wiki_en_corpus/train
+PATH_TO_PHASE1_TRAINING_DATA=/data/128
 DATA_DIR_PHASE1=${22:-$PATH_TO_PHASE1_TRAINING_DATA}
 BERT_CONFIG=bert_config.json
-# CODEDIR=${24:-"/workspace/bert"}
-CODEDIR=${24:-"/bert_ort/sukha/new_api/onnxruntime-training-examples/workspace/BERT"}
+CODEDIR=${24:-"/workspace/bert"}
 init_checkpoint=${25:-"None"}
 RESULTS_DIR=$CODEDIR/results
 CHECKPOINTS_DIR=$RESULTS_DIR/checkpoints
@@ -161,12 +159,10 @@ fi
 set +x
 
 echo "finished pretraining"
-exit 0
 
 #Start Phase2
 
-# PATH_TO_PHASE2_TRAINING_DATA=/data/512
-PATH_TO_PHASE2_TRAINING_DATA=/bert_data/hdf5_lower_case_1_seq_len_512_max_pred_80_masked_lm_prob_0.15_random_seed_12345_dupe_factor_5/books_wiki_en_corpus/train
+PATH_TO_PHASE2_TRAINING_DATA=/data/512
 DATA_DIR_PHASE2=${23:-$PATH_TO_PHASE2_TRAINING_DATA}
 
 PREC=""
