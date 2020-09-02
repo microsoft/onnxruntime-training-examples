@@ -2,7 +2,7 @@
 
 This example uses ONNX Runtime to pre-train the BERT PyTorch model maintained at https://github.com/NVIDIA/DeepLearningExamples.
 
-You can run the training in Azure Machine Learning or on an NVIDIA DGX-2.
+You can run the training in Azure Machine Learning or on an Azure VM with NVIDIA GPU.
 
 ## Setup
 
@@ -18,8 +18,6 @@ You can run the training in Azure Machine Learning or on an NVIDIA DGX-2.
     ```bash
     git clone --no-checkout https://github.com/NVIDIA/DeepLearningExamples.git
     cd DeepLearningExamples/
-    git config core.sparseCheckout true
-    echo "PyTorch/LanguageModeling/BERT/*"> .git/info/sparse-checkout
     git checkout 4733603577080dbd1bdcd51864f31e45d5196704
     cd ..
     ```
@@ -33,7 +31,9 @@ You can run the training in Azure Machine Learning or on an NVIDIA DGX-2.
     cp -r ./nvidia-bert/ort_addon/* workspace/BERT
     cd workspace
     git clone https://github.com/attardi/wikiextractor.git
-    cd ..
+    cd wikiextractor/
+    git checkout e4abb4cbd019b0257824ee47c23dd163919b731b
+    cd ../../ 
     ```
 
 ## Download and prepare data
@@ -46,17 +46,24 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 
 1. Check pre-requisites
 
-    * Natural Language Toolkit (NLTK) `python3-pip install nltk`
     * Python 3.6
+    * Natural Language Toolkit (NLTK) `python3-pip install nltk`
 
 2. Download and prepare Wikicorpus training data in HDF5 format.
 
     ```bash
     export BERT_PREP_WORKING_DIR=./workspace/BERT/data/
 
-    # Download
-    python ./workspace/BERT/data/bertPrep.py --action download --dataset wikicorpus_en
+    # Download google_pretrained_weights
     python ./workspace/BERT/data/bertPrep.py --action download --dataset google_pretrained_weights
+
+    # Download wikicorpus_en via wget
+    mkdir -p ./workspace/BERT/data/download/wikicorpus_en
+    cd ./workspace/BERT/data/download/wikicorpus_en
+    wget https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles.xml.bz2
+    bzip2 -dv enwiki-latest-pages-articles.xml.bz2
+    mv enwiki-latest-pages-articles.xml wikicorpus_en.xml
+    cd ../../../../..
 
     # Fix path issue to use BERT_PREP_WORKING_DIR as prefix for path instead of hard-coded prefix
     sed -i "s/path_to_wikiextractor_in_container = '/path_to_wikiextractor_in_container = './g" ./workspace/BERT/data/bertPrep.py
@@ -68,7 +75,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
     python ./workspace/BERT/data/bertPrep.py --action sharding --dataset wikicorpus_en
 
     # Fix path to workspace to allow running outside of the docker container
-    sed -i "s/python \/workspace/python .\/workspace/g" ./workspace/BERT/data/bertPrep.py
+    sed -i "s/python \/workspace\/bert/python .\/workspace\/BERT/g" ./workspace/BERT/data/bertPrep.py
 
     # Create HDF5 files Phase 1
     python ./workspace/BERT/data/bertPrep.py --action create_hdf5_files --dataset wikicorpus_en --max_seq_length 128 \
@@ -115,11 +122,11 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 
     Execute the steps in the Python notebook [azureml-notebooks/run-pretraining.ipynb](azureml-notebooks/run-pretraining.ipynb) within your environment. If you have a local setup to run an Azure ML notebook, you could run the steps in the notebook in that environment. Otherwise, a compute instance in Azure Machine Learning could be created and used to run the steps.
 
-## BERT pre-training with ONNX Runtime directly on NVIDIA hardware
+## BERT pre-training with ONNX Runtime directly on ND40rs_v2 (or similar NVIDIA capable Azure VM) 
 
 1. Check pre-requisites
 
-    * CUDA 10.1
+    * CUDA 10.2
     * Docker
     * [NVIDIA docker toolkit](https://github.com/NVIDIA/nvidia-docker)
 
@@ -131,7 +138,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
     bash build.sh
     cd ../..
     ```    
-    - Tag this image __onnxruntime-bert__`
+    - Tag this image __onnxruntime-pytorch-for-bert__`
     
     To build and install the onnxruntime wheel on the host machine, follow steps [here](https://github.com/microsoft/onnxruntime/blob/master/BUILD.md#Training)
 
@@ -165,7 +172,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
     seed=${12:-42}
 
     accumulate_gradients=${10:-"true"}
-    partition_optimizer=${27:-"false"}
+    deepspeed_zero_stage=${27:-"false"}
 
     train_batch_size=${1:-16320}
     learning_rate=${2:-"6e-3"}
