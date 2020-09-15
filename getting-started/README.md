@@ -91,6 +91,16 @@ def learning_rate_description():
     return IODescription('Learning_Rate', [lr,], torch.float32)
 ```
 
+### Distributed training
+
+This example runs on a single GPU. To configure distributed training, you can set the following options when creating the `ORTTrainer`:
+
+* `world_rank`: a unique id for the process
+* `world_size`: number of processes across which training is distributed
+* `deepspeed_zero_stage`: the DeepSpeed ZeRO partition optimizer configuration
+  * a value of 0 disables partitioning of optimizer state
+  * a value of 1 partitions the optimizer state across distributed processors
+
 ## Run the sample
 
 1. Pre-requisites
