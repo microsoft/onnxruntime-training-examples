@@ -4,10 +4,10 @@ set -e
 num_gpus=4
 use_ort=true
 
-export TRAIN_FILE=/data/wiki.train.tokens
-export TEST_FILE=/data/wiki.test.tokens
+#export TRAIN_FILE=/data/wiki.train.tokens
+#export TEST_FILE=/data/wiki.test.tokens
 
-RUN_FILE=/workspace/transformers/examples/run_language_modeling.py
+RUN_FILE=/workspace/GPT2/transformers/examples/run_language_modeling.py
 RESULT_DIR=/workspace/results
 
 if [ "$use_ort" = true ] ; then
@@ -19,17 +19,17 @@ else
 fi
 
 $RUN_CMD \
-    --model_type=gpt2 \
-    --model_name_or_path=gpt2 \
-    --tokenizer_name=gpt2  \
-    --config_name=gpt2  \
+    --model_type=gpt2-medium \
+    --model_name_or_path=gpt2-medium \
+    --tokenizer_name=gpt2-medium  \
+    --config_name=gpt2-medium  \
     --do_eval \
     --do_train \
     --train_data_file=$TRAIN_FILE \
     --eval_data_file=$TEST_FILE \
-    --per_gpu_train_batch_size=1  \
+    --per_gpu_train_batch_size=4  \
     --per_gpu_eval_batch_size=4  \
-    --gradient_accumulation_steps=16 \
+    --gradient_accumulation_steps=8 \
     --block_size=1024  \
     --weight_decay=0.01 \
     --overwrite_output_dir \

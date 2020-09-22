@@ -22,9 +22,9 @@ index 660a652..faac772 100644
  
  logger = logging.getLogger(__name__)
  
-+from azureml.core.run import Run
++# from azureml.core.run import Run
 +# get the Azure ML run object
-+run = Run.get_context()
++# run = Run.get_context()
  
  MODEL_CONFIG_CLASSES = list(MODEL_WITH_LM_HEAD_MAPPING.keys())
  MODEL_TYPES = tuple(conf.model_type for conf in MODEL_CONFIG_CLASSES)
@@ -69,7 +69,7 @@ index 660a652..faac772 100644
              for key in sorted(result.keys()):
                  logger.info("  %s = %s", key, str(result[key]))
                  writer.write("%s = %s\n" % (key, str(result[key])))
-+                run.log(key,result[key])
++#                run.log(key,result[key])
  
          results.update(result)
  
@@ -253,9 +253,9 @@ index 6524ba4..ade1490 100644
  from .optimization import AdamW, get_linear_schedule_with_warmup
  from .training_args import TrainingArguments
  
-+from azureml.core.run import Run
++# from azureml.core.run import Run
 +# get the Azure ML run object
-+run = Run.get_context()
++# run = Run.get_context()
  
  try:
      from apex import amp
@@ -305,7 +305,7 @@ index 6524ba4..ade1490 100644
                              if self.tb_writer:
                                  for k, v in logs.items():
                                      self.tb_writer.add_scalar(k, v, global_step)
-+                                    run.log(k,v)
++#                                    run.log(k,v)
                              epoch_iterator.write(json.dumps({**logs, **{"step": global_step}}))
  
                          if self.args.save_steps > 0 and global_step % self.args.save_steps == 0:

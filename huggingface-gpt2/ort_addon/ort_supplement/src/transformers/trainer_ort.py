@@ -25,9 +25,9 @@ from .modeling_utils import PreTrainedModel
 from .training_args import TrainingArguments
 from .trainer import PredictionOutput, TrainOutput, EvalPrediction, set_seed, Trainer
 
-from azureml.core.run import Run
+# from azureml.core.run import Run
 # get the Azure ML run object
-run = Run.get_context()
+# run = Run.get_context()
 
 
 try:
@@ -281,7 +281,7 @@ class OrtTrainer(Trainer):
                             if self.tb_writer:
                                 for k, v in logs.items():
                                     self.tb_writer.add_scalar(k, v, global_step)
-                                    run.log(k, v)
+#                                    run.log(k,v)
                             epoch_iterator.write(json.dumps({**logs, **{"step": global_step}}))
 
                         if self.args.save_steps > 0 and global_step % self.args.save_steps == 0:
