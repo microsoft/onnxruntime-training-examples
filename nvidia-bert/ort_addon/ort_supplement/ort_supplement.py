@@ -51,12 +51,11 @@ def setup_onnxruntime_with_mpi(args):
         torch.distributed.init_process_group(backend='nccl')
 
     # tell onnxruntime which device to use and seed its random generators
-    from onnxruntime.capi._pybind_state import set_cuda_device_id, set_seed
-    set_cuda_device_id(args.local_rank)
+    from onnxruntime import set_seed
     set_seed(args.seed + args.world_rank)
 
     # tell onnxruntime to only allocate as much memory as strictly required
-    from onnxruntime.capi._pybind_state import set_arena_extend_strategy, ArenaExtendStrategy
+    from onnxruntime import set_arena_extend_strategy, ArenaExtendStrategy
     set_arena_extend_strategy(ArenaExtendStrategy.kSameAsRequested)
 
     return device
@@ -95,9 +94,6 @@ def create_ort_trainer(args, device, model):
     lr_scheduler = optim.lr_scheduler.LinearWarmupLRScheduler(
         total_steps=int(args.max_steps), warmup=args.warmup_proportion)
 
-    # DYNAMIC LOSS SCALING SPECIFICATION (mixed precision only)
-    loss_scaler = ort_amp.loss_scaler.DynamicLossScaler()
-
     # ONNXRUNTIME TRAINER OPTIONS 
     trainer_config = orttrainer.ORTTrainerOptions({
         'device': {
@@ -118,14 +114,6 @@ def create_ort_trainer(args, device, model):
         'lr_scheduler': lr_scheduler,
         'mixed_precision': {
             'enabled': True if args.fp16 else False,
-            'loss_scaler': loss_scaler if args.fp16 else None,
-        },
-        # OOM issue..
-        # 'debug': {
-        #      'deterministic_compute' : True
-        # },
-        '_internal_use': {
-            'onnx_opset_version': 12
         }
     })
 
