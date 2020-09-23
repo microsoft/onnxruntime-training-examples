@@ -6,7 +6,7 @@ import onnx
 import torch
 
 # onnxruntime training API
-from onnxruntime.experimental import orttrainer, optim, amp as ort_amp
+from onnxruntime.training import orttrainer, optim, amp as ort_amp
 
 # converts azureml environment variables into context for distributed run
 from ort_supplement.azureml_adapter import \

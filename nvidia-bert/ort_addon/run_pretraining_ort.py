@@ -37,7 +37,7 @@ from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, Datas
 import math
 import multiprocessing
 import modeling
-from onnxruntime.experimental.checkpoint import experimental_state_dict, experimental_load_state_dict
+from onnxruntime.training.checkpoint import experimental_state_dict, experimental_load_state_dict
 
 from utils import format_step
 
@@ -102,7 +102,7 @@ class pretraining_dataset(Dataset):
         masked_lm_labels = torch.ones(input_ids.shape, dtype=torch.long) * -1
         index = self.max_pred_length
         # store number of  masked tokens in index
-        padded_mask_indices = (masked_lm_positions == 0).nonzero()
+        padded_mask_indices = (masked_lm_positions == 0).nonzero(as_tuple=False)
         if len(padded_mask_indices) != 0:
             index = padded_mask_indices[0].item()
         masked_lm_labels[masked_lm_positions[:index]] = masked_lm_ids[:index]
