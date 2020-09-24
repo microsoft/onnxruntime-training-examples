@@ -1,6 +1,6 @@
-FROM mcr.microsoft.com/azureml/onnxruntime-training:0.1-rc2-openmpi4.0-cuda10.2-cudnn7.6-nccl2.7.6
+FROM ortrelease.azurecr.io/onnxruntime-training:orttraining_rc3_latest
 WORKDIR /workspace
-RUN conda install azureml azureml-core
+RUN pip install azureml azureml-core
 COPY transformers/ transformers/
 RUN apt-get update && \
     apt-get install -y build-essential

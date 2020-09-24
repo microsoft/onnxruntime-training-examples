@@ -19,7 +19,7 @@ from torch.utils.data.sampler import RandomSampler
 from tqdm import tqdm, trange
 
 import onnxruntime
-from onnxruntime.experimental import _utils, amp, checkpoint, optim, orttrainer, TrainStepInfo
+from onnxruntime.training import _utils, amp, checkpoint, optim, orttrainer, TrainStepInfo
 from .data.data_collator import DataCollator, DefaultDataCollator
 from .modeling_utils import PreTrainedModel
 from .training_args import TrainingArguments
@@ -127,7 +127,6 @@ class OrtTrainer(Trainer):
             collate_fn=self.data_collator.collate_batch,
         )
 
-
     def train(self, model_path: Optional[str] = None):
         """
         Main training entry point.
@@ -175,17 +174,17 @@ class OrtTrainer(Trainer):
                                             min_loss_scale=1.0,
                                             max_loss_scale=float(1 << 24)) if self.args.fp16 else None
 
-        opts = orttrainer.ORTTrainerOptions({'device' : {'id' : str(self.args.device),
-                                              },
-                                  'distributed' : {
-                                      'world_rank' : self.args.world_rank,
-                                      'world_size' : self.args.world_size,
-                                      'local_rank' : self.args.local_rank,
-                                      'allreduce_post_accumulation' : True},
-                                  'mixed_precision' : {'enabled': self.args.fp16,
-                                                        'loss_scaler' : loss_scaler},
-                                  'batch' : {'gradient_accumulation_steps' : self.args.gradient_accumulation_steps},
-                                  'lr_scheduler' : lr_scheduler})
+        opts = orttrainer.ORTTrainerOptions({
+            'device': {'id': str(self.args.device)},
+            'distributed': {
+                'world_rank': self.args.world_rank,
+                'world_size': self.args.world_size,
+                'local_rank': self.args.local_rank,
+                'allreduce_post_accumulation': True},
+            'mixed_precision': {'enabled': self.args.fp16,
+                                'loss_scaler': loss_scaler},
+            'batch': {'gradient_accumulation_steps': self.args.gradient_accumulation_steps},
+            'lr_scheduler': lr_scheduler})
 
         self.ort_model = orttrainer.ORTTrainer(self.model, model_desc, optim_config, None, options=opts)
 
@@ -330,10 +329,6 @@ class OrtTrainer(Trainer):
 
         # Good practice: save your training arguments together with the trained model
         torch.save(self.args, os.path.join(output_dir, "training_args.bin"))
-
-
-
-
 
     def _prediction_loop(
         self, dataloader: DataLoader, description: str, prediction_loss_only: Optional[bool] = None
