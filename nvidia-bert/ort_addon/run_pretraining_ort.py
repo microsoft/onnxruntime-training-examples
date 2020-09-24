@@ -70,12 +70,10 @@ class WorkerInitObj(object):
 def create_pretraining_dataset(input_file, max_pred_length, shared_list, args, worker_init):
     train_data = pretraining_dataset(input_file=input_file, max_pred_length=max_pred_length)
     train_sampler = RandomSampler(train_data)
-    # --- ort training edit: we need to skip last batch when hard coding inputs as an optimization
     train_dataloader = DataLoader(train_data, sampler=train_sampler,
                                   batch_size=args.train_batch_size * args.n_gpu, 
                                   num_workers=4, worker_init_fn=worker_init,
                                   pin_memory=True, drop_last=True)
-    # ---
     return train_dataloader, input_file
 
 class pretraining_dataset(Dataset):
@@ -109,59 +107,27 @@ class pretraining_dataset(Dataset):
 
         return [input_ids, segment_ids, input_mask,
                 masked_lm_labels, next_sentence_labels]
-class BertPretrainingCriterion(torch.nn.Module):
-    def __init__(self, vocab_size, batch_size, seq_length):
-        super(BertPretrainingCriterion, self).__init__()
-        self.loss_fn = torch.nn.CrossEntropyLoss(ignore_index=-1)
-        self.batch_size = batch_size
-        self.seq_length = seq_length
-        self.vocab_size = vocab_size
-    def forward(self, prediction_scores, seq_relationship_score, masked_lm_labels, next_sentence_labels):
-        masked_lm_loss = self.loss_fn(prediction_scores.view([self.batch_size * self.seq_length, self.vocab_size]), masked_lm_labels.view(self.batch_size * self.seq_length))
-        next_sentence_loss = self.loss_fn(seq_relationship_score, next_sentence_labels.view(self.batch_size))
-        total_loss = masked_lm_loss + next_sentence_loss
-        return total_loss
-
-# we manually add the loss function into the bert model
-# currently ort front end support for this assumes a single tensor input for labels
-class bert_model_with_loss(torch.nn.Module):
-    def __init__(self, model, loss_fn):
-        super(bert_model_with_loss, self).__init__()
-        self.wrapper_ = model
-        self.loss_fn_ = loss_fn
-
-    def forward(self, input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels):
-        preds_score, seq_relation_score = self.wrapper_(input_ids, segment_ids, input_mask)
-        return self.loss_fn_(preds_score, seq_relation_score, masked_lm_labels, next_sentence_labels)
 
 def parse_arguments():
-
     parser = argparse.ArgumentParser()
-
-    ## Required parameters
     parser.add_argument("--input_dir",
                         default=None,
                         type=str,
                         required=True,
                         help="The input data dir. Should contain .hdf5 files  for the task.")
-
     parser.add_argument("--config_file",
                         default=None,
                         type=str,
                         required=True,
                         help="The BERT model config")
-
     parser.add_argument("--bert_model", default="bert-large-uncased", type=str,
                         help="Bert pre-trained model selected in the list: bert-base-uncased, "
                              "bert-large-uncased, bert-base-cased, bert-base-multilingual, bert-base-chinese.")
-
     parser.add_argument("--output_dir",
                         default=None,
                         type=str,
                         required=True,
                         help="The output directory where the model checkpoints will be written.")
-
-    ## Other parameters
     parser.add_argument("--init_checkpoint",
                         default=None,
                         type=str,
@@ -278,10 +244,6 @@ def parse_arguments():
                         default=False,
                         action='store_true',
                         help="Whether ORT will partition optimizer.")
-    parser.add_argument("--gpu_memory_limit_gb",
-                        type=int,
-                        default=32,
-                        help="GPU memory limit in GBs")
     parser.add_argument('--schedule',
                         default='warmup_poly',
                         type=str)
@@ -332,16 +294,14 @@ def prepare_model(args, device):
 
     # Prepare model
     config = modeling.BertConfig.from_json_file(args.config_file)
+    config.max_predictions_per_seq = args.max_predictions_per_seq
 
     # Padding for divisibility by 8
     if config.vocab_size % 8 != 0:
         config.vocab_size += 8 - (config.vocab_size % 8)
 
     model = modeling.BertForPreTraining(config)
-    criterion = BertPretrainingCriterion(config.vocab_size, args.train_batch_size, args.max_seq_length)
-
     model.enable_apex(False)
-    model = bert_model_with_loss(model, criterion)
     model = ort_supplement.create_ort_trainer(args, device, model)
 
     checkpoint = None
@@ -449,7 +409,7 @@ def main():
             # we need to skip last batch when we hard code inputs as an optimization
             train_dataloader = DataLoader(train_data, sampler=train_sampler,
                                           batch_size=args.train_batch_size * args.n_gpu,
-                                          num_workers=4, worker_init_fn=worker_init,
+                                          num_workers=1, worker_init_fn=worker_init,
                                           pin_memory=True, drop_last=True)
 
             gpu_batch_size = args.train_batch_size // args.gradient_accumulation_steps
@@ -469,13 +429,12 @@ def main():
 
                 dataset_future = pool.submit(create_pretraining_dataset, data_file, args.max_predictions_per_seq, shared_file_list, args, worker_init)
 
-                train_iter = tqdm(train_dataloader, desc="Iteration", disable=args.disable_progress_bar) if is_main_process(args) else train_dataloader
+                # train_iter = tqdm(train_dataloader, desc="Iteration", disable=args.disable_progress_bar) if is_main_process(args) else train_dataloader
                 prev_step_time = time.time()
-                for step, batch in enumerate(train_iter):
+                for step, batch in enumerate(train_dataloader):
 
                     training_steps += 1
                     batch = [t.to(device) for t in batch]
-                    input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels = batch
                     divisor = args.gradient_accumulation_steps
 
                     loss, global_step = ort_supplement.run_ort_training_step(args, global_step, training_steps, model, batch)

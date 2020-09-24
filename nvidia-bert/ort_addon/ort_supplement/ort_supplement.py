@@ -60,18 +60,20 @@ def setup_onnxruntime_with_mpi(args):
 def create_ort_trainer(args, device, model):
 
     # MODEL INPUT AND OUTPUT DESCRIPTION
+    # note: These names must match argument names and order from model.forward(...)
     vocab_size = 30528
     micro_batch = args.train_batch_size // args.gradient_accumulation_steps
     model_desc = {
         'inputs': [
             ('input_ids', [args.train_batch_size, args.max_seq_length]),
-            ('segment_ids', [args.train_batch_size, args.max_seq_length]),
-            ('input_mask', [args.train_batch_size, args.max_seq_length]),
+            ('token_type_ids', [args.train_batch_size, args.max_seq_length]),
+            ('attention_mask', [args.train_batch_size, args.max_seq_length]),
             ('masked_lm_labels', [args.train_batch_size, args.max_seq_length]),
             ('next_sentence_labels', [args.train_batch_size, 2])
         ],
         'outputs': [
-            ('loss', [], True)
+            ('total_loss', [], True),
+            ('mlm_acc', [], False)
         ]
     }
 
@@ -94,8 +96,7 @@ def create_ort_trainer(args, device, model):
     # ONNXRUNTIME TRAINER OPTIONS 
     trainer_config = ORTTrainerOptions({
         'device': {
-            'id': str(device), 
-            'mem_limit': int(args.gpu_memory_limit_gb * 1024 * 1024 *1024)
+            'id': str(device)
         },
         'batch': {
             'gradient_accumulation_steps' : args.gradient_accumulation_steps
@@ -121,7 +122,8 @@ def create_ort_trainer(args, device, model):
     return trainer
 
 def run_ort_training_step(args, global_step, training_steps, trainer, batch):
-    loss = trainer.train_step(*batch)
+    input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels = batch
+    loss, mlm_acc = trainer.train_step(input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels)
     if training_steps % args.gradient_accumulation_steps == 0:
         global_step += 1
     return loss, global_step
