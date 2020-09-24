@@ -37,6 +37,7 @@ from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, Datas
 import math
 import multiprocessing
 import modeling
+from onnxruntime.training.checkpoint import experimental_state_dict, experimental_load_state_dict
 
 from utils import format_step
 
@@ -101,7 +102,7 @@ class pretraining_dataset(Dataset):
         masked_lm_labels = torch.ones(input_ids.shape, dtype=torch.long) * -1
         index = self.max_pred_length
         # store number of  masked tokens in index
-        padded_mask_indices = (masked_lm_positions == 0).nonzero()
+        padded_mask_indices = (masked_lm_positions == 0).nonzero(as_tuple=False)
         if len(padded_mask_indices) != 0:
             index = padded_mask_indices[0].item()
         masked_lm_labels[masked_lm_positions[:index]] = masked_lm_ids[:index]
@@ -358,7 +359,7 @@ def prepare_model(args, device):
         else:
             checkpoint = torch.load(args.init_checkpoint, map_location="cpu")
 
-        model.load_state_dict(checkpoint['model'], strict=False)
+        experimental_load_state_dict(model, checkpoint['model'], strict=False)
         
         if args.phase2 and not args.init_checkpoint:
             global_step -= args.phase1_end_step
@@ -396,7 +397,6 @@ def main():
             dllogger.log(step="PARAMETER", data={"batch_size_per_gpu": args.train_batch_size})
             dllogger.log(step="PARAMETER", data={"learning_rate": args.learning_rate})
 
-        model.train()
         most_recent_ckpts_paths = []
         average_loss = 0.0  # averaged loss every args.log_freq steps
         epoch = 0
@@ -517,7 +517,7 @@ def main():
                             else:
                                 output_save_file = os.path.join(args.output_dir, "ckpt_{}.pt".format(global_step + args.phase1_end_step))
                             if args.do_train:
-                                state = {'model': model_to_save.state_dict(),
+                                state = {'model': model_to_save.state_dict() if hasattr(model_to_save, 'state_dict') else experimental_state_dict(model_to_save),
                                          'files': [f_id] + files}
                                 torch.save(state, output_save_file)
 
