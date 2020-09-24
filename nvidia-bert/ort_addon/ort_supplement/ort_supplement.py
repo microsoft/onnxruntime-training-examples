@@ -7,6 +7,7 @@ import torch
 
 # onnxruntime training API
 from onnxruntime.training import orttrainer, optim, amp as ort_amp
+from onnxruntime.training.orttrainer import ORTTrainer, ORTTrainerOptions
 
 # converts azureml environment variables into context for distributed run
 from ort_supplement.azureml_adapter import \
@@ -91,7 +92,7 @@ def create_ort_trainer(args, device, model):
         total_steps=int(args.max_steps), warmup=args.warmup_proportion)
 
     # ONNXRUNTIME TRAINER OPTIONS 
-    trainer_config = orttrainer.ORTTrainerOptions({
+    trainer_config = ORTTrainerOptions({
         'device': {
             'id': str(device), 
             'mem_limit': int(args.gpu_memory_limit_gb * 1024 * 1024 *1024)
@@ -114,7 +115,7 @@ def create_ort_trainer(args, device, model):
     })
 
     # ONNXRUNTIME TRAINER CONSTRUCTION (loss fn embedded in model)
-    trainer = orttrainer.ORTTrainer(
+    trainer = ORTTrainer(
         model, model_desc, optim_config, loss_fn=None, options=trainer_config)
 
     return trainer
