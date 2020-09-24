@@ -54,10 +54,6 @@ def setup_onnxruntime_with_mpi(args):
     from onnxruntime import set_seed
     set_seed(args.seed + args.world_rank)
 
-    # tell onnxruntime to only allocate as much memory as strictly required
-    from onnxruntime import set_arena_extend_strategy, ArenaExtendStrategy
-    set_arena_extend_strategy(ArenaExtendStrategy.kSameAsRequested)
-
     return device
 
 def create_ort_trainer(args, device, model):
