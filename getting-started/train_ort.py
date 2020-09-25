@@ -64,8 +64,7 @@ def train():
     start_time = time.time()
     for batch, i in enumerate(range(0, train_data.size(0) - 1, bptt)):
         data, targets = get_batch(train_data, i)
-        results = trainer.train_step(data, targets)
-        loss = results[0]
+        loss, output = trainer.train_step(data, targets)
 
         total_loss += loss.item()
         log_interval = 200
@@ -86,8 +85,7 @@ def evaluate(eval_model, data_source):
     with torch.no_grad():
         for i in range(0, data_source.size(0) - 1, bptt):
             data, targets = get_batch(data_source, i)
-            results = trainer.eval_step(data, targets)
-            loss = results[0]
+            loss, outputs = trainer.eval_step(data, targets)
             total_loss += len(data) * loss.item()
     return total_loss / (len(data_source) - 1)
 
