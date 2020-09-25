@@ -111,7 +111,8 @@ This example runs on a single GPU. To configure distributed training, you can se
 2. Build the docker image
 
     ```bash
-    docker/build.sh docker
+    cd docker
+    bash build.sh 
     ```
 
     This will build a docker image called `ort-training-getting-started:latest`.
@@ -119,5 +120,5 @@ This example runs on a single GPU. To configure distributed training, you can se
 3. Launch the training code
 
     ```bash
-    docker/launch.sh "python train_ort.py"
+    bash docker/launch.sh "python train_ort.py"
     ```
