@@ -72,8 +72,7 @@ def create_ort_trainer(args, device, model):
             ('next_sentence_labels', [args.train_batch_size, 2])
         ],
         'outputs': [
-            ('total_loss', [], True),
-            ('mlm_acc', [], False)
+            ('total_loss', [], True)
         ]
     }
 
@@ -123,7 +122,7 @@ def create_ort_trainer(args, device, model):
 
 def run_ort_training_step(args, global_step, training_steps, trainer, batch):
     input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels = batch
-    loss, mlm_acc = trainer.train_step(input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels)
+    loss = trainer.train_step(input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels)
     if training_steps % args.gradient_accumulation_steps == 0:
         global_step += 1
     return loss, global_step
