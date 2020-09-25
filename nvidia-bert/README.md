@@ -4,36 +4,13 @@ This example uses ONNX Runtime to pre-train the BERT PyTorch model maintained at
 
 You can run the training in Azure Machine Learning or on an Azure VM with NVIDIA GPU.
 
-## Setup
+## Quick Start
 
 1. Clone this repo
 
     ```bash
     git clone https://github.com/microsoft/onnxruntime-training-examples.git
     cd onnxruntime-training-examples
-    ```
-
-2. Clone download code and model
-
-    ```bash
-    git clone --no-checkout https://github.com/NVIDIA/DeepLearningExamples.git
-    cd DeepLearningExamples/
-    git checkout 4733603577080dbd1bdcd51864f31e45d5196704
-    cd ..
-    ```
-
-3. Create working directory
-
-    ```bash
-    mkdir -p workspace
-    mv DeepLearningExamples/PyTorch/LanguageModeling/BERT/ workspace
-    rm -rf DeepLearningExamples
-    cp -r ./nvidia-bert/ort_addon/* workspace/BERT
-    cd workspace
-    git clone https://github.com/attardi/wikiextractor.git
-    cd wikiextractor/
-    git checkout e4abb4cbd019b0257824ee47c23dd163919b731b
-    cd ../../ 
     ```
 
 ## Download and prepare data
@@ -46,18 +23,46 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 
 1. Check pre-requisites
 
-    * Python 3.6
-    * Natural Language Toolkit (NLTK) `python3-pip install nltk`
+    * Python 3.6 invoked as `python`
+    * Natural Language Toolkit (NLTK) `pip install nltk`
+    * HDF5 library `pip install h5py`
+    * Amazon Web Services SDK `pip install boto3`
+    * HTTP Requests `pip install requests`
 
-2. Download and prepare Wikicorpus training data in HDF5 format.
+2. Clone download code
 
     ```bash
+    git clone --no-checkout https://github.com/NVIDIA/DeepLearningExamples.git
+    cd DeepLearningExamples/
+    git checkout 4733603577080dbd1bdcd51864f31e45d5196704
+    cd ..
+    ```
+
+3. Create working directory for data download and formatting operations
+
+    ```bash
+    mkdir -p workspace
+    mv DeepLearningExamples/PyTorch/LanguageModeling/BERT/ workspace
+    rm -rf DeepLearningExamples
+    cd workspace
+    git clone https://github.com/attardi/wikiextractor.git
+    cd wikiextractor/
+    git checkout e4abb4cbd019b0257824ee47c23dd163919b731b
+    cd ../../ 
+    ```
+
+4. Download and prepare Wikicorpus training data in HDF5 format.
+
+    ```bash
+    # Run all the below commands step-by-step from the root of the repository
+    # The expected times reflect West US Azure VM with Xeon(R) CPU E5-2673 v4 @ 2.30GHz
+
     export BERT_PREP_WORKING_DIR=./workspace/BERT/data/
 
     # Download google_pretrained_weights
     python ./workspace/BERT/data/bertPrep.py --action download --dataset google_pretrained_weights
 
-    # Download wikicorpus_en via wget
+    # Download wikicorpus_en via wget (approx 2 hours)
     mkdir -p ./workspace/BERT/data/download/wikicorpus_en
     cd ./workspace/BERT/data/download/wikicorpus_en
     wget https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles.xml.bz2
@@ -68,25 +73,25 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
     # Fix path issue to use BERT_PREP_WORKING_DIR as prefix for path instead of hard-coded prefix
     sed -i "s/path_to_wikiextractor_in_container = '/path_to_wikiextractor_in_container = './g" ./workspace/BERT/data/bertPrep.py
 
-    # Format text files
+    # Format text files (approx 90 min using four processes)
     python ./workspace/BERT/data/bertPrep.py --action text_formatting --dataset wikicorpus_en
 
-    # Shard text files
+    # Shard text files (approx 20 hours)
     python ./workspace/BERT/data/bertPrep.py --action sharding --dataset wikicorpus_en
 
     # Fix path to workspace to allow running outside of the docker container
     sed -i "s/python \/workspace\/bert/python .\/workspace\/BERT/g" ./workspace/BERT/data/bertPrep.py
 
-    # Create HDF5 files Phase 1
+    # Create HDF5 files Phase 1 (approx 450 min using four processes)
     python ./workspace/BERT/data/bertPrep.py --action create_hdf5_files --dataset wikicorpus_en --max_seq_length 128 \
       --max_predictions_per_seq 20 --vocab_file ./workspace/BERT/data/download/google_pretrained_weights/uncased_L-24_H-1024_A-16/vocab.txt --do_lower_case 1
 
-    # Create HDF5 files Phase 2
+    # Create HDF5 files Phase 2 (approx 450 min using four processes)
     python ./workspace/BERT/data/bertPrep.py --action create_hdf5_files --dataset wikicorpus_en --max_seq_length 512 \
     --max_predictions_per_seq 80 --vocab_file ./workspace/BERT/data/download/google_pretrained_weights/uncased_L-24_H-1024_A-16/vocab.txt --do_lower_case 1
     ```
 
-3. Make data accessible for training
+5. Make data accessible for training
 
     After completing the steps above, data in hdf5 format will be available at the following locations: 
 
@@ -155,60 +160,56 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 
    The two directories must contain the hdf5 training files.
 
-4. Set the number of GPUs and per GPU limit.
+4. Set the number of GPUs.
 
-    Edit `workspace/BERT/scripts/run_pretraining_ort.sh`.
+    Edit `./scripts/run_pretraining.sh`.
 
     ```bash
-    num_gpus=${4:-8}
-    gpu_memory_limit_gb=${26:-"32"}
+    num_gpus=${1:-1}
+    phase1_training_data="/data/128"
+    phase2_training_data="/data/512"
     ```
 
 5. Modify other training parameters as needed.
 
-    Edit `workspace/BERT/scripts/run_pretraining_ort.sh`.
+    Edit `./scripts/run_pretraining_ort.sh`.
 
     ```bash
-    seed=${12:-42}
+    gpu_feed_batch_size=${2:-48}
+    gradient_accumulation_passes=${3:-1} 
+    precision=${4:-"fp16"}
+    training_steps=${5:-100}
+    save_checkpoint_steps=${6:-20}
+    seed=${7:-$RANDOM}
 
-    accumulate_gradients=${10:-"true"}
-    deepspeed_zero_stage=${27:-"false"}
-
-    train_batch_size=${1:-16320}
-    learning_rate=${2:-"6e-3"}
-    warmup_proportion=${5:-"0.2843"}
-    train_steps=${6:-7038}
-    accumulate_gradients=${10:-"true"}
-    gradient_accumulation_steps=${11:-340}
-
-    train_batch_size_phase2=${17:-8160}
-    learning_rate_phase2=${18:-"4e-3"}
-    warmup_proportion_phase2=${19:-"0.128"}
-    train_steps_phase2=${20:-1563}
-    gradient_accumulation_steps_phase2=${11:-1020}
+    allreduce_post_accumulation="true"
+    resume_training="true"
+    create_logfile="true"
+    deepspeed_zero_stage="false"
+    learning_rate="6e-3"
+    warmup_proportion="0.2843"
     ```
     The above defaults are tuned for an Azure NC24rs_v3.
 
-    The training batch size refers to the number of samples a single GPU sees before weights are updated. The training is performed over _local_ and _global_ steps. A local step refers to a single backpropagation execution on the model to calculate its gradient. These gradients are accumulated every local step until weights are updated in a global step. The _microbatch_ size is samples a single GPU sees in a single backpropagation execution step. The microbatch size will be the training batch size divided by gradient accumulation steps.
-    
-    Note: The effective batch size will be (number of GPUs) x train_batch_size (per GPU). In general we recommend setting the effective batch size to ~64,000 for phase 1 and ~32,000 for phase 2. The number of gradient accumulation steps should be minimized without overflowing the GPU memory (i.e. maximizes microbatch size).
+    The training is performed over _local_ passes and _global_ steps. A local pass refers to a single backpropagation execution on the model to calculate its gradient. The GPU feed batch size refers to the number of samples fed in one local pass. The gradients are accumulated each local pass until weights are updated in a global step. 
+
+    Note: The effective global batch size will be (number nodes) x (number GPUs per node) x (gradient accumulation passes). In general it is recommend setting the global batch size to ~64,000 for phase 1 and ~32,000 for phase 2. The number of gradient accumulation steps should be minimized without overflowing the GPU memory (i.e. maximizes GPU feed batch size).
 
     Consult [Parameters](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#parameters) section by NVIDIA for additional details.
 
 6. Launch interactive container.
 
     ```bash
-    cd workspace/BERT
-    bash ../../nvidia-bert/docker/launch.sh
+    bash ./docker/launch.sh
     ```
 
 7. Launch pre-training run
 
     ```bash
-    bash /workspace/bert/scripts/run_pretraining_ort.sh
+    bash ./scripts/run_pretraining.sh
     ```
 
-    If you get memory errors, try reducing the batch size or enabling the partition optimizer flag.
+    If you get memory errors, try reducing the batch size.
 
 ## Fine-tuning
 

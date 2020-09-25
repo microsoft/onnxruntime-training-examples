@@ -33,8 +33,7 @@ from torch import nn
 from torch.nn import CrossEntropyLoss
 from torch.utils import checkpoint
 
-sys.path.append('/workspace/bert/')
-from file_utils import cached_path
+from .file_utils import cached_path
 
 from torch.nn import Module
 from torch.nn.parameter import Parameter
@@ -284,13 +283,6 @@ class BertNonFusedLayerNorm(nn.Module):
         x = (x - u) / torch.sqrt(s + self.variance_epsilon)
         return self.weight * x + self.bias
 
-try:
-    import apex
-    import apex.normalization
-    from apex.normalization.fused_layer_norm import FusedLayerNormAffineFunction
-    APEX_IS_AVAILABLE = True
-except ImportError:
-    APEX_IS_AVAILABLE = False
 class BertLayerNorm(Module):
     def __init__(self, hidden_size, eps=1e-12):
         super(BertLayerNorm, self).__init__()
@@ -298,22 +290,12 @@ class BertLayerNorm(Module):
         self.eps = eps
         self.weight = nn.Parameter(torch.ones(hidden_size))
         self.bias = nn.Parameter(torch.zeros(hidden_size))
-        self.apex_enabled = APEX_IS_AVAILABLE
-
-    @torch.jit.unused
-    def fused_layer_norm(self, x):
-        return FusedLayerNormAffineFunction.apply(
-                    x, self.weight, self.bias, self.shape, self.eps)
-
 
     def forward(self, x):
-        if self.apex_enabled and not torch.jit.is_scripting():
-            x = self.fused_layer_norm(x)
-        else:
-            u = x.mean(-1, keepdim=True)
-            s = (x - u).pow(2).mean(-1, keepdim=True)
-            x = (x - u) / torch.sqrt(s + self.eps)
-            x = self.weight * x + self.bias
+        u = x.mean(-1, keepdim=True)
+        s = (x - u).pow(2).mean(-1, keepdim=True)
+        x = (x - u) / torch.sqrt(s + self.eps)
+        x = self.weight * x + self.bias
         return x
 
 class BertEmbeddings(nn.Module):
@@ -623,11 +605,6 @@ class BertPreTrainedModel(nn.Module):
             if hasattr(module, "_checkpoint_activations"):
                 module._checkpoint_activations=val
         self.apply(_apply_flag)
-    def enable_apex(self, val):
-        def _apply_flag(module):
-            if hasattr(module, "apex_enabled"):
-                module.apex_enabled=val
-        self.apply(_apply_flag)
 
     @classmethod
     def from_pretrained(cls, pretrained_model_name_or_path, state_dict=None, cache_dir=None,
@@ -891,8 +868,9 @@ class BertForPreTraining(BertPreTrainedModel):
         self.dense_seq = config.dense_seq
         self.max_predictions = config.max_predictions_per_seq
 
-    def forward(self, input_ids, token_type_ids=None, attention_mask=None, masked_lm_labels=None, next_sentence_labels=None):
-        sequence_output, pooled_output = self.bert(input_ids, token_type_ids, attention_mask, output_all_encoded_layers=False)
+    # token_type_ids same as segment_ids and input_mask same as attention_mask
+    def forward(self, input_ids, segment_ids=None, input_mask=None, masked_lm_labels=None, next_sentence_labels=None):
+        sequence_output, pooled_output = self.bert(input_ids, segment_ids, input_mask, output_all_encoded_layers=False)
         prediction_scores, seq_relationship_score = self.cls(sequence_output, pooled_output, masked_lm_labels)
 
         if masked_lm_labels is not None and next_sentence_labels is not None:
@@ -907,15 +885,16 @@ class BertForPreTraining(BertPreTrainedModel):
             next_sentence_loss = loss_fct(seq_relationship_score.view(-1, 2), next_sentence_labels.view(-1))
             total_loss = masked_lm_loss + next_sentence_loss
 
-            if not self.dense_seq:
-                prediction_scores_flat = prediction_scores.view(-1, prediction_scores.shape[-1])
-                mlm_predictions_scores = prediction_scores_flat[masked_lm_labels_flat != -1]
-                mlm_predictions = mlm_predictions_scores.argmax(dim=-1)
-            else:
-                mlm_predictions = prediction_scores.argmax(dim=-1)
-            mlm_acc = (mlm_predictions == mlm_labels).sum().to(torch.float32)/mlm_labels.numel()
+            # todo: Diagnose why it causes large drop in throughput.
+            # if not self.dense_seq:
+            #     prediction_scores_flat = prediction_scores.view(-1, prediction_scores.shape[-1])
+            #     mlm_predictions_scores = prediction_scores_flat[masked_lm_labels_flat != -1]
+            #     mlm_predictions = mlm_predictions_scores.argmax(dim=-1)
+            # else:
+            #     mlm_predictions = prediction_scores.argmax(dim=-1)
+            # mlm_acc = (mlm_predictions == mlm_labels).sum().to(torch.float32)/mlm_labels.numel()
 
-            return total_loss, mlm_acc
+            return total_loss #, mlm_acc
         else: 
             #TODO: Handle this path for dense sequence output as well
             return prediction_scores, seq_relationship_score
