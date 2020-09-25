@@ -37,17 +37,17 @@ def batchify(data, bsz):
     return data.to(device)
 
 batch_size = 20
-eval_batch_size = 20
+eval_batch_size = 10
 train_data = batchify(train_txt, batch_size)
 val_data = batchify(val_txt, eval_batch_size)
 test_data = batchify(test_txt, eval_batch_size)
 
 ntokens = len(TEXT.vocab.stoi) # the size of vocabulary
-emsize = 200     # embedding dimension
-nhid = 200       # the dimension of the feedforward network model in nn.TransformerEncoder
-nlayers = 2      # the number of nn.TransformerEncoderLayer in nn.TransformerEncoder
-nhead = 2        # the number of heads in the multiheadattention models
-dropout = 0.2    # the dropout value
+emsize = 200 # embedding dimension
+nhid = 200 # the dimension of the feedforward network model in nn.TransformerEncoder
+nlayers = 2 # the number of nn.TransformerEncoderLayer in nn.TransformerEncoder
+nhead = 2 # the number of heads in the multiheadattention models
+dropout = 0.2 # the dropout value
 
 model = TransformerModel(ntokens, emsize, nhead, nhid, nlayers, dropout).to(device)
 
@@ -57,7 +57,7 @@ def loss_with_flat_output(output, target):
     output = output.view(-1, ntokens)
     return criterion(output, target)
     
-lr = 0.001 # learning rate
+learning_rate = 0.1
 
 def train():
     total_loss = 0.
@@ -73,9 +73,9 @@ def train():
             cur_loss = total_loss / log_interval
             elapsed = time.time() - start_time
             print('| epoch {:3d} | {:5d}/{:5d} batches | '
-                  'lr {:03.2f} | ms/batch {:5.2f} | '
+                  'lr {:02.3f} | ms/batch {:5.2f} | '
                   'loss {:5.2f} | ppl {:8.2f}'.format(
-                    epoch, batch, len(train_data) // bptt, lr,
+                    epoch, batch, len(train_data) // bptt, learning_rate,
                     elapsed * 1000 / log_interval,
                     loss, math.exp(loss)))
             total_loss = 0
@@ -100,15 +100,12 @@ model_description = {'inputs':  [('src', ['bptt', 'batch_size']),
                      'outputs': [('loss', [], True),
                                  ('output', ['bptt', 'batch_size', ntokens])]}
 
-optimizer_config = optim.SGDConfig()
-
+optimizer_config = optim.SGDConfig(lr=learning_rate)
 
 trainer = ORTTrainer(model,                       # model
                      model_description,           # model description
                      optimizer_config,            # optimizer configuration
                      loss_with_flat_output)       # loss function
-
-
 
 for epoch in range(1, epochs + 1):
     epoch_start_time = time.time()
