@@ -95,7 +95,7 @@ def create_ort_trainer(args, device, model):
     # ONNXRUNTIME TRAINER OPTIONS 
     trainer_config = ORTTrainerOptions({
         'device': {
-            'id': str(device)
+            'id': str(device),
             'mem_limit': int(args.gpu_memory_limit_gb * 1024 * 1024 *1024)
         },
         'batch': {
