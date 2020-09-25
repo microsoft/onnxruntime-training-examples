@@ -96,6 +96,7 @@ def create_ort_trainer(args, device, model):
     trainer_config = ORTTrainerOptions({
         'device': {
             'id': str(device)
+            'mem_limit': int(args.gpu_memory_limit_gb * 1024 * 1024 *1024)
         },
         'batch': {
             'gradient_accumulation_steps' : args.gradient_accumulation_steps
