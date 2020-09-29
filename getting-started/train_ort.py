@@ -57,7 +57,7 @@ def loss_with_flat_output(output, target):
     output = output.view(-1, ntokens)
     return criterion(output, target)
     
-learning_rate = 0.1
+learning_rate = 0.001
 
 def train():
     total_loss = 0.
@@ -98,7 +98,7 @@ model_description = {'inputs':  [('src', ['bptt', 'batch_size']),
                      'outputs': [('loss', [], True),
                                  ('output', ['bptt', 'batch_size', ntokens])]}
 
-optimizer_config = optim.SGDConfig(lr=learning_rate)
+optimizer_config = optim.AdamConfig(lr=learning_rate)
 
 trainer = ORTTrainer(model,                       # model
                      model_description,           # model description
