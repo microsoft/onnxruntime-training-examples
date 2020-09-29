@@ -302,8 +302,6 @@ class OrtTrainer(Trainer):
         if self.tb_writer:
             self.tb_writer.close()
         self.update_torch_model()
-        del(self.ort_model)
-        self.ort_model = None
 
         logger.info("\n\nTraining completed. Do not forget to share your model on huggingface.co/models =)\n\n")
         return TrainOutput(global_step, tr_loss / global_step)
@@ -330,63 +328,81 @@ class OrtTrainer(Trainer):
         # Good practice: save your training arguments together with the trained model
         torch.save(self.args, os.path.join(output_dir, "training_args.bin"))
 
-    def _prediction_loop(
-        self, dataloader: DataLoader, description: str, prediction_loss_only: Optional[bool] = None
-        ) -> PredictionOutput:
+    def evaluate_in_ORT(
+        self, eval_dataset: Optional[Dataset] = None) -> Dict[str, float]:
         """
-        Prediction/evaluation loop, shared by `evaluate()` and `predict()`.
+        Run evaluation and return metrics.
 
-        Works both with or without labels.
+        The calling script will be responsible for providing a method to compute metrics, as they are
+        task-dependent.
+
+        Args:
+            eval_dataset: (Optional) Pass a dataset if you wish to override
+            the one on the instance.
+        Returns:
+            A dict containing:
+                - the eval loss
         """
+        self.infer_sess = None
+        onnx_model_path = os.path.join(self.args.output_dir, "final_model.onnx")
+        output_names = [o_desc.name for o_desc in self.ort_model.model_desc.outputs]
 
-        prediction_loss_only = prediction_loss_only if prediction_loss_only is not None else self.prediction_loss_only
-        self.update_torch_model()
-        # multi-gpu eval
-        if self.args.n_gpu > 1 and not isinstance(self.model, torch.nn.DataParallel):
-            model = torch.nn.DataParallel(self.model)
-        else:
-            model = self.model
+        # Ensure the eval batch size is same as finetuned onnx model's batch size
+        assert self.args.per_gpu_eval_batch_size == self.args.per_gpu_train_batch_size
+        self.ort_model.save_as_onnx(onnx_model_path)
+        self.infer_sess = onnxruntime.InferenceSession(onnx_model_path)
 
-        model.to(self.args.device)
+        # delete the training model to free up GPU memory
+        del(self.ort_model)
+        self.ort_model = None
+
+        # load the eval dataset
+        eval_dataloader = self.get_eval_dataloader(eval_dataset)
+        description = "Evaluation"
+
         if self.is_world_master():
             logger.info("***** Running %s *****", description)
-            logger.info("  Num examples = %d", len(dataloader.dataset))
-            logger.info("  Batch size = %d", dataloader.batch_size)
+            logger.info("  Num examples = %d", len(eval_dataloader.dataset))
+            logger.info("  Batch size = %d", eval_dataloader.batch_size)
         eval_losses: List[float] = []
-        preds: np.ndarray = None
-        label_ids: np.ndarray = None
-        model.eval()
+        
+        for inputs in tqdm(eval_dataloader, desc=description):
+            step_eval_loss = self.infer_sess.run(output_names,
+                                                 {"input_ids": inputs["input_ids"].numpy(),
+                                                  "labels": inputs["labels"].numpy()
+                                                  })
+            eval_losses += [step_eval_loss[0]]
 
-        for inputs in tqdm(dataloader, desc=description):
-            has_labels = any(inputs.get(k) is not None for k in ["labels", "masked_lm_labels"])
-
-            for k, v in inputs.items():
-                inputs[k] = v.to(self.args.device)
-
-            with torch.no_grad():
-                outputs = model(**inputs)
-                if has_labels:
-                    step_eval_loss, logits = outputs[:2]
-                    eval_losses += [step_eval_loss.mean().item()]
-                else:
-                    logits = outputs[0]
-
-            if not prediction_loss_only:
-                if preds is None:
-                    preds = logits.detach().cpu().numpy()
-                else:
-                    preds = np.append(preds, logits.detach().cpu().numpy(), axis=0)
-                if inputs.get("labels") is not None:
-                    if label_ids is None:
-                        label_ids = inputs["labels"].detach().cpu().numpy()
-                    else:
-                        label_ids = np.append(label_ids, inputs["labels"].detach().cpu().numpy(), axis=0)
-
-        if self.compute_metrics is not None and preds is not None and label_ids is not None:
-            metrics = self.compute_metrics(EvalPrediction(predictions=preds, label_ids=label_ids))
-        else:
-            metrics = {}
+        metrics = {}
         if len(eval_losses) > 0:
             metrics["loss"] = np.mean(eval_losses)
 
-        return PredictionOutput(predictions=preds, label_ids=label_ids, metrics=metrics)
+        print(metrics)
+        return metrics
+    
+    def evaluate(
+        self, eval_dataset: Optional[Dataset] = None, prediction_loss_only: Optional[bool] = None
+    ) -> Dict[str, float]:
+        """
+        Run evaluation and return metrics.
+
+        The calling script will be responsible for providing a method to compute metrics, as they are
+        task-dependent.
+
+        Args:
+            eval_dataset: (Optional) Pass a dataset if you wish to override
+            the one on the instance.
+        Returns:
+            A dict containing:
+                - the eval loss
+                - the potential metrics computed from the predictions
+        """
+        eval_dataloader = self.get_eval_dataloader(eval_dataset)
+        
+        # update the torch model weights and delete the ort training model to free up GPU memory
+        self.update_torch_model()
+        del(self.ort_model)
+        self.ort_model = None
+        
+        output = self._prediction_loop(eval_dataloader, description="Evaluation")
+        return output.metrics
