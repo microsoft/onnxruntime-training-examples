@@ -367,6 +367,13 @@ class OrtTrainer(Trainer):
         eval_losses: List[float] = []
         
         for inputs in tqdm(eval_dataloader, desc=description):
+
+            # for the last batch, pad to the batch size.
+            if len(inputs['input_ids']) < self.args.per_gpu_eval_batch_size:
+                pad_len = self.args.per_gpu_eval_batch_size
+                inputs['input_ids'] = inputs['input_ids'].repeat(pad_len, 1)
+                inputs['labels'] = inputs['labels'].repeat(pad_len, 1)
+
             step_eval_loss = self.infer_sess.run(output_names,
                                                  {"input_ids": inputs["input_ids"].numpy(),
                                                   "labels": inputs["labels"].numpy()
