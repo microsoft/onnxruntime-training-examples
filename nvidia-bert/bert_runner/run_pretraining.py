@@ -254,7 +254,9 @@ def training_loop(step, dataset, trainer):
             print_running_statistics(execution_step, weight_step, results)
 
         if execution_step % accumulate_steps == 0:
-            if distributed.is_world_leader() and configuration.is_checkpointing() and weight_step % checkpoint_steps == 0:
+            if (distributed.is_world_leader() and
+                configuration.is_checkpointing() and
+                weight_step % checkpoint_steps == 0):
                 save_checkpoint(weight_step, trainer)
             weight_step += 1
         execution_step += 1
@@ -338,6 +340,7 @@ def print_running_statistics(execution_step, weight_step, results):
         batch_size/stable_script_dt))
 
 def save_checkpoint(weight_step, trainer):
+    logging.info('{:^57}'.format('<< checkpoint >>'))
     checkpoint_path = os.path.join(configuration.checkpoint_dir(), 'ckpt_{}.pt'.format(weight_step))
     state = {'model': onnxruntime.training.checkpoint.experimental_state_dict(trainer)}
     torch.save(state, checkpoint_path)
