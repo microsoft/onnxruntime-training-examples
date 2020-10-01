@@ -15,7 +15,7 @@ You can run the training in Azure Machine Learning or on an Azure VM with NVIDIA
 
 ## Download and prepare data
 
-The following are a minimal set of instructions to download and process one of the datasets used for BERT pre-training.
+The following are a minimal set of instructions to download and process the Wiki dataset used for BERT pre-training.
 
 To include additional datasets, and for more details, refer to [DeepLearningExamples](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#getting-the-data).
 
@@ -194,8 +194,6 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
     The training is performed over _local_ passes and _global_ steps. A local pass refers to a single backpropagation execution on the model to calculate its gradient. The GPU feed batch size refers to the number of samples fed in one local pass. The gradients are accumulated each local pass until weights are updated in a global step. 
 
     Note: The effective global batch size will be (number nodes) x (number GPUs per node) x (gradient accumulation passes). In general it is recommend setting the global batch size to ~64,000 for phase 1 and ~32,000 for phase 2. The number of gradient accumulation steps should be minimized without overflowing the GPU memory (i.e. maximizes GPU feed batch size).
-
-    Consult [Parameters](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#parameters) section by NVIDIA for additional details.
 
 6. Launch interactive container.
 

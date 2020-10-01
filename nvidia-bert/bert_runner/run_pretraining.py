@@ -57,7 +57,7 @@ def main():
 
     step = 1
     if configuration.resume_from_checkpoint():
-        step = configuration.arguments.resume_step
+        step = configuration.arguments.resume_from_step
         restore_from_checkpoint(step, dataset, trainer)
 
     results = training_loop(step, dataset, trainer)
@@ -106,7 +106,7 @@ def print_header():
         logging.info('Max Steps: {}'.format(args.max_steps))
         logging.info('Seed: {}'.format(args.seed))
         if configuration.resume_from_checkpoint():
-            logging.info('Resuming from step: {}'.format(args.resume_step))
+            logging.info('Resuming from step: {}'.format(args.resume_from_step))
     distributed.world_barrier()
 
     gpuid = distributed.local_rank
@@ -190,6 +190,9 @@ def build_onnxruntime_trainer_options(model_desc, lr_scheduler):
         'lr_scheduler': lr_scheduler,
         'mixed_precision': {
             'enabled': True if args.fp16 else False,
+        },
+        '_internal_use': {
+            'enable_gelu_approximation': True
         }
     })
     
@@ -246,6 +249,7 @@ def training_loop(step, dataset, trainer):
         t0, script_dt = get_split_time(t0)
 
         # if CPU did not block, we can fetch next batch in downtime
+        # (if num_workers > 0, the batch should fetch in background)
         batch = next(batch_generator)
 
         # CPU will block on loss.item() if it didn't already
@@ -276,7 +280,7 @@ def build_training_dataloader(training_dataset):
     return torch.utils.data.DataLoader(
         training_dataset,
         batch_size = configuration.arguments.gpu_feed_batch_size,
-        num_workers = 1,
+        num_workers = 0,
         pin_memory = True, 
         drop_last = True)
 
@@ -328,7 +332,10 @@ def print_running_statistics(execution_step, weight_step, results):
     batch_size = configuration.arguments.gpu_feed_batch_size
     stable_loss, stable_session_dt, stable_script_dt = results.get_mean_lastn(lastn)
 
-    init_step = max(0, configuration.arguments.resume_step, execution_step - lastn)
+    start_step = 0
+    if configuration.resume_from_checkpoint():
+        start_step = configuration.arguments.resume_from_step
+    init_step = max(0, start_step, execution_step - lastn)
     last_step = execution_step
 
     passes = '{}-{}'.format(init_step, last_step)
@@ -340,13 +347,13 @@ def print_running_statistics(execution_step, weight_step, results):
         batch_size/stable_script_dt))
 
 def save_checkpoint(weight_step, trainer):
-    logging.info('{:^57}'.format('<< checkpoint >>'))
+    logging.info('{:^57}'.format('< checkpoint >'))
     checkpoint_path = os.path.join(configuration.checkpoint_dir(), 'ckpt_{}.pt'.format(weight_step))
     state = {'model': onnxruntime.training.checkpoint.experimental_state_dict(trainer)}
     torch.save(state, checkpoint_path)
 
 def save_onnx_model(trainer):
-    model_path = os.path.join(configuration.output_dir(), 'final_bert.onnx')
+    model_path = os.path.join(configuration.output_dir(), 'trained_bert.onnx')
     trainer.save_as_onnx(model_path)
 
 def print_footer(results):

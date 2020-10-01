@@ -153,15 +153,9 @@ def parse_arguments():
         help="Whether to skip checkpointing.")    
 
     parser.add_argument(
-        "--resume_from_checkpoint",
-        default=False,
-        action='store_true',
-        help="Whether to resume training from checkpoint.")
-
-    parser.add_argument(
-        '--resume_step',
-        type=int,
-        default=-1,
+        '--resume_from_step',
+        type=positive_int,
+        default=None,
         help="Step to resume training from.")
 
     parser.add_argument(
@@ -188,10 +182,8 @@ def parse_arguments():
 
 def validate_starting_condition():
     global arguments
-    if arguments.init_checkpoint is not None and arguments.resume_from_checkpoint:
-        raise ValueError('Only one of initial_checkpoint and resume_from_checkpoint may be specified.')
-    if arguments.resume_from_checkpoint and arguments.resume_step is None:
-        raise ValueError('Must specify resume step in order to resume from checkpoint.')
+    if arguments.init_checkpoint is not None and arguments.resume_from_step is not None:
+        raise ValueError('Only one of initial_checkpoint and resume_from_step may be specified.')
 
 def validate_termination_condition():
     global arguments
@@ -211,7 +203,7 @@ def initial_weights_provided():
 
 def resume_from_checkpoint():
     global arguments
-    return arguments.resume_from_checkpoint
+    return arguments.resume_from_step is not None
 
 def output_dir():
     global arguments
