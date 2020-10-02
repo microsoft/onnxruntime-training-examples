@@ -375,7 +375,8 @@ def print_statistics_header():
         logging.debug('Warning: Debug mode blocks CPU until session completes.')
 
 def print_statistics_line(weight_step, execution_step, results):
-    if distributed.is_world_leader() and execution_step == get_first_execution_step():
+    if execution_step == get_first_execution_step() and (
+        distributed.is_world_leader() or distributed.have_separate_log()):
         print_statistics_header()
 
     if not args.debug:
@@ -406,7 +407,7 @@ def get_num_passes_to_smooth():
         args.gradient_accumulation_passes
 
 def save_checkpoint(weight_step, trainer):
-    logging.info('{:^61}'.format('< checkpoint >'))
+    logging.info('{}'.format(' <-- checkpoint'))
     checkpoint_path = os.path.join(checkpoint_dir(), 'ckpt_{}.pt'.format(weight_step))
     state = {'model': onnxruntime.training.checkpoint.experimental_state_dict(trainer)}
     torch.save(state, checkpoint_path)
@@ -414,6 +415,7 @@ def save_checkpoint(weight_step, trainer):
 def save_onnx_model(trainer):
     model_path = os.path.join(args.output_dir, 'trained_bert.onnx')
     trainer.save_as_onnx(model_path)
+    logging.info('Saved onnx model to {}'.format(model_path))
 
 def print_footer(results):
     if distributed.is_world_leader():

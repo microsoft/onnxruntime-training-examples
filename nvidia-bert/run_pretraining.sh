@@ -18,7 +18,7 @@ set -e
 
 # computation
 num_gpus=${1:-1}
-gpu_feed_batch_size=${2:-48}
+gpu_feed_batch_size=${2:-32}
 gradient_accumulation_passes=${3:-1} 
 precision=${4:-"fp16"}
 allreduce_post_accumulation="true"
@@ -30,14 +30,14 @@ warmup_proportion="0.2843"
 path_to_phase1_training_data=/bert_data/hdf5/128/train
 path_to_phase2_training_data=/bert_data/hdf5/512/train
 phase="phase1"
-training_steps=${5:-200}
+training_steps=${5:-50}
 seed=${7:-$RANDOM}
 results_dir=./results
 create_logfile="true"
 debug_output="false"
 init_checkpoint="None"
 skip_checkpointing="false"
-save_checkpoint_interval=${6:-200}
+save_checkpoint_interval=${6:-25}
 resume_from_step=0
 smooth_output_interval=3
 bert_config=bert_config.json

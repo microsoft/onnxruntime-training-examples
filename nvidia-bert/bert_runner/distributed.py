@@ -5,6 +5,8 @@ import hashlib
 import os
 import socket
 
+import torch
+
 from .arguments import args
 
 def is_distributed():
@@ -40,6 +42,12 @@ def world_barrier():
 def is_azureml_compute():
     return 'AZ_BATCH_MASTER_NODE' in os.environ.keys() or 'AZ_BATCHAI_MPI_MASTER_NODE' in os.environ.keys()
 
+def have_separate_log():
+    return is_azureml_compute()
+
+def _set_torch_device():
+    torch.cuda.set_device(_local_rank)
+
 def _discover_local_rank():
     global _local_comm, _local_rank, _local_size
     hostname = socket.gethostname()
@@ -64,6 +72,7 @@ try:
 
     _is_distributed = True
     _discover_local_rank()
+    _set_torch_device()
     _set_nccl_debugging_level()
 
 except ImportError:

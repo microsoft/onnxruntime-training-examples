@@ -154,8 +154,8 @@ def parse_arguments():
 
     parser.add_argument(
         "--skip_checkpointing",
-        default=None,
-        type=str,
+        default=False,
+        action='store_true',
         help="Whether to skip checkpointing.")    
 
     parser.add_argument(
