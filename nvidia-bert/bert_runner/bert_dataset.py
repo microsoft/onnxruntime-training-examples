@@ -10,7 +10,7 @@ import h5py
 import numpy
 import torch
 
-from . import configuration
+from .arguments import args
 
 class BertMultiFileDataset(torch.utils.data.IterableDataset):
 
@@ -128,12 +128,12 @@ class BertSingleFileDataset(torch.utils.data.Dataset):
     def _build_masked_lm_labels(self, masked_lm_positions, masked_lm_ids):
         masked_token_count = self._get_masked_token_count(masked_lm_positions)
 
-        masked_lm_labels = torch.ones([configuration.arguments.max_seq_length], dtype=torch.int64) * -1
+        masked_lm_labels = torch.ones([args.max_seq_length], dtype=torch.int64) * -1
         masked_lm_labels[masked_lm_positions[:masked_token_count]] = masked_lm_ids[:masked_token_count]
         return masked_lm_labels
 
     def _get_masked_token_count(self, masked_lm_positions):
-        masked_token_count = configuration.arguments.max_predictions_per_seq
+        masked_token_count = args.max_predictions_per_seq
         padded_mask_indices = (masked_lm_positions == 0).nonzero(as_tuple=False)
         if len(padded_mask_indices) != 0:
             masked_token_count = padded_mask_indices[0].item()

@@ -132,6 +132,12 @@ def parse_arguments():
         type=str,
         required=False,
         help="Path for any logs, checkpoints, and final onnx model")
+
+    parser.add_argument(
+        '--num_steps_to_smooth_output',
+        type=positive_int,
+        default=5,
+        help="Number of steps to average loss, timing, and throughput.")
     
     parser.add_argument(
         '--debug',
@@ -180,39 +186,4 @@ def parse_arguments():
 
     return parser.parse_args()
 
-def validate_starting_condition():
-    global arguments
-    if arguments.init_checkpoint is not None and arguments.resume_from_step is not None:
-        raise ValueError('Only one of initial_checkpoint and resume_from_step may be specified.')
-
-def validate_termination_condition():
-    global arguments
-    # one and only one of max_steps or max_epochs
-    if arguments.max_steps is None and arguments.max_epochs is None:
-        raise ValueError('One of max_steps or max_epochs must be specified.')
-    if arguments.max_steps is not None and arguments.max_epochs is not None:
-        raise ValueError('Only one of max_steps or max_epochs may be specified.')
-
-def is_checkpointing():
-    global arguments
-    return not arguments.skip_checkpointing
-
-def initial_weights_provided():
-    global arguments
-    return arguments.init_checkpoint is not None
-
-def resume_from_checkpoint():
-    global arguments
-    return arguments.resume_from_step is not None
-
-def output_dir():
-    global arguments
-    return arguments.output_dir
-
-def checkpoint_dir():
-    global arguments
-    return os.path.join(arguments.output_dir, 'checkpoints')
-
-arguments = parse_arguments()
-validate_termination_condition()
-validate_starting_condition()
+args = parse_arguments()

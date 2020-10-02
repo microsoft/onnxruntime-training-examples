@@ -36,15 +36,16 @@ import onnx
 import onnxruntime
 import onnxruntime.training
 
+from .arguments import args
 from . import bert_model
 from . import bert_dataset
-from . import configuration
 from . import distributed
 
 torch._C._jit_set_profiling_mode(False)
 torch._C._jit_set_profiling_executor(False)
 
 def main():
+    valid_inputs()
     initialize_environment()
     print_header()
 
@@ -52,36 +53,53 @@ def main():
     trainer = build_onnxruntime_trainer(bert)
     dataset = build_training_dataset()
     
-    if configuration.initial_weights_provided():
+    if initial_weights_provided():
         load_initial_weights(trainer)
 
     step = 1
-    if configuration.resume_from_checkpoint():
-        step = configuration.arguments.resume_from_step
+    if resume_from_checkpoint():
+        step = args.resume_from_step
         restore_from_checkpoint(step, dataset, trainer)
 
     results = training_loop(step, dataset, trainer)
 
-    save_onnx_model(trainer)
+    if distributed.is_world_leader():
+        save_onnx_model(trainer)
     print_footer(results)
+
+def valid_inputs():
+    validate_starting_condition()
+    validate_termination_condition()
+
+def validate_starting_condition():
+    if args.init_checkpoint is not None and args.resume_from_step is not None:
+        raise ValueError('Only one of initial_checkpoint and resume_from_step may be specified.')
+
+def validate_termination_condition():
+    # one and only one of max_steps or max_epochs
+    if args.max_steps is None and args.max_epochs is None:
+        raise ValueError('One of max_steps or max_epochs must be specified.')
+    if args.max_steps is not None and args.max_epochs is not None:
+        raise ValueError('Only one of max_steps or max_epochs may be specified.')
 
 def initialize_environment():
     initialize_logger()
     initialize_seeds()
-    initialize_dirs()
+    if distributed.is_world_leader():
+        initialize_dirs()
 
 def initialize_logger():
-    if not configuration.arguments.debug:
+    if not args.debug:
         logging.basicConfig(format='%(message)s', level=logging.INFO)
     else:
         fmt='['
         fmt+='%(asctime)s %(msecs)3d ms'
-        fmt+=', Rank {}, Pid %(process)d'.format(distributed.world_rank)
+        fmt+=', Rank {}, Pid %(process)d'.format(distributed.world_rank())
         fmt+='] %(message)s'
         logging.basicConfig(format=fmt, datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
 def initialize_seeds():
-    worker_seed = configuration.arguments.seed + distributed.local_rank
+    worker_seed = args.seed + distributed.local_rank()
     random.seed(worker_seed)
     numpy.random.seed(worker_seed)
     torch.manual_seed(worker_seed)
@@ -89,36 +107,49 @@ def initialize_seeds():
     onnxruntime.set_seed(worker_seed)
 
 def initialize_dirs():
-    if not os.path.exists(configuration.output_dir()):
-        os.makedirs(configuration.output_dir())
-    if configuration.is_checkpointing():
-        if not os.path.exists(configuration.checkpoint_dir()):
-            os.makedirs(configuration.checkpoint_dir())
+    if not os.path.exists(args.output_dir):
+        os.makedirs(args.output_dir)
+    if is_checkpointing():
+        if not os.path.exists(checkpoint_dir()):
+            os.makedirs(checkpoint_dir())
+
+def is_checkpointing():
+    return not args.skip_checkpointing
+
+def checkpoint_dir():
+    return os.path.join(args.output_dir, 'checkpoints')
 
 def print_header():
     if distributed.is_world_leader():
-        args = configuration.arguments
         logging.info(datetime.datetime.now().strftime('%m/%d/%Y %I:%M:%S %p'))        
-        logging.info('World Size: {}'.format(distributed.world_size))
+        logging.info('World Size: {}'.format(distributed.world_size()))
         logging.info('GPU Feed Batch Size: {}'.format(args.gpu_feed_batch_size))
         logging.info('Gradient Accumulation Passes: {}'.format(args.gradient_accumulation_passes))
         logging.info('Sequence Length: {}'.format(args.max_seq_length))
         logging.info('Max Steps: {}'.format(args.max_steps))
         logging.info('Seed: {}'.format(args.seed))
-        if configuration.resume_from_checkpoint():
+        logging.info('Smoothing over {} passes'.format(get_num_passes_to_smooth()))
+        logging.info('Weights are updated in one \'step\' and model is backpropagated in one \'pass\'')
+        if resume_from_checkpoint():
             logging.info('Resuming from step: {}'.format(args.resume_from_step))
     distributed.world_barrier()
 
-    gpuid = distributed.local_rank
+    gpuid = distributed.local_rank()
     gpu_prop = torch.cuda.get_device_properties('cuda:{}'.format(gpuid))
     logging.info('GPU {}: {} with {} GB'.format(gpuid, gpu_prop.name, gpu_prop.total_memory/1024/1024))
 
 def build_pytorch_model():
-    config = bert_model.BertConfig.from_json_file(configuration.arguments.config_file)
+    config = bert_model.BertConfig.from_json_file(args.config_file)
 
     # additional configuration is due to 'dense_sequence' optimization
-    config.max_predictions_per_seq = configuration.arguments.max_predictions_per_seq
+    config.max_predictions_per_seq = args.max_predictions_per_seq
     config.dense_seq = True
+    
+    config.dense_seq_output = True
+    config.fused_mha = False
+    config.fused_gelu_bias = False
+    config.max_prediction_count = args.max_predictions_per_seq
+
     if config.vocab_size % 8 != 0:
         config.vocab_size += 8 - (config.vocab_size % 8)
 
@@ -133,8 +164,8 @@ def build_onnxruntime_trainer(model):
         model, model_desc, optim_config, loss_fn=None, options=trainer_config)
 
 def build_onnx_model_description():
-    bs = configuration.arguments.gpu_feed_batch_size
-    sl = configuration.arguments.max_seq_length
+    bs = args.gpu_feed_batch_size
+    sl = args.max_seq_length
     return {
         'inputs': [
             ('input_ids', [bs, sl]),
@@ -152,7 +183,7 @@ def build_onnxruntime_optimizer_configuration(model):
     param_optimizer = list(model.named_parameters())
     no_decay = ['bias', 'gamma', 'beta', 'LayerNorm']
     return onnxruntime.training.optim.LambConfig(
-        lr=configuration.arguments.learning_rate, 
+        lr=args.learning_rate, 
         alpha=0.9, beta=0.999, lambda_coef=0.01, epsilon=1e-6,
         do_bias_correction=True,
         params = [{
@@ -163,14 +194,13 @@ def build_onnxruntime_optimizer_configuration(model):
 
 def build_onnxruntime_learning_rate_schedule():
     return onnxruntime.training.optim.lr_scheduler.LinearWarmupLRScheduler(
-        total_steps=configuration.arguments.max_steps, 
-        warmup=configuration.arguments.warmup_proportion)
+        total_steps=args.max_steps, 
+        warmup=args.warmup_proportion)
 
 def build_onnxruntime_trainer_options(model_desc, lr_scheduler):
-    gpuid = 'cuda:{}'.format(distributed.local_rank)
+    gpuid = 'cuda:{}'.format(distributed.local_rank())
     gpu_memory = torch.cuda.get_device_properties(gpuid).total_memory
 
-    args = configuration.arguments
     return onnxruntime.training.ORTTrainerOptions({
         'device': {
             'id': gpuid,
@@ -180,8 +210,8 @@ def build_onnxruntime_trainer_options(model_desc, lr_scheduler):
             'gradient_accumulation_steps' : args.gradient_accumulation_passes
         },
         'distributed': {
-            'world_size': distributed.world_size,
-            'world_rank': distributed.world_rank,
+            'world_size': distributed.world_size(),
+            'world_rank': distributed.world_rank(),
             'allreduce_post_accumulation': True if args.allreduce_post_accumulation else False,
             'deepspeed_zero_optimization': {
                 'stage': 1 if args.deepspeed_zero_stage else 0,
@@ -191,13 +221,14 @@ def build_onnxruntime_trainer_options(model_desc, lr_scheduler):
         'mixed_precision': {
             'enabled': True if args.fp16 else False,
         },
-        '_internal_use': {
-            'enable_gelu_approximation': True
-        }
+        # https://github.com/microsoft/onnxruntime/pull/5354/files
+        # '_internal_use': {
+        #     'enable_gelu_approximation': True
+        # }
     })
     
 def build_training_dataset():
-    data_dir = configuration.arguments.data_dir
+    data_dir = args.data_dir
     training_datafiles = [
         os.path.join(data_dir, component) for component in os.listdir(data_dir) if
         os.path.isfile(os.path.join(data_dir, component)) and 'training' in component
@@ -208,22 +239,27 @@ def build_training_dataset():
 
     training_datafiles = sorted(training_datafiles)
     return bert_dataset.BertMultiFileDataset(
-        training_datafiles[distributed.world_rank::distributed.world_size],
+        training_datafiles[distributed.world_rank()::distributed.world_size()],
         loop = True)
 
+def initial_weights_provided():
+    return args.init_checkpoint is not None
+
 def load_initial_weights(trainer):
-    checkpoint = torch.load(configuration.arguments.init_checkpoint, map_location="cpu")
+    checkpoint = torch.load(args.init_checkpoint, map_location="cpu")
     onnxruntime.training.checkpoint.experimental_load_state_dict(trainer, checkpoint['model'], strict=False)
-    logging.info('Restored checkpoint {}'.format(configuration.arguments.init_checkpoint))
+    logging.info('Restored checkpoint {}'.format(args.init_checkpoint))
+
+def resume_from_checkpoint():
+    return args.resume_from_step is not None
 
 def restore_from_checkpoint(step, dataset, trainer):
-    mbs = configuration.arguments.gpu_feed_batch_size
-    gas = configuration.arguments.gradient_accumulation_passes
+    mbs = args.gpu_feed_batch_size
+    gas = args.gradient_accumulation_passes
     total_samples = step*gas*mbs
     dataset.forward(total_samples)
 
-    checkpoint_dir = configuration.checkpoint_dir()
-    checkpoint_path = os.path.join(checkpoint_dir, 'ckpt_{}.pt'.format(step))
+    checkpoint_path = os.path.join(checkpoint_dir(), 'ckpt_{}.pt'.format(step))
     checkpoint = torch.load(checkpoint_path, map_location="cpu")
     onnxruntime.training.checkpoint.experimental_load_state_dict(trainer, checkpoint['model'], strict=False)
     logging.info('Restored checkpoint {}'.format(checkpoint_path))
@@ -232,34 +268,33 @@ def training_loop(step, dataset, trainer):
     t0 = time.perf_counter()
     results = Results()
 
-    accumulate_steps = configuration.arguments.gradient_accumulation_passes
-    checkpoint_steps = configuration.arguments.num_steps_per_checkpoint
+    accumulate_steps = args.gradient_accumulation_passes
+    checkpoint_steps = args.num_steps_per_checkpoint
 
     weight_step = step
-    execution_step = step * accumulate_steps
+    execution_step = 1 + (step-1)*accumulate_steps
 
     batch_generator = iter(build_training_dataloader(dataset))
-    batch = next(batch_generator)
+    batch = next(batch_generator, None)
 
-    while not is_terminal_condition(weight_step):
+    while not is_terminal_condition(weight_step, batch):
 
         # execute backward pass and record backend time
         # warning: backend may exit early because CUDA is non-blocking!
         loss, session_dt = run_timed_training_pass(trainer, batch)
         t0, script_dt = get_split_time(t0)
-
+        
         # if CPU did not block, we can fetch next batch in downtime
-        # (if num_workers > 0, the batch should fetch in background)
-        batch = next(batch_generator)
+        # (if num_workers > 0, the batch should fetch in background)        
+        batch = next(batch_generator, None)
 
         # CPU will block on loss.item() if it didn't already
         results.add_datum(loss.item(), session_dt, script_dt)
-        if distributed.is_world_leader():
-            print_running_statistics(execution_step, weight_step, results)
+        print_statistics_line(weight_step, execution_step, results)
 
         if execution_step % accumulate_steps == 0:
             if (distributed.is_world_leader() and
-                configuration.is_checkpointing() and
+                is_checkpointing() and
                 weight_step % checkpoint_steps == 0):
                 save_checkpoint(weight_step, trainer)
             weight_step += 1
@@ -267,9 +302,11 @@ def training_loop(step, dataset, trainer):
 
     return results
 
-def is_terminal_condition(step):
-    if configuration.arguments.max_steps is not None:
-        return configuration.arguments.max_steps <= step
+def is_terminal_condition(step, batch):
+    if batch is None:
+        return False
+    if args.max_steps is not None:
+        return args.max_steps <= step
     return False
 
 def get_split_time(t_previous):
@@ -279,16 +316,16 @@ def get_split_time(t_previous):
 def build_training_dataloader(training_dataset):
     return torch.utils.data.DataLoader(
         training_dataset,
-        batch_size = configuration.arguments.gpu_feed_batch_size,
-        num_workers = 0,
+        batch_size = args.gpu_feed_batch_size,
+        num_workers = 1,
         pin_memory = True, 
         drop_last = True)
 
 class Results():
-    def __init__(self, maxlen = None):
+    def __init__(self, max_retained = None):
         self.start_time = time.perf_counter()
         self.last_time = time.perf_counter()   
-        self.data = collections.deque(maxlen=maxlen)
+        self.data = collections.deque(maxlen=max_retained)
 
     def add_datum(self, *args):
         self.data.append(args)
@@ -319,41 +356,63 @@ def run_timed_training_pass(trainer, batch):
 
     t0 = time.perf_counter()
     loss = trainer.train_step(input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels)
+    if args.debug:
+        block_cpu = loss.item()
     t1 = time.perf_counter()
 
     return loss, t1-t0
 
-def print_running_statistics(execution_step, weight_step, results):
-    loss, _, script_dt = results.last_datum()
-    logging.debug('pass {} time {:.6f} loss {:.6f}'.format(execution_step, script_dt, loss))
+def print_statistics_header():
+    if not args.debug:
+        logging.info('{:^4} {:^4} {:^2} {:^10} {:^10} {:8^}'.format(
+            'Step',
+            'Pass',
+            'Rank',
+            'Loss', 
+            'Step(ms)', 
+            'Seq/sec'))
+    else:
+        logging.debug('Warning: Debug mode blocks CPU until session completes.')
 
-    lastn = 5
+def print_statistics_line(weight_step, execution_step, results):
+    if distributed.is_world_leader() and execution_step == get_first_execution_step():
+        print_statistics_header()
 
-    batch_size = configuration.arguments.gpu_feed_batch_size
-    stable_loss, stable_session_dt, stable_script_dt = results.get_mean_lastn(lastn)
+    if not args.debug:
+        stable_loss, _, stable_script_dt = results.get_mean_lastn(get_num_passes_to_smooth())
+        batch_size = args.gpu_feed_batch_size
+        logging.info('{:^4} {:^4} {:2d} {:10.6f} {:10.6f} {:8.2f}'.format(
+            weight_step,
+            execution_step,
+            distributed.world_rank(),
+            stable_loss, 
+            stable_script_dt, 
+            batch_size/stable_script_dt))
+    else:
+        loss, session_dt, script_dt = results.last_datum()
+        logging.debug('step {} pass {} session-time {:.6f} script-time {:.6f} loss {:.6f}'.format(
+            weight_step, execution_step, session_dt, script_dt-session_dt, loss))
 
-    start_step = 0
-    if configuration.resume_from_checkpoint():
-        start_step = configuration.arguments.resume_from_step
-    init_step = max(0, start_step, execution_step - lastn)
-    last_step = execution_step
+def get_first_execution_step():
+    first_execution_step = 1
+    if resume_from_checkpoint():
+        first_execution_step += \
+            (args.resume_from_step-1) * \
+            args.gradient_accumulation_passes
+    return first_execution_step
 
-    passes = '{}-{}'.format(init_step, last_step)
-    logging.info('{:^15} {:10.6f} {:10.6f} {:10.6f} {:8.2f}'.format(
-        passes,
-        stable_loss, 
-        stable_session_dt, 
-        stable_script_dt, 
-        batch_size/stable_script_dt))
+def get_num_passes_to_smooth():
+    return args.num_steps_to_smooth_output * \
+        args.gradient_accumulation_passes
 
 def save_checkpoint(weight_step, trainer):
-    logging.info('{:^57}'.format('< checkpoint >'))
-    checkpoint_path = os.path.join(configuration.checkpoint_dir(), 'ckpt_{}.pt'.format(weight_step))
+    logging.info('{:^61}'.format('< checkpoint >'))
+    checkpoint_path = os.path.join(checkpoint_dir(), 'ckpt_{}.pt'.format(weight_step))
     state = {'model': onnxruntime.training.checkpoint.experimental_state_dict(trainer)}
     torch.save(state, checkpoint_path)
 
 def save_onnx_model(trainer):
-    model_path = os.path.join(configuration.output_dir(), 'trained_bert.onnx')
+    model_path = os.path.join(args.output_dir, 'trained_bert.onnx')
     trainer.save_as_onnx(model_path)
 
 def print_footer(results):

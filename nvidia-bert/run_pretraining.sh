@@ -29,18 +29,20 @@ warmup_proportion="0.2843"
 # administrative
 path_to_phase1_training_data=/bert_data/hdf5/128/train
 path_to_phase2_training_data=/bert_data/hdf5/512/train
-phase="phase2"
+phase="phase1"
+training_steps=${5:-200}
+seed=${7:-$RANDOM}
 results_dir=./results
 create_logfile="true"
-training_steps=${5:-100}
+debug_output="false"
 init_checkpoint="None"
 skip_checkpointing="false"
-save_checkpoint_interval=${6:-50}
+save_checkpoint_interval=${6:-200}
 resume_from_step=0
-seed=${7:-$RANDOM}
-bert_config=bert_runner/bert_config.json
+smooth_output_interval=3
+bert_config=bert_config.json
 
-# validation
+# basic validation
 if [ ! -d "$results_dir" ] ; then
    mkdir $results_dir
 fi
@@ -52,8 +54,10 @@ fi
 sequence_description_flag=""
 if [ "$phase" = "phase1" ] ; then
    sequence_description_flag=" --max_seq_length=128 --max_predictions_per_seq=20"
+   path_to_training_data=$path_to_phase1_training_data
 elif [ "$phase" = "phase2" ] ; then
    sequence_description_flag=" --max_seq_length=512 --max_predictions_per_seq=80"
+   path_to_training_data=$path_to_phase2_training_data
 else
    echo "Unknown <phase> argument"
    exit -2
@@ -68,12 +72,16 @@ else
    exit -2
 fi
 accumulate_gradients_flag=""
-if [ "$accumulate_gradients" == "true" ] ; then
-   accumulate_gradients_flag="--gradient_accumulation_passes=$gradient_accumulation_steps"
+if (($gradient_accumulation_passes > 1)) ; then
+   accumulate_gradients_flag="--gradient_accumulation_passes=$gradient_accumulation_passes"
 fi
 deepspeed_zero_stage_flag=""
 if [ "$deepspeed_zero_stage" == "true" ] ; then
    deepspeed_zero_stage_flag="--deepspeed_zero_stage"
+fi
+debug_flag=""
+if [ "$debug_output" == "true" ] ; then
+   debug_flag="--debug"
 fi
 resume_from_step_flag=""
 if (($resume_from_step > 0)) ; then
@@ -94,7 +102,7 @@ fi
 
 # construct job command
 cmd=" -m bert_runner.run_pretraining"
-cmd+=" --data_dir=$path_to_phase1_training_data"
+cmd+=" --data_dir=$path_to_training_data"
 cmd+=" --output_dir=$results_dir"
 cmd+=" --config_file=$bert_config"
 cmd+=" $sequence_description_flag"
@@ -104,6 +112,7 @@ cmd+=" --warmup_proportion=$warmup_proportion"
 cmd+=" --num_steps_per_checkpoint=$save_checkpoint_interval"
 cmd+=" --learning_rate=$learning_rate"
 cmd+=" --seed=$seed"
+cmd+=" --num_steps_to_smooth_output=$smooth_output_interval"
 cmd+=" $precision_flag"
 cmd+=" $accumulate_gradients_flag"
 cmd+=" $allreduce_post_accumulation_flag"
@@ -111,6 +120,7 @@ cmd+=" $init_checkpoint_flag"
 cmd+=" $resume_from_step_flag"
 cmd+=" $skip_checkpointing_flag"
 cmd+=" $deepspeed_zero_stage_flag"
+cmd+=" $debug_flag"
 
 cmd="mpirun -n $num_gpus python $cmd"
 
@@ -125,10 +135,14 @@ if [ "$create_logfile" = "true" ] ; then
 fi
 
 # submit job with logging
+runtraced() {
+    echo "$@"
+    "$@"
+}
 if [ -z "$logfile" ] ; then
-   $cmd
+   runtraced $cmd
 else
    (
-     $cmd
+     runtraced $cmd
    ) |& tee $logfile
 fi
