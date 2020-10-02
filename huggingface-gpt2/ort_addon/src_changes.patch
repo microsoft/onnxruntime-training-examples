@@ -1,5 +1,5 @@
 diff --git a/examples/run_language_modeling.py b/examples/run_language_modeling.py
-index 660a652..c18319d 100644
+index 660a652..faac772 100644
 --- a/examples/run_language_modeling.py
 +++ b/examples/run_language_modeling.py
 @@ -19,7 +19,6 @@ GPT and GPT-2 are fine-tuned using a causal language modeling (CLM) loss while B
@@ -48,7 +48,24 @@ index 660a652..c18319d 100644
          model=model,
          args=training_args,
          data_collator=data_collator,
-@@ -274,6 +280,7 @@ def main():
+@@ -262,8 +268,14 @@ def main():
+     results = {}
+     if training_args.do_eval and training_args.local_rank in [-1, 0]:
+         logger.info("*** Evaluate ***")
+-
+-        eval_output = trainer.evaluate()
++        if training_args.ort_trainer and not training_args.do_eval_in_torch:
++            if training_args.per_gpu_eval_batch_size != training_args.per_gpu_train_batch_size:
++                logger.warning("Setting eval batch size to the train batch size " +
++                 "used for exporting the model to ONNX.")
++                training_args.per_gpu_eval_batch_size = training_args.per_gpu_train_batch_size
++            eval_output = trainer.evaluate_in_ORT()
++        else:
++            eval_output = trainer.evaluate()
+ 
+         perplexity = math.exp(eval_output["loss"])
+         result = {"perplexity": perplexity}
+@@ -274,6 +286,7 @@ def main():
              for key in sorted(result.keys()):
                  logger.info("  %s = %s", key, str(result[key]))
                  writer.write("%s = %s\n" % (key, str(result[key])))
@@ -314,7 +331,7 @@ index 6524ba4..ade1490 100644
 +        return PredictionOutput(predictions=preds, label_ids=label_ids, metrics=metrics)
 \ No newline at end of file
 diff --git a/src/transformers/training_args.py b/src/transformers/training_args.py
-index af32eac..7f85da9 100644
+index af32eac..df8f337 100644
 --- a/src/transformers/training_args.py
 +++ b/src/transformers/training_args.py
 @@ -1,11 +1,12 @@
@@ -331,7 +348,7 @@ index af32eac..7f85da9 100644
  
  if is_torch_available():
      import torch
-@@ -82,6 +83,11 @@ class TrainingArguments:
+@@ -82,6 +83,12 @@ class TrainingArguments:
          },
      )
      local_rank: int = field(default=-1, metadata={"help": "For distributed training: local_rank"})
@@ -340,10 +357,11 @@ index af32eac..7f85da9 100644
 +    master_port: int = field(default=12345, metadata={"help": "For distributed training: free port on rank 0 node"})
 +    master_node: str = field(default="localhost", metadata={"help": "For distributed training: address of rank 0 node"})
 +    ort_trainer: bool = field(default=False, metadata={"help": "Use ORT to train instead of PyTorch"})
++    do_eval_in_torch: bool = field(default=False, metadata={"help": "Use PyTorch for eval"})
  
      @property
      def train_batch_size(self) -> int:
-@@ -126,3 +132,33 @@ class TrainingArguments:
+@@ -126,3 +133,33 @@ class TrainingArguments:
          Serializes this instance to a JSON string.
          """
          return json.dumps(dataclasses.asdict(self), indent=2)
