@@ -17,9 +17,9 @@ set -e
 # limitations under the License.
 
 # computation
-num_gpus=${1:-1}
-gpu_feed_batch_size=${2:-32}
-gradient_accumulation_passes=${3:-1} 
+num_gpus=${1:-4}
+gpu_feed_batch_size=${2:-48}
+gradient_accumulation_passes=${3:-16} 
 precision=${4:-"fp16"}
 allreduce_post_accumulation="true"
 deepspeed_zero_stage="false"
@@ -30,16 +30,16 @@ warmup_proportion="0.2843"
 path_to_phase1_training_data=/bert_data/hdf5/128/train
 path_to_phase2_training_data=/bert_data/hdf5/512/train
 phase="phase1"
-training_steps=${5:-50}
+training_steps=${5:-7038}
 seed=${7:-$RANDOM}
 results_dir=./results
 create_logfile="true"
 debug_output="false"
 init_checkpoint="None"
 skip_checkpointing="false"
-save_checkpoint_interval=${6:-25}
+save_checkpoint_interval=${6:-200}
 resume_from_step=0
-smooth_output_interval=3
+smooth_output_passes=32
 bert_config=bert_config.json
 
 # basic validation
@@ -112,7 +112,7 @@ cmd+=" --warmup_proportion=$warmup_proportion"
 cmd+=" --num_steps_per_checkpoint=$save_checkpoint_interval"
 cmd+=" --learning_rate=$learning_rate"
 cmd+=" --seed=$seed"
-cmd+=" --num_steps_to_smooth_output=$smooth_output_interval"
+cmd+=" --num_passes_to_smooth_output=$smooth_output_passes"
 cmd+=" $precision_flag"
 cmd+=" $accumulate_gradients_flag"
 cmd+=" $allreduce_post_accumulation_flag"

@@ -134,10 +134,13 @@ def parse_arguments():
         help="Path for any logs, checkpoints, and final onnx model")
 
     parser.add_argument(
-        '--num_steps_to_smooth_output',
+        '--num_passes_to_smooth_output',
         type=positive_int,
         default=5,
-        help="Number of steps to average loss, timing, and throughput.")
+        help="""
+            Number of passes to average loss, timing, and throughput.
+            (It will round up to number of gradient accumulation passes.)
+            """)
     
     parser.add_argument(
         '--debug',

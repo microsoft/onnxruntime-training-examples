@@ -13,6 +13,5 @@ docker run -it --rm \
   -v <replace-with-path-to-phase1-hdf5-training-data>:/data/128 \
   -v <replace-with-path-to-phase2-hdf5-training-data>:/data/512 \
   -v $PWD:/workspace/bert \
-  -v $PWD/results:/results \
   --workdir=/workspace/bert \
   onnxruntime-pytorch-for-bert $CMD

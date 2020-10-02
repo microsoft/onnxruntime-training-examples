@@ -6,6 +6,5 @@ FROM mcr.microsoft.com/azureml/onnxruntime-training:0.1-rc3-openmpi4.0-cuda10.2-
 RUN apt-get -y update &&\
     apt-get install -y git &&\
     pip install --no-cache-dir \
-    tqdm boto3 requests six ipdb \
-    h5py html2text nltk progressbar \
-    git+https://github.com/NVIDIA/dllogger
+    h5py boto3 requests six ipdb \
+    html2text nltk progressbar

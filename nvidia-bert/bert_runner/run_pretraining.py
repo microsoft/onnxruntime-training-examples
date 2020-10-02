@@ -121,10 +121,12 @@ def checkpoint_dir():
 
 def print_header():
     if distributed.is_world_leader():
+        gbs = distributed.world_size()*args.gpu_feed_batch_size*args.gradient_accumulation_passes
         logging.info(datetime.datetime.now().strftime('%m/%d/%Y %I:%M:%S %p'))        
         logging.info('World Size: {}'.format(distributed.world_size()))
         logging.info('GPU Feed Batch Size: {}'.format(args.gpu_feed_batch_size))
         logging.info('Gradient Accumulation Passes: {}'.format(args.gradient_accumulation_passes))
+        logging.info('Global Batch Size: {}'.format(gbs))
         logging.info('Sequence Length: {}'.format(args.max_seq_length))
         logging.info('Max Steps: {}'.format(args.max_steps))
         logging.info('Seed: {}'.format(args.seed))
@@ -369,7 +371,7 @@ def print_statistics_header():
             'Pass',
             'Rank',
             'Loss', 
-            'Step(ms)', 
+            'Step(s)', 
             'Seq/sec'))
     else:
         logging.debug('Warning: Debug mode blocks CPU until session completes.')
@@ -403,8 +405,7 @@ def get_first_execution_step():
     return first_execution_step
 
 def get_num_passes_to_smooth():
-    return args.num_steps_to_smooth_output * \
-        args.gradient_accumulation_passes
+    return max(args.num_passes_to_smooth_output, args.gradient_accumulation_passes)
 
 def save_checkpoint(weight_step, trainer):
     logging.info('{}'.format(' <-- checkpoint'))

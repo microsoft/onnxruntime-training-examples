@@ -4,7 +4,13 @@ This example uses ONNX Runtime to pre-train the BERT PyTorch model maintained at
 
 You can run the training in Azure Machine Learning or on an Azure VM with NVIDIA GPU.
 
-## Quick Start
+## Download and prepare data
+
+The following are a minimal set of instructions to download and process the Wiki dataset used for BERT pre-training.
+
+To include additional datasets, and for more details, refer to [DeepLearningExamples](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#getting-the-data).
+
+Note that the datasets used for BERT pre-training need a large amount of disk space. After processing, the data should be made available for training. Due to the large size of the data copy, we recommend that you execute the steps below in the training environment itself or in an environment from where data transfer to training environment will be fast and efficient. Be advised the training data preparation can take approximately 40 hours.
 
 1. Clone this repo
 
@@ -13,15 +19,7 @@ You can run the training in Azure Machine Learning or on an Azure VM with NVIDIA
     cd onnxruntime-training-examples
     ```
 
-## Download and prepare data
-
-The following are a minimal set of instructions to download and process the Wiki dataset used for BERT pre-training.
-
-To include additional datasets, and for more details, refer to [DeepLearningExamples](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT#getting-the-data).
-
-Note that the datasets used for BERT pre-training need a large amount of disk space. After processing, the data should be made available for training. Due to the large size of the data copy, we recommend that you execute the steps below in the training environment itself or in an environment from where data transfer to training environment will be fast and efficient.
-
-1. Check pre-requisites
+2. Check pre-requisites
 
     * Python 3.6 invoked as `python`
     * Natural Language Toolkit (NLTK) `pip install nltk`
@@ -29,7 +27,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
     * Amazon Web Services SDK `pip install boto3`
     * HTTP Requests `pip install requests`
 
-2. Clone download code
+3. Clone download code
 
     ```bash
     git clone --no-checkout https://github.com/NVIDIA/DeepLearningExamples.git
@@ -38,7 +36,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
     cd ..
     ```
 
-3. Create working directory for data download and formatting operations
+4. Create working directory for data download and formatting operations
 
     ```bash
     mkdir -p workspace
@@ -51,7 +49,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
     cd ../../ 
     ```
 
-4. Download and prepare Wikicorpus training data in HDF5 format.
+5. Download and prepare Wikicorpus training data in HDF5 format.
 
     ```bash
     # Run all the below commands step-by-step from the root of the repository
@@ -91,7 +89,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
     --max_predictions_per_seq 80 --vocab_file ./workspace/BERT/data/download/google_pretrained_weights/uncased_L-24_H-1024_A-16/vocab.txt --do_lower_case 1
     ```
 
-5. Make data accessible for training
+6. Make data accessible for training
 
     After completing the steps above, data in hdf5 format will be available at the following locations: 
 
@@ -127,7 +125,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 
     Execute the steps in the Python notebook [azureml-notebooks/run-pretraining.ipynb](azureml-notebooks/run-pretraining.ipynb) within your environment. If you have a local setup to run an Azure ML notebook, you could run the steps in the notebook in that environment. Otherwise, a compute instance in Azure Machine Learning could be created and used to run the steps.
 
-## BERT pre-training with ONNX Runtime directly on ND40rs_v2 (or similar NVIDIA capable Azure VM) 
+## BERT pre-training with ONNX Runtime directly on NC24rs_v3 (or similar NVIDIA capable Azure VM) 
 
 1. Check pre-requisites
 
@@ -160,51 +158,54 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 
    The two directories must contain the hdf5 training files.
 
-4. Set the number of GPUs.
+4. Set the number of GPUs and other training parameters.
 
-    Edit `./scripts/run_pretraining.sh`.
-
-    ```bash
-    num_gpus=${1:-1}
-    phase1_training_data="/data/128"
-    phase2_training_data="/data/512"
-    ```
-
-5. Modify other training parameters as needed.
-
-    Edit `./scripts/run_pretraining_ort.sh`.
+    Edit `nvidia-bert/run_pretraining.sh`.
 
     ```bash
+    # computation
+    num_gpus=${1:-4}
     gpu_feed_batch_size=${2:-48}
-    gradient_accumulation_passes=${3:-1} 
+    gradient_accumulation_passes=${3:-16}
     precision=${4:-"fp16"}
-    training_steps=${5:-100}
-    save_checkpoint_steps=${6:-20}
-    seed=${7:-$RANDOM}
-
     allreduce_post_accumulation="true"
-    resume_training="true"
-    create_logfile="true"
     deepspeed_zero_stage="false"
     learning_rate="6e-3"
     warmup_proportion="0.2843"
+
+    # administrative
+    path_to_phase1_training_data=/data/128
+    path_to_phase2_training_data=/data/512
+    phase="phase1"
+    training_steps=${5:-400}
+    seed=${7:-$RANDOM}
+    results_dir=./results
+    create_logfile="true"
+    debug_output="false"
+    init_checkpoint="None"
+    skip_checkpointing="false"
+    save_checkpoint_interval=${6:-200}
+    resume_from_step=0
+    smooth_output_passes=32
+    bert_config=bert_config.json
     ```
-    The above defaults are tuned for an Azure NC24rs_v3.
+    The above values are for an example run on an Azure NC24rs_v3.
 
     The training is performed over _local_ passes and _global_ steps. A local pass refers to a single backpropagation execution on the model to calculate its gradient. The GPU feed batch size refers to the number of samples fed in one local pass. The gradients are accumulated each local pass until weights are updated in a global step. 
 
     Note: The effective global batch size will be (number nodes) x (number GPUs per node) x (gradient accumulation passes). In general it is recommend setting the global batch size to ~64,000 for phase 1 and ~32,000 for phase 2. The number of gradient accumulation steps should be minimized without overflowing the GPU memory (i.e. maximizes GPU feed batch size).
 
-6. Launch interactive container.
+5. Launch interactive container.
 
     ```bash
+    cd nvidia-bert
     bash ./docker/launch.sh
     ```
 
 7. Launch pre-training run
 
     ```bash
-    bash ./scripts/run_pretraining.sh
+    bash run_pretraining.sh
     ```
 
     If you get memory errors, try reducing the batch size.
