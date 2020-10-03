@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-num_gpus=4
+num_gpus=8
 use_ort=true
 
 #export TRAIN_FILE=/data/wiki.train.tokens
