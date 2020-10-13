@@ -6,7 +6,7 @@ This sample trains the model defined here: https://pytorch.org/tutorials/beginne
 
 Trained using the Wikitext-2 dataset (from `torchtext.dataset`), the language model assigns a probability for the likelihood of a given word (or a sequence of words) to follow a sequence of words.
 
-This sample uses the base docker image `mcr.microsoft.com/azureml/onnxruntime-training:0.1-rc2-openmpi4.0-cuda10.2-cudnn7.6-nccl2.7.6` to train the model. The image contains the ONNX Runtime package, OpenMP and NVIDIA GPU dependencies. The docker image can be used either standalone or in Azure Machine Learning.
+This sample uses the base docker image `mcr.microsoft.com/azureml/onnxruntime-training` to train the model. The image contains the ONNX Runtime package, OpenMP and NVIDIA GPU dependencies. The docker image can be used either standalone or in Azure Machine Learning.
 
 The purpose of this sample is to demonstrate the concepts and usage of ONNX Runtime Training, rather than to show its performance capabilities. For more complex samples that do demonstrate improved training performance at scale, please refer to the other samples in this repo:
 

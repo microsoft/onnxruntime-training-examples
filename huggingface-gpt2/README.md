@@ -102,7 +102,7 @@ We recommend running this sample on a system with at least one NVIDIA GPU.
 
     Follow the instructions in [setup](#Setup) to build a docker image with the required dependencies installed.
 
-    The base Docker image used is `mcr.microsoft.com/azureml/onnxruntime-training:0.1-rc1-openmpi4.0-cuda10.1-cudnn7.6-nccl2.4.8`. The Docker image is tested in AzureML environment. For running the examples in other environments, building a new base Docker image may be necessary by following the directions in the [nvidia-bert sample](../nvidia-bert/README.md).
+    The base Docker image used is `mcr.microsoft.com/azureml/onnxruntime-training`. The Docker image is tested in AzureML environment. For running the examples in other environments, building a new base Docker image may be necessary by following the directions in the [nvidia-bert sample](../nvidia-bert/README.md).
 
     To build and install the onnxruntime wheel on the host machine, follow steps [here](https://github.com/microsoft/onnxruntime/blob/master/BUILD.md#Training)
 
