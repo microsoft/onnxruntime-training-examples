@@ -134,19 +134,25 @@ def parse_arguments():
         help="Path for any logs, checkpoints, and final onnx model")
 
     parser.add_argument(
-        '--num_passes_to_smooth_output',
+        '--num_passes_to_smooth_throughput',
         type=positive_int,
-        default=5,
+        default=32,
         help="""
-            Number of passes to average loss, timing, and throughput.
+            Number of passes to smooth throughput.
             (It will round up to number of gradient accumulation passes.)
             """)
     
     parser.add_argument(
+        '--num_steps_per_log_entry',
+        type=positive_int,
+        default=1,
+        help='')
+
+    parser.add_argument(
         '--debug',
         default=False,
         action='store_true',
-        help='Enable verbose logging for debugging')
+        help='Enable detailed logging')
         
     # checkpoint specific
     parser.add_argument(

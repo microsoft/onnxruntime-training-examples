@@ -21,15 +21,12 @@ from __future__ import print_function
 
 import collections
 import datetime
-import itertools
 import logging
 import os
-import statistics
 import sys
 import time
 import random
 
-from tqdm import tqdm, trange
 import numpy
 import torch
 import onnx
@@ -83,10 +80,15 @@ def validate_termination_condition():
         raise ValueError('Only one of max_steps or max_epochs may be specified.')
 
 def initialize_environment():
+    reset_cpu_affinity()
     initialize_logger()
     initialize_seeds()
     if distributed.is_world_leader():
         initialize_dirs()
+
+def reset_cpu_affinity():
+    # os.system("taskset -p 0xff %d" % os.getpid())
+    pass
 
 def initialize_logger():
     if not args.debug:
@@ -99,12 +101,12 @@ def initialize_logger():
         logging.basicConfig(format=fmt, datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
 def initialize_seeds():
-    worker_seed = args.seed + distributed.local_rank()
-    random.seed(worker_seed)
-    numpy.random.seed(worker_seed)
-    torch.manual_seed(worker_seed)
-    torch.cuda.manual_seed(worker_seed)
-    onnxruntime.set_seed(worker_seed)
+    # warning: set torch seed to generate same initial weights across ranks
+    random.seed(args.seed)
+    numpy.random.seed(args.seed)
+    torch.manual_seed(args.seed)
+    torch.cuda.manual_seed(args.seed)
+    onnxruntime.set_seed(args.seed + distributed.world_rank())
 
 def initialize_dirs():
     if not os.path.exists(args.output_dir):
@@ -171,13 +173,13 @@ def build_onnx_model_description():
     return {
         'inputs': [
             ('input_ids', [bs, sl]),
-            ('token_type_ids', [bs, sl]),
-            ('attention_mask', [bs, sl]),
+            ('segment_ids', [bs, sl]),
+            ('input_mask', [bs, sl]),
             ('masked_lm_labels', [bs, sl]),
             ('next_sentence_labels', [bs, 2])
         ],
         'outputs': [
-            ('total_loss', [], True)
+            ('loss', [], True)
         ]
     }
 
@@ -195,7 +197,7 @@ def build_onnxruntime_optimizer_configuration(model):
     )
 
 def build_onnxruntime_learning_rate_schedule():
-    return onnxruntime.training.optim.lr_scheduler.LinearWarmupLRScheduler(
+    return onnxruntime.training.optim.lr_scheduler.PolyWarmupLRScheduler(
         total_steps=args.max_steps, 
         warmup=args.warmup_proportion)
 
@@ -242,6 +244,7 @@ def build_training_dataset():
     training_datafiles = sorted(training_datafiles)
     return bert_dataset.BertMultiFileDataset(
         training_datafiles[distributed.world_rank()::distributed.world_size()],
+        shuffle = True,
         loop = True)
 
 def initial_weights_provided():
@@ -267,7 +270,7 @@ def restore_from_checkpoint(step, dataset, trainer):
     logging.info('Restored checkpoint {}'.format(checkpoint_path))
 
 def training_loop(step, dataset, trainer):
-    t0 = time.perf_counter()
+    t0 = t1 = time.perf_counter()
     results = Results()
 
     accumulate_steps = args.gradient_accumulation_passes
@@ -279,22 +282,30 @@ def training_loop(step, dataset, trainer):
     batch_generator = iter(build_training_dataloader(dataset))
     batch = next(batch_generator, None)
 
+    if distributed.is_world_leader() or distributed.have_separate_log():
+        print_statistics_header()
+
     while not is_terminal_condition(weight_step, batch):
 
         # execute backward pass and record backend time
         # warning: backend may exit early because CUDA is non-blocking!
         loss, session_dt = run_timed_training_pass(trainer, batch)
         t0, script_dt = get_split_time(t0)
-        
+
         # if CPU did not block, we can fetch next batch in downtime
         # (if num_workers > 0, the batch should fetch in background)        
         batch = next(batch_generator, None)
 
         # CPU will block on loss.item() if it didn't already
         results.add_datum(loss.item(), session_dt, script_dt)
-        print_statistics_line(weight_step, execution_step, results)
 
-        if execution_step % accumulate_steps == 0:
+        increment_weight_step = execution_step % accumulate_steps == 0
+        if weight_step % args.num_steps_per_log_entry == 0:
+            if increment_weight_step: 
+                print_statistics_line(weight_step, execution_step, results)
+                print_internals_line_if_debugging(trainer)                
+
+        if increment_weight_step:
             if (distributed.is_world_leader() and
                 is_checkpointing() and
                 weight_step % checkpoint_steps == 0):
@@ -326,40 +337,27 @@ def build_training_dataloader(training_dataset):
 class Results():
     def __init__(self, max_retained = None):
         self.start_time = time.perf_counter()
-        self.last_time = time.perf_counter()   
         self.data = collections.deque(maxlen=max_retained)
+        self.time = collections.deque(maxlen=max_retained)
 
     def add_datum(self, *args):
+        self.time.append(time.perf_counter())        
         self.data.append(args)
-        self.last_time = time.perf_counter()   
 
     def last_datum(self):
         return self.data[-1]
 
-    def get_runtime(self):
-        return self.last_time - self.start_time
+    def get_training_time(self):
+        return self.time[-1] - self.start_time
 
-    def get_mean(self):
-        return self._get_mean_as_tuple(self.data)
-
-    def get_mean_lastn(self, count):
-        l = len(self.data)
-        lastn = collections.deque(itertools.islice(self.data, max(0, l-count), l))
-        return self._get_mean_as_tuple(lastn)
-
-    def _get_mean_as_tuple(self, data):
-        mean = []
-        for i in range(len(self.data[0])):
-            mean.append(statistics.mean(value[i] for value in data))
-        return tuple(mean)
+    def get_timespan_on_tail(self, steps):
+        return self.time[-1] - self.time[max(0, len(self.data)-steps)]
 
 def run_timed_training_pass(trainer, batch):
     input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels = batch
 
     t0 = time.perf_counter()
     loss = trainer.train_step(input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels)
-    if args.debug:
-        block_cpu = loss.item()
     t1 = time.perf_counter()
 
     return loss, t1-t0
@@ -367,45 +365,35 @@ def run_timed_training_pass(trainer, batch):
 def print_statistics_header():
     if not args.debug:
         logging.info('{:^4} {:^4} {:^2} {:^10} {:^10} {:8^}'.format(
-            'Step',
-            'Pass',
-            'Rank',
-            'Loss', 
-            'Step(s)', 
-            'Seq/sec'))
-    else:
-        logging.debug('Warning: Debug mode blocks CPU until session completes.')
+            'Step', 'Pass', 'Rank', 'Loss', 'Step(s)', 'Seq/sec'))
 
 def print_statistics_line(weight_step, execution_step, results):
-    if execution_step == get_first_execution_step() and (
-        distributed.is_world_leader() or distributed.have_separate_log()):
-        print_statistics_header()
-
+    loss, session_dt, script_dt = results.last_datum()
     if not args.debug:
-        stable_loss, _, stable_script_dt = results.get_mean_lastn(get_num_passes_to_smooth())
+        smooth_n = get_num_passes_to_smooth()
+        smooth_dt = results.get_timespan_on_tail(smooth_n)
         batch_size = args.gpu_feed_batch_size
         logging.info('{:^4} {:^4} {:2d} {:10.6f} {:10.6f} {:8.2f}'.format(
             weight_step,
             execution_step,
             distributed.world_rank(),
-            stable_loss, 
-            stable_script_dt, 
-            batch_size/stable_script_dt))
+            loss, 
+            smooth_dt/smooth_n, 
+            batch_size*smooth_n/smooth_dt))
     else:
-        loss, session_dt, script_dt = results.last_datum()
         logging.debug('step {} pass {} session-time {:.6f} script-time {:.6f} loss {:.6f}'.format(
             weight_step, execution_step, session_dt, script_dt-session_dt, loss))
 
-def get_first_execution_step():
-    first_execution_step = 1
-    if resume_from_checkpoint():
-        first_execution_step += \
-            (args.resume_from_step-1) * \
-            args.gradient_accumulation_passes
-    return first_execution_step
+def print_internals_line_if_debugging(trainer):
+    if args.debug:
+        logging.debug('internal step {} learning rate {:.6f} loss scalar {} gradients finite {}'.format(
+            trainer._train_step_info.optimization_step,
+            trainer.options.lr_scheduler._last_lr[0],
+            trainer.options.mixed_precision.loss_scaler.loss_scale,
+            trainer._train_step_info.all_finite.item()))
 
 def get_num_passes_to_smooth():
-    return max(args.num_passes_to_smooth_output, args.gradient_accumulation_passes)
+    return max(args.num_passes_to_smooth_throughput, args.gradient_accumulation_passes)
 
 def save_checkpoint(weight_step, trainer):
     logging.info('{}'.format(' <-- checkpoint'))
@@ -422,7 +410,7 @@ def print_footer(results):
     if distributed.is_world_leader():
         final_loss, _, _ = results.last_datum()
         logging.info('Final Loss: {:8.6f}'.format(final_loss))    
-        logging.info('Running Time: {:.2f}'.format(results.get_runtime()))
+        logging.info('Running Time: {:.2f}'.format(results.get_training_time()))
 
         logging.info(datetime.datetime.now().strftime('%m/%d/%Y %I:%M:%S %p'))
 

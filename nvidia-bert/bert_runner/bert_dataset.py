@@ -14,11 +14,13 @@ from .arguments import args
 
 class BertMultiFileDataset(torch.utils.data.IterableDataset):
 
-    def __init__(self, files, loop=False):        
+    def __init__(self, files, shuffle=False, loop=False):        
         super().__init__()
         self.files = files
         self.loop = loop
-        random.shuffle(self.files)
+        self.shuffle = shuffle
+        if self.shuffle:
+            random.shuffle(self.files)
 
         self.file_index = 0
         self.sample_index = 0
@@ -65,7 +67,7 @@ class BertMultiFileDataset(torch.utils.data.IterableDataset):
             self.pool = concurrent.futures.ThreadPoolExecutor(1)            
 
     def _fetch_future_dataset_or_none(self, index):
-        dataset_factory = lambda filepath: BertSingleFileDataset(filepath)
+        dataset_factory = lambda filepath: BertSingleFileDataset(filepath, self.shuffle)
         if self.loop or index < len(self.files):
             next_file = self.files[index % len(self.files)]
             self.future_dataset = self.pool.submit(dataset_factory, next_file)
@@ -87,7 +89,7 @@ class BertMultiFileDataset(torch.utils.data.IterableDataset):
 
 class BertSingleFileDataset(torch.utils.data.Dataset):
 
-    def __init__(self, hdf5_filepath):
+    def __init__(self, hdf5_filepath, shuffle=False):
         super().__init__()
 
         # refer bert_model.py for description of input meanings
@@ -107,6 +109,13 @@ class BertSingleFileDataset(torch.utils.data.Dataset):
             for name in self.input_names:
                 self.bulk_data[name] = numpy.asarray(hdf5_data[name][:])
 
+        # shuffle the samples
+        if shuffle:
+            indices = numpy.arange(len(self.bulk_data['input_ids']))
+            numpy.random.shuffle(indices)
+            for name in self.input_names:
+                self.bulk_data[name] = self.bulk_data[name][indices]
+            
         logging.debug('Loaded {} samples from {}'.format(
             len(self.bulk_data['input_ids']), hdf5_filepath))
 
@@ -114,17 +123,20 @@ class BertSingleFileDataset(torch.utils.data.Dataset):
         return len(self.bulk_data['input_ids'])
 
     def __getitem__(self, index):
-        [input_ids, input_mask, segment_ids, masked_lm_positions, masked_lm_ids, next_sentence_labels] = [
-            torch.from_numpy(
-                numpy.asarray(
-                    self.bulk_data[name][index], dtype=numpy.int64)
-                ) for name in self.input_names]
+        sample = {}
+        for name in self.input_names:
+            sample[name] = torch.from_numpy(numpy.asarray(self.bulk_data[name][index], dtype=numpy.int64))
+        masked_lm_labels = self._build_masked_lm_labels(sample['masked_lm_positions'], sample['masked_lm_ids'])
 
-        masked_lm_labels = self._build_masked_lm_labels(masked_lm_positions, masked_lm_ids)
-        return [input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels]
+        return [
+            sample['input_ids'],
+            sample['segment_ids'], 
+            sample['input_mask'], 
+            masked_lm_labels, 
+            sample['next_sentence_labels']
+        ]
 
     # construct masked_lm_labels from masked_lm_positions and masked_lm_ids
-    #   correct label at ith position if ith input token is [MASK] (and -1 otherwise)
     def _build_masked_lm_labels(self, masked_lm_positions, masked_lm_ids):
         masked_token_count = self._get_masked_token_count(masked_lm_positions)
 
