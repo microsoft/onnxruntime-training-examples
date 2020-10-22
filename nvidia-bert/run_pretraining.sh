@@ -17,7 +17,7 @@ set -e
 # limitations under the License.
 
 # computation
-num_gpus=${1:-2}
+num_gpus=${1:-1}
 gpu_feed_batch_size=${2:-48}
 gradient_accumulation_passes=${3:-8} 
 precision=${4:-"fp16"}
@@ -27,20 +27,20 @@ learning_rate="6e-3"
 warmup_proportion="0.2843"
 
 # administrative
-path_to_phase1_training_data=<path-to-phase1-hdf5-training-files>
-path_to_phase2_training_data=<path-to-phase2-hdf5-training-files>
+path_to_phase1_training_data=<path-to-phase1-hdf5-training-data>
+path_to_phase2_training_data=<path-to-phase2-hdf5-training-data>
 phase="phase1"
-training_steps=${5:-7038}
+training_steps=${5:-50}
 seed=${7:-$RANDOM}
 results_dir=./results
 create_logfile="true"
 debug_output="false"
 init_checkpoint="None"
-skip_checkpointing="true"
+skip_checkpointing="false"
 save_checkpoint_interval=${6:-200}
 resume_from_step=0
 logging_step_interval=1
-smooth_throughput_passes=32
+smooth_throughput_passes=16
 bert_config=bert_config.json
 
 # basic validation
@@ -113,7 +113,7 @@ cmd+=" --warmup_proportion=$warmup_proportion"
 cmd+=" --num_steps_per_checkpoint=$save_checkpoint_interval"
 cmd+=" --learning_rate=$learning_rate"
 cmd+=" --seed=$seed"
-cmd+=" --num_passes_to_smooth_throughput=$smooth_throughput_passes"
+cmd+=" --num_passes_to_smooth_output=$smooth_throughput_passes"
 cmd+=" --num_steps_per_log_entry=$logging_step_interval"
 cmd+=" $precision_flag"
 cmd+=" $accumulate_gradients_flag"

@@ -21,7 +21,9 @@ from __future__ import print_function
 
 import collections
 import datetime
+import itertools
 import logging
+import operator
 import os
 import sys
 import time
@@ -80,15 +82,15 @@ def validate_termination_condition():
         raise ValueError('Only one of max_steps or max_epochs may be specified.')
 
 def initialize_environment():
-    reset_cpu_affinity()
     initialize_logger()
     initialize_seeds()
     if distributed.is_world_leader():
         initialize_dirs()
+    if distributed.is_azureml_compute():
+        initialize_azureml()
 
-def reset_cpu_affinity():
-    # os.system("taskset -p 0xff %d" % os.getpid())
-    pass
+def print_cpu_affinity():
+    os.system("taskset -p %d" % os.getpid())
 
 def initialize_logger():
     if not args.debug:
@@ -101,7 +103,7 @@ def initialize_logger():
         logging.basicConfig(format=fmt, datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
 def initialize_seeds():
-    # warning: set torch seed to generate same initial weights across ranks
+    # warning: set torch seed to generate same initial model weights across ranks!
     random.seed(args.seed)
     numpy.random.seed(args.seed)
     torch.manual_seed(args.seed)
@@ -114,6 +116,12 @@ def initialize_dirs():
     if is_checkpointing():
         if not os.path.exists(checkpoint_dir()):
             os.makedirs(checkpoint_dir())
+
+azureml_context = None
+def initialize_azureml():
+    from azureml.core.run import Run
+    global azureml_context
+    azureml_context = Run.get_context()
 
 def is_checkpointing():
     return not args.skip_checkpointing
@@ -271,7 +279,7 @@ def restore_from_checkpoint(step, dataset, trainer):
 
 def training_loop(step, dataset, trainer):
     t0 = t1 = time.perf_counter()
-    results = Results()
+    results = Results(max_tail_length=get_num_passes_to_smooth())
 
     accumulate_steps = args.gradient_accumulation_passes
     checkpoint_steps = args.num_steps_per_checkpoint
@@ -301,15 +309,14 @@ def training_loop(step, dataset, trainer):
 
         increment_weight_step = execution_step % accumulate_steps == 0
         if weight_step % args.num_steps_per_log_entry == 0:
-            if increment_weight_step: 
-                print_statistics_line(weight_step, execution_step, results)
-                print_internals_line_if_debugging(trainer)                
+            if increment_weight_step:
+                record_stepinfo(trainer, weight_step, execution_step, results)           
 
         if increment_weight_step:
             if (distributed.is_world_leader() and
                 is_checkpointing() and
                 weight_step % checkpoint_steps == 0):
-                save_checkpoint(weight_step, trainer)
+                roll_checkpoints(weight_step, trainer)
             weight_step += 1
         execution_step += 1
 
@@ -335,23 +342,38 @@ def build_training_dataloader(training_dataset):
         drop_last = True)
 
 class Results():
-    def __init__(self, max_retained = None):
+    def __init__(self, max_history = None, max_tail_length = 16):
+        self.time = collections.deque(maxlen=max_history)
+        self.data = collections.deque(maxlen=max_history)
         self.start_time = time.perf_counter()
-        self.data = collections.deque(maxlen=max_retained)
-        self.time = collections.deque(maxlen=max_retained)
+
+        self.max_tail_length = max_tail_length
+        self.tail_sum = None
+        self.tail = collections.deque(maxlen=max_tail_length)
 
     def add_datum(self, *args):
-        self.time.append(time.perf_counter())        
+        self.time.append(time.perf_counter())
         self.data.append(args)
 
+        if len(self.tail) >= self.max_tail_length:
+            self.tail_sum = list(map(operator.sub, self.tail_sum, self.tail.popleft()))
+        self.tail_sum = list(map(operator.add, self.tail_sum, args)) if len(self.tail) > 0 else args
+        self.tail.append(args)
+        
     def last_datum(self):
         return self.data[-1]
 
     def get_training_time(self):
         return self.time[-1] - self.start_time
 
-    def get_timespan_on_tail(self, steps):
-        return self.time[-1] - self.time[max(0, len(self.data)-steps)]
+    def get_tail_length(self):
+        return len(self.tail)
+
+    def get_tail_timespan(self):
+        return self.time[-1] - self.time[max(0, len(self.time)-1-self.max_tail_length)]
+
+    def get_tail_mean(self):
+        return tuple([x/len(self.tail) for x in self.tail_sum])
 
 def run_timed_training_pass(trainer, batch):
     input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels = batch
@@ -367,11 +389,20 @@ def print_statistics_header():
         logging.info('{:^4} {:^4} {:^2} {:^10} {:^10} {:8^}'.format(
             'Step', 'Pass', 'Rank', 'Loss', 'Step(s)', 'Seq/sec'))
 
-def print_statistics_line(weight_step, execution_step, results):
-    loss, session_dt, script_dt = results.last_datum()
+def record_stepinfo(trainer, weight_step, execution_step, results):
+    record_statistics(weight_step, execution_step, results)
+    if args.debug:
+        print_internal_info(trainer)
+
+def record_statistics(weight_step, execution_step, results):
+    smooth_n, smooth_dt = results.get_tail_length(), results.get_tail_timespan()
+    loss, session_dt, script_dt = results.get_tail_mean()
+    print_statistics_line(weight_step, execution_step, smooth_n, smooth_dt, loss, script_dt, session_dt)
+    if distributed.is_world_leader() and distributed.is_azureml_compute():
+        record_azureml_metrics(weight_step, execution_step, smooth_n, smooth_dt, loss)
+
+def print_statistics_line(weight_step, execution_step, smooth_n, smooth_dt, loss, script_dt, session_dt):
     if not args.debug:
-        smooth_n = get_num_passes_to_smooth()
-        smooth_dt = results.get_timespan_on_tail(smooth_n)
         batch_size = args.gpu_feed_batch_size
         logging.info('{:^4} {:^4} {:2d} {:10.6f} {:10.6f} {:8.2f}'.format(
             weight_step,
@@ -384,22 +415,39 @@ def print_statistics_line(weight_step, execution_step, results):
         logging.debug('step {} pass {} session-time {:.6f} script-time {:.6f} loss {:.6f}'.format(
             weight_step, execution_step, session_dt, script_dt-session_dt, loss))
 
-def print_internals_line_if_debugging(trainer):
-    if args.debug:
-        logging.debug('internal step {} learning rate {:.6f} loss scalar {} gradients finite {}'.format(
-            trainer._train_step_info.optimization_step,
-            trainer.options.lr_scheduler._last_lr[0],
-            trainer.options.mixed_precision.loss_scaler.loss_scale,
-            trainer._train_step_info.all_finite.item()))
+def record_azureml_metrics(weight_step, execution_step, smooth_n, smooth_dt, loss):
+    batch_size = args.gpu_feed_batch_size    
+    azureml_context.log("step-time", numpy.float(smooth_dt/smooth_n))
+    azureml_context.log("total-loss", numpy.float(loss))
+    azureml_context.log("throughput", numpy.float(batch_size*smooth_n/smooth_dt))
+    
+def print_internal_info(trainer):
+    logging.debug('internal step {} learning rate {:.6f} loss scalar {} gradients finite {}'.format(
+        trainer._train_step_info.optimization_step,
+        trainer.options.lr_scheduler._last_lr[0],
+        trainer.options.mixed_precision.loss_scaler.loss_scale,
+        trainer._train_step_info.all_finite.item()))
 
 def get_num_passes_to_smooth():
-    return max(args.num_passes_to_smooth_throughput, args.gradient_accumulation_passes)
+    return max(args.num_passes_to_smooth_output, args.gradient_accumulation_passes)
 
-def save_checkpoint(weight_step, trainer):
-    logging.info('{}'.format(' <-- checkpoint'))
+def roll_checkpoints(weight_step, trainer):
     checkpoint_path = os.path.join(checkpoint_dir(), 'ckpt_{}.pt'.format(weight_step))
+    save_checkpoint(checkpoint_path, trainer)
+    roll_checkpoints.existing_checkpoints.append(checkpoint_path)
+    if len(roll_checkpoints.existing_checkpoints) > args.max_checkpoints_to_retain:
+        delete_checkpoint(roll_checkpoints.existing_checkpoints.pop(0))
+    
+roll_checkpoints.existing_checkpoints = []
+
+def save_checkpoint(checkpoint_path, trainer):
+    logging.info('Saving {}'.format(checkpoint_path))
     state = {'model': onnxruntime.training.checkpoint.experimental_state_dict(trainer)}
     torch.save(state, checkpoint_path)
+
+def delete_checkpoint(checkpoint_path):
+    if os.path.exists(checkpoint_path):
+        os.remove(checkpoint_path)
 
 def save_onnx_model(trainer):
     model_path = os.path.join(args.output_dir, 'trained_bert.onnx')

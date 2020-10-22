@@ -134,11 +134,11 @@ def parse_arguments():
         help="Path for any logs, checkpoints, and final onnx model")
 
     parser.add_argument(
-        '--num_passes_to_smooth_throughput',
+        '--num_passes_to_smooth_output',
         type=positive_int,
         default=32,
         help="""
-            Number of passes to smooth throughput.
+            Number of passes to smooth loss, step-time, and throughput.
             (It will round up to number of gradient accumulation passes.)
             """)
     
@@ -165,7 +165,7 @@ def parse_arguments():
         "--skip_checkpointing",
         default=False,
         action='store_true',
-        help="Whether to skip checkpointing.")    
+        help="Whether to skip checkpointing.")
 
     parser.add_argument(
         '--resume_from_step',
@@ -178,6 +178,12 @@ def parse_arguments():
         type=int,
         default=100,
         help="Number of update steps until a model checkpoint is saved to disk.")
+
+    parser.add_argument(
+        '--max_checkpoints_to_retain',
+        type=int,
+        default=3,
+        help="Maximum number of model checkpoints to retain on disk.")
 
     # mixed precision specific
     parser.add_argument(

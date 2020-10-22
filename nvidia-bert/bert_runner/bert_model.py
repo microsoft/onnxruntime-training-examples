@@ -885,16 +885,7 @@ class BertForPreTraining(BertPreTrainedModel):
             next_sentence_loss = loss_fct(seq_relationship_score.view(-1, 2), next_sentence_labels.view(-1))
             total_loss = masked_lm_loss + next_sentence_loss
 
-            # todo: Diagnose why it causes large drop in throughput.
-            # if not self.dense_seq:
-            #     prediction_scores_flat = prediction_scores.view(-1, prediction_scores.shape[-1])
-            #     mlm_predictions_scores = prediction_scores_flat[masked_lm_labels_flat != -1]
-            #     mlm_predictions = mlm_predictions_scores.argmax(dim=-1)
-            # else:
-            #     mlm_predictions = prediction_scores.argmax(dim=-1)
-            # mlm_acc = (mlm_predictions == mlm_labels).sum().to(torch.float32)/mlm_labels.numel()
-
-            return total_loss #, mlm_acc
+            return total_loss
         else: 
             #TODO: Handle this path for dense sequence output as well
             return prediction_scores, seq_relationship_score
