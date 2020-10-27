@@ -109,6 +109,10 @@ class OrtTrainer(Trainer):
         logger.info("****num of layer is: {}".format(n_layer))
         logger.info("****seq length is: {}".format(n_ctx))
 
+        # We are using hard-coded values for batch size and sequence length in order to trigger 
+        # memory planning in ORT, which would reduce the memory footprint during training.
+        # Alternatively, one can set these as symbolic dims 'batch_size' and 'n_ctx' to be able
+        # to use dynamic input sizes.
         model_desc = {'inputs': [('input_ids', [batch_size, n_ctx]),
                                  ('labels', [batch_size, n_ctx])],
                       'outputs': [('loss', [], True)]}
@@ -272,7 +276,7 @@ class OrtTrainer(Trainer):
                             logs["loss"] = loss_avg.item()
                             logs["global_step"] = global_step
                             logs["global_step_time"] = global_batch_train_duration
-                            logging_loss = tr_loss
+                            logging_loss = tr_loss.clone()
 
                             if self.tb_writer:
                                 for k, v in logs.items():
@@ -347,14 +351,20 @@ class OrtTrainer(Trainer):
         onnx_model_path = os.path.join(self.args.output_dir, "final_model.onnx")
         output_names = [o_desc.name for o_desc in self.ort_model.model_desc.outputs]
 
-        # Ensure the eval batch size is same as finetuned onnx model's batch size
+        # The eval batch size should be the same as finetuned onnx model's batch size
+        # as the graph exported for training is being used for inference
+        # Alternatively, we can export the onnx graph again to use a symbolic batch size
         assert self.args.per_gpu_eval_batch_size == self.args.per_gpu_train_batch_size
+        
+        # save the onnx graph 
         self.ort_model.save_as_onnx(onnx_model_path)
-        self.infer_sess = onnxruntime.InferenceSession(onnx_model_path)
-
+        
         # delete the training model to free up GPU memory
         del(self.ort_model)
         self.ort_model = None
+
+        # create the inference session
+        self.infer_sess = onnxruntime.InferenceSession(onnx_model_path)
 
         # load the eval dataset
         eval_dataloader = self.get_eval_dataloader(eval_dataset)
@@ -384,7 +394,6 @@ class OrtTrainer(Trainer):
         if len(eval_losses) > 0:
             metrics["loss"] = np.mean(eval_losses)
 
-        print(metrics)
         return metrics
     
     def evaluate(
