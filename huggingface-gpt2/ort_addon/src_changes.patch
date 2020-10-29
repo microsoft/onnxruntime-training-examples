@@ -1,5 +1,5 @@
 diff --git a/examples/run_language_modeling.py b/examples/run_language_modeling.py
-index 660a652..faac772 100644
+index 660a652..31f59b8 100644
 --- a/examples/run_language_modeling.py
 +++ b/examples/run_language_modeling.py
 @@ -19,7 +19,6 @@ GPT and GPT-2 are fine-tuned using a causal language modeling (CLM) loss while B
@@ -48,9 +48,12 @@ index 660a652..faac772 100644
          model=model,
          args=training_args,
          data_collator=data_collator,
-@@ -262,8 +268,14 @@ def main():
+@@ -260,10 +266,16 @@ def main():
+ 
+     # Evaluation
      results = {}
-     if training_args.do_eval and training_args.local_rank in [-1, 0]:
+-    if training_args.do_eval and training_args.local_rank in [-1, 0]:
++    if training_args.do_eval and training_args.world_rank in [-1, 0]:
          logger.info("*** Evaluate ***")
 -
 -        eval_output = trainer.evaluate()
