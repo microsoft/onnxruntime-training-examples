@@ -38,6 +38,7 @@ import math
 import multiprocessing
 import modeling
 from onnxruntime.training.checkpoint import experimental_state_dict, experimental_load_state_dict
+from azureml.core.run import Run
 
 from utils import format_step
 
@@ -387,7 +388,12 @@ def main():
     # Prepare optimizer
     model, checkpoint, global_step = prepare_model(args, device)
 
+    run = Run.get_context()
+
     if is_main_process(args):
+        from torch.utils.tensorboard import SummaryWriter
+        writer = SummaryWriter(args.output_dir + '/loss')
+        
         dllogger.log(step="PARAMETER", data={"SEED": args.seed})
 
     raw_train_start = time.time()
@@ -499,10 +505,17 @@ def main():
                         prev_step_time = time.time()
                         sys.stdout.flush()
 
+                        print_loss = average_loss / (args.log_freq * divisor)
+                        run.log("throughput", np.float(throughput))
+                        run.log("average_loss", np.float(print_loss))
+
                         if is_main_process(args):
-                            data = {"average_loss": average_loss / (args.log_freq * divisor),
+
+                            data = {"average_loss": print_loss,
                                     "step_loss": loss.item() * args.gradient_accumulation_steps / divisor}
                             dllogger.log(step=(epoch, global_step, ), data=data)
+                            writer.add_scalar("loss", print_loss, global_step)
+                            writer.flush()
                         average_loss = 0
 
                     if global_step >= args.max_steps or training_steps % (
