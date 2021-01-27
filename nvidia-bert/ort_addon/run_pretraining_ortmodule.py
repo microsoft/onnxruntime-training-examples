@@ -366,9 +366,9 @@ def prepare_model_and_optimizer(args, device):
         optimizer = FusedLAMB(optimizer_grouped_parameters, 
                             lr=args.learning_rate)
     else:
-        # Using SGD for ORTModule as a simplification
-        optimizer = torch.optim.SGD(optimizer_grouped_parameters, 
-                                    lr=args.learning_rate)
+        # Using Adam for ORTModule as a simplification
+        optimizer = torch.optim.Adam(optimizer_grouped_parameters,
+                                     lr=args.learning_rate)
     lr_scheduler = PolyWarmUpScheduler(optimizer, 
                                        warmup=args.warmup_proportion, 
                                        total_steps=args.max_steps)
