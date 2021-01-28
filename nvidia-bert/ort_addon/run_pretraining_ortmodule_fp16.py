@@ -53,6 +53,9 @@ torch._C._jit_set_profiling_executor(False)
 # Let's the game get started
 from onnxruntime.training import ORTModule
 
+# Import autocasting libs
+from torch.cuda import amp
+
 skipped_steps = 0
 
 def my_master_params(optimizer):
@@ -269,7 +272,7 @@ def setup_training(args):
 
     if args.local_rank == -1:
         device = torch.device("cuda")
-        args.n_gpu = torch.cuda.device_count()
+        args.n_gpu = 1#torch.cuda.device_count()
     else:
         torch.cuda.set_device(args.local_rank)
         device = torch.device("cuda", args.local_rank)
@@ -362,23 +365,18 @@ def prepare_model_and_optimizer(args, device):
         {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
         {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}]
 
-    if args.fp16:
-        optimizer = FusedLAMB(optimizer_grouped_parameters, 
-                            lr=args.learning_rate)
-    else:
-        # Using Adam for ORTModule as a simplification
-        optimizer = torch.optim.Adam(optimizer_grouped_parameters,
-                                     lr=args.learning_rate)
+    # Using Adam for ORTModule as a simplification
+    optimizer = torch.optim.Adam(optimizer_grouped_parameters, 
+                                 lr=args.learning_rate)
     lr_scheduler = PolyWarmUpScheduler(optimizer, 
                                        warmup=args.warmup_proportion, 
                                        total_steps=args.max_steps)
-    if args.fp16:
-    
-        if args.loss_scale == 0:
-            model, optimizer = amp.initialize(model, optimizer, opt_level="O2", loss_scale="dynamic", cast_model_outputs=torch.float16)
-        else:
-            model, optimizer = amp.initialize(model, optimizer, opt_level="O2", loss_scale=args.loss_scale, cast_model_outputs=torch.float16)
-        amp._amp_state.loss_scalers[0]._loss_scale = 2**20
+    # if args.fp16:
+    #     if args.loss_scale == 0:
+    #         model, optimizer = amp.initialize(model, optimizer, opt_level="O2", loss_scale="dynamic", cast_model_outputs=torch.float16)
+    #     else:
+    #         model, optimizer = amp.initialize(model, optimizer, opt_level="O2", loss_scale=args.loss_scale, cast_model_outputs=torch.float16)
+    #     amp._amp_state.loss_scalers[0]._loss_scale = 2**20
 
 
     if args.resume_from_checkpoint:
@@ -414,7 +412,7 @@ def prepare_model_and_optimizer(args, device):
 
     return model, optimizer, lr_scheduler, checkpoint, global_step, criterion
 
-def take_optimizer_step(args, optimizer, model, overflow_buf, global_step):
+def take_optimizer_step(args, scaler_amp, optimizer, model, overflow_buf, global_step):
     
     global skipped_steps
     if args.allreduce_post_accumulation:
@@ -466,8 +464,9 @@ def take_optimizer_step(args, optimizer, model, overflow_buf, global_step):
         for param in model.parameters():
             param.grad = None
     else:
-        optimizer.step()
-        #optimizer.zero_grad()
+        scaler_amp.step(optimizer)
+        scaler_amp.update()
+        optimizer.zero_grad()
     for param in model.parameters():
         param.grad = None
     global_step += 1
@@ -479,14 +478,14 @@ def main():
     args = parse_arguments()
 
     # Moved this import here because ORTModule doesnt support apex fp16 nor apex dist training yet
-    if args.fp16 or args.local_rank != -1:
+    '''if args.fp16 or args.local_rank != -1:
         from apex import amp
         from apex.optimizers import FusedLAMB
         from apex.parallel import DistributedDataParallel as DDP
         from apex.parallel.distributed import flat_dist_call
         import amp_C
         import apex_C
-        from apex.amp import _amp_state
+        from apex.amp import _amp_state'''
 
     if args.use_env and 'LOCAL_RANK' in os.environ:
         args.local_rank = int(os.environ['LOCAL_RANK'])
@@ -518,6 +517,9 @@ def main():
         average_loss = 0.0  # averaged loss every args.log_freq steps
         epoch = 0
         training_steps = 0
+
+        # Create gradscaler
+        scaler_amp = amp.GradScaler()
 
         pool = ProcessPoolExecutor(1)
 
@@ -585,40 +587,45 @@ def main():
                     input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels = batch
                     # ORTModule doest support input as dictionary just yet
 
-                    print("Memory allocated/reserved before forward: {:.0f}MB / {:.0f}MB".format(
-                          torch.cuda.memory_allocated() / 1024 / 1024, torch.cuda.memory_reserved() / 1024 / 1024))
-                    prediction_scores, seq_relationship_score = model(input_ids, segment_ids, input_mask)
-                    print("Memory allocated/reserved after forward: {:.0f}MB / {:.0f}MB".format(
-                        torch.cuda.memory_allocated() / 1024 / 1024, torch.cuda.memory_reserved() / 1024 / 1024))
+                    with amp.autocast():
+                        print("Memory allocated/reserved before foward: {:.0f}MB / {:.0f}MB".format(
+                              torch.cuda.memory_allocated() / 1024 / 1024, torch.cuda.memory_reserved() / 1024 / 1024))
 
-                    loss = criterion(prediction_scores, seq_relationship_score, masked_lm_labels, next_sentence_labels)
-                    if args.n_gpu > 1:
-                        loss = loss.mean()  # mean() to average on multi-gpu.
+                        prediction_scores, seq_relationship_score = model(input_ids, segment_ids, input_mask)
 
-                    divisor = args.gradient_accumulation_steps
-                    if args.gradient_accumulation_steps > 1:
-                        if not args.allreduce_post_accumulation:
-                            # this division was merged into predivision
-                            loss = loss / args.gradient_accumulation_steps
-                            divisor = 1.0
+                        print("Memory allocated/reserved after foward: {:.0f}MB / {:.0f}MB".format(
+                              torch.cuda.memory_allocated() / 1024 / 1024, torch.cuda.memory_reserved() / 1024 / 1024))
+
+
+                        loss = criterion(prediction_scores, seq_relationship_score, masked_lm_labels, next_sentence_labels)
+                        
+                        if args.n_gpu > 1:
+                            loss = loss.mean()  # mean() to average on multi-gpu.
+
+                        divisor = args.gradient_accumulation_steps
+                        if args.gradient_accumulation_steps > 1:
+                            if not args.allreduce_post_accumulation:
+                                # this division was merged into predivision
+                                loss = loss / args.gradient_accumulation_steps
+                                divisor = 1.0
+                    # if args.fp16:
+                    #     with amp.scale_loss(loss, optimizer, delay_overflow_check=args.allreduce_post_accumulation) as scaled_loss:
+                    #         scaled_loss.backward()
+                    # else:
 
                     print("Memory allocated/reserved before backward: {:.0f}MB / {:.0f}MB".format(
                           torch.cuda.memory_allocated() / 1024 / 1024, torch.cuda.memory_reserved() / 1024 / 1024))
 
-                    if args.fp16:
-                        with amp.scale_loss(loss, optimizer, delay_overflow_check=args.allreduce_post_accumulation) as scaled_loss:
-                            scaled_loss.backward()
-                    else:
-                        loss.backward()
+                    scaler_amp.scale(loss).backward()
 
                     print("Memory allocated/reserved after backward: {:.0f}MB / {:.0f}MB".format(
                           torch.cuda.memory_allocated() / 1024 / 1024, torch.cuda.memory_reserved() / 1024 / 1024))
-
+                       
                     average_loss += loss.item()
 
                     if training_steps % args.gradient_accumulation_steps == 0:
                         lr_scheduler.step()  # learning rate warmup
-                        global_step = take_optimizer_step(args, optimizer, model, overflow_buf, global_step)
+                        global_step = take_optimizer_step(args, scaler_amp, optimizer, model, overflow_buf, global_step)
 
                     if global_step >= args.max_steps:
                         train_time_raw = time.time() - raw_train_start
