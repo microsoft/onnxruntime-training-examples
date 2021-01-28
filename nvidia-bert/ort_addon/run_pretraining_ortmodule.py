@@ -109,6 +109,7 @@ class pretraining_dataset(Dataset):
 
         return [input_ids, segment_ids, input_mask,
                 masked_lm_labels, next_sentence_labels]
+
 class BertPretrainingCriterion(torch.nn.Module):
     def __init__(self, vocab_size, batch_size, seq_length):
         super(BertPretrainingCriterion, self).__init__()
@@ -122,6 +123,15 @@ class BertPretrainingCriterion(torch.nn.Module):
         total_loss = masked_lm_loss + next_sentence_loss
         return total_loss
 
+class BertForMaskedLMWithCriterion(modeling.BertForPreTraining):
+    def __init__(self, config, args):
+        super(BertForMaskedLMWithCriterion, self).__init__(config)
+        self.criterion = BertPretrainingCriterion(config.vocab_size, args.train_batch_size, args.max_seq_length)
+
+    def forward(self, input_ids, token_type_ids, attention_mask, masked_lm_labels, next_sentence_labels):
+        prediction_scores, seq_relationship_score = super(BertForMaskedLMWithCriterion, self).forward(input_ids, token_type_ids, attention_mask)
+        loss = self.criterion(prediction_scores, seq_relationship_score, masked_lm_labels, next_sentence_labels)
+        return loss
 
 def parse_arguments():
 
@@ -322,7 +332,7 @@ def prepare_model_and_optimizer(args, device):
     # TODO: Breaks ORTModule. Why?
     # modeling.ACT2FN["bias_gelu"] = torch.jit.script(modeling.ACT2FN["bias_gelu"])
 
-    model = modeling.BertForPreTraining(config)
+    model = BertForMaskedLMWithCriterion(config, args)
 
     # Changes to original module must be done before wrapping it with ORTModule
     if not args.fp16:
@@ -410,9 +420,7 @@ def prepare_model_and_optimizer(args, device):
     elif args.n_gpu > 1:
         model = torch.nn.DataParallel(model)
 
-    criterion = BertPretrainingCriterion(config.vocab_size, args.train_batch_size, args.max_seq_length)
-
-    return model, optimizer, lr_scheduler, checkpoint, global_step, criterion
+    return model, optimizer, lr_scheduler, checkpoint, global_step
 
 def take_optimizer_step(args, optimizer, model, overflow_buf, global_step):
     
@@ -501,7 +509,7 @@ def main():
     dllogger.log(step="PARAMETER", data={"Config": [str(args)]})
 
     # Prepare optimizer
-    model, optimizer, lr_scheduler, checkpoint, global_step, criterion = prepare_model_and_optimizer(args, device)
+    model, optimizer, lr_scheduler, checkpoint, global_step = prepare_model_and_optimizer(args, device)
 
     if is_main_process():
         dllogger.log(step="PARAMETER", data={"SEED": args.seed})
@@ -583,15 +591,16 @@ def main():
                     training_steps += 1
                     batch = [t.to(device) for t in batch]
                     input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels = batch
+                    
                     # ORTModule doest support input as dictionary just yet
-
                     print("Memory allocated/reserved before forward: {:.0f}MB / {:.0f}MB".format(
                           torch.cuda.memory_allocated() / 1024 / 1024, torch.cuda.memory_reserved() / 1024 / 1024))
-                    prediction_scores, seq_relationship_score = model(input_ids, segment_ids, input_mask)
+                    
+                    loss = model(input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels)
+                    
                     print("Memory allocated/reserved after forward: {:.0f}MB / {:.0f}MB".format(
                         torch.cuda.memory_allocated() / 1024 / 1024, torch.cuda.memory_reserved() / 1024 / 1024))
 
-                    loss = criterion(prediction_scores, seq_relationship_score, masked_lm_labels, next_sentence_labels)
                     if args.n_gpu > 1:
                         loss = loss.mean()  # mean() to average on multi-gpu.
 
