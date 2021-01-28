@@ -584,7 +584,10 @@ def main():
                     batch = [t.to(device) for t in batch]
                     input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels = batch
                     # ORTModule doest support input as dictionary just yet
+                    print('Memory allocated/reserved(MB) before forward:', int(torch.cuda.memory_allocated() / 1024 / 1024), int(torch.cuda.memory_reserved() / 1024 / 1024))
                     prediction_scores, seq_relationship_score = model(input_ids, segment_ids, input_mask)
+                    print('Memory allocated/reserved(MB) after forward:', int(torch.cuda.memory_allocated() / 1024 / 1024), int(torch.cuda.memory_reserved() / 1024 / 1024))
+
                     loss = criterion(prediction_scores, seq_relationship_score, masked_lm_labels, next_sentence_labels)
                     if args.n_gpu > 1:
                         loss = loss.mean()  # mean() to average on multi-gpu.
@@ -595,11 +598,15 @@ def main():
                             # this division was merged into predivision
                             loss = loss / args.gradient_accumulation_steps
                             divisor = 1.0
+
+                    print('Memory allocated/reserved(MB) before backward:', int(torch.cuda.memory_allocated() / 1024 / 1024), int(torch.cuda.memory_reserved() / 1024 / 1024))
                     if args.fp16:
                         with amp.scale_loss(loss, optimizer, delay_overflow_check=args.allreduce_post_accumulation) as scaled_loss:
                             scaled_loss.backward()
                     else:
                         loss.backward()
+                    print('Memory allocated/reserved(MB) after backward:', int(torch.cuda.memory_allocated() / 1024 / 1024), int(torch.cuda.memory_reserved() / 1024 / 1024))
+
                     average_loss += loss.item()
 
                     if training_steps % args.gradient_accumulation_steps == 0:
