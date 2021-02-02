@@ -511,6 +511,23 @@ def main():
     # Prepare optimizer
     model, optimizer, lr_scheduler, checkpoint, global_step = prepare_model_and_optimizer(args, device)
 
+    # allocate optimizer state
+    # Right now this allocates specifically for Adam
+    # TODO: Need to do this in a better/generic way, possibly by specifying an option to the torch optimizer
+    for group in optimizer.param_groups:
+        for p in group['params']:
+            state = optimizer.state[p]
+            # state initialization
+            if len(state) == 0:
+                state['step'] = 0
+                # Exponential moving average of gradient values
+                state['exp_avg'] = torch.zeros_like(p, memory_format=torch.preserve_format)
+                # Exponential moving average of squared gradient values
+                state['exp_avg_sq'] = torch.zeros_like(p, memory_format=torch.preserve_format)
+                if group['amsgrad']:
+                    # Maintains max of all exp. moving avg. of sq. grad. values
+                    state['max_exp_avg_sq'] = torch.zeros_like(p, memory_format=torch.preserve_format)
+
     if is_main_process():
         dllogger.log(step="PARAMETER", data={"SEED": args.seed})
 
