@@ -134,6 +134,13 @@ def parse_arguments():
         help="Path for any logs, checkpoints, and final onnx model")
 
     parser.add_argument(
+        "--tensorboard_dir",
+        default=None,
+        type=str,
+        required=False,
+        help="Path for tensorboard directory")
+
+    parser.add_argument(
         '--num_passes_to_smooth_output',
         type=positive_int,
         default=32,
@@ -149,9 +156,9 @@ def parse_arguments():
         help='')
 
     parser.add_argument(
-        '--debug',
-        default=False,
-        action='store_true',
+        '--debug_level',
+        type=int,
+        default=0,
         help='Enable detailed logging')
         
     # checkpoint specific

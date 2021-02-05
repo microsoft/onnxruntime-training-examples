@@ -17,7 +17,7 @@ set -e
 # limitations under the License.
 
 # computation
-num_gpus=${1:-1}
+num_gpus=${1:-4}
 gpu_feed_batch_size=${2:-48}
 gradient_accumulation_passes=${3:-8} 
 precision=${4:-"fp16"}
@@ -33,14 +33,15 @@ phase="phase1"
 training_steps=${5:-50}
 seed=${7:-$RANDOM}
 results_dir=./results
+tensorboard_dir=./results/tensorboard
 create_logfile="true"
-debug_output="false"
+debug_level=0
 init_checkpoint="None"
 skip_checkpointing="false"
 save_checkpoint_interval=${6:-200}
 resume_from_step=0
 logging_step_interval=1
-smooth_throughput_passes=16
+smooth_throughput_passes=4
 bert_config=bert_config.json
 
 # basic validation
@@ -81,8 +82,8 @@ if [ "$deepspeed_zero_stage" == "true" ] ; then
    deepspeed_zero_stage_flag="--deepspeed_zero_stage"
 fi
 debug_flag=""
-if [ "$debug_output" == "true" ] ; then
-   debug_flag="--debug"
+if (($debug_level > 0)) ; then
+   debug_flag="--debug_level $debug_level"
 fi
 resume_from_step_flag=""
 if (($resume_from_step > 0)) ; then
@@ -105,6 +106,7 @@ fi
 cmd=" -m bert_runner.run_pretraining"
 cmd+=" --data_dir=$path_to_training_data"
 cmd+=" --output_dir=$results_dir"
+cmd+=" --tensorboard_dir=$tensorboard_dir"
 cmd+=" --config_file=$bert_config"
 cmd+=" $sequence_description_flag"
 cmd+=" --gpu_feed_batch_size=$gpu_feed_batch_size"

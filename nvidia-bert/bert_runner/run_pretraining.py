@@ -50,7 +50,7 @@ def main():
 
     bert = build_pytorch_model()
     trainer = build_onnxruntime_trainer(bert)
-    dataset = build_training_dataset()
+    dataloader = build_training_dataloader()
     
     if initial_weights_provided():
         load_initial_weights(trainer)
@@ -58,13 +58,14 @@ def main():
     step = 1
     if resume_from_checkpoint():
         step = args.resume_from_step
-        restore_from_checkpoint(step, dataset, trainer)
+        restore_from_checkpoint(step, dataloader, trainer)
 
-    results = training_loop(step, dataset, trainer)
+    results = training_loop(step, dataloader, trainer)
 
     if distributed.is_world_leader():
         save_onnx_model(trainer)
     print_footer(results)
+    finalize_environment()
 
 def valid_inputs():
     validate_starting_condition()
@@ -88,19 +89,25 @@ def initialize_environment():
         initialize_dirs()
     if distributed.is_azureml_compute():
         initialize_azureml()
+    if has_tensorboard():
+        initialize_tensorboard()
+
+def has_tensorboard():
+    return not args.tensorboard_dir is None
 
 def print_cpu_affinity():
     os.system("taskset -p %d" % os.getpid())
 
 def initialize_logger():
-    if not args.debug:
+    if args.debug_level == 0:
         logging.basicConfig(format='%(message)s', level=logging.INFO)
     else:
+        logger_level = logging.DEBUG-(args.debug_level-1)
         fmt='['
         fmt+='%(asctime)s %(msecs)3d ms'
         fmt+=', Rank {}, Pid %(process)d'.format(distributed.world_rank())
         fmt+='] %(message)s'
-        logging.basicConfig(format=fmt, datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
+        logging.basicConfig(format=fmt, datefmt='%m/%d/%Y %I:%M:%S %p', level=logger_level)
 
 def initialize_seeds():
     # warning: set torch seed to generate same initial model weights across ranks!
@@ -123,6 +130,12 @@ def initialize_azureml():
     global azureml_context
     azureml_context = Run.get_context()
 
+tensorboard_writer = None
+def initialize_tensorboard():
+    from torch.utils.tensorboard import SummaryWriter
+    global tensorboard_writer
+    tensorboard_writer = SummaryWriter(args.tensorboard_dir)
+
 def is_checkpointing():
     return not args.skip_checkpointing
 
@@ -138,10 +151,16 @@ def print_header():
         logging.info('Gradient Accumulation Passes: {}'.format(args.gradient_accumulation_passes))
         logging.info('Global Batch Size: {}'.format(gbs))
         logging.info('Sequence Length: {}'.format(args.max_seq_length))
+        logging.info('Internal Precision: {}'.format('FP16' if args.fp16 else 'FP32'))
         logging.info('Max Steps: {}'.format(args.max_steps))
         logging.info('Seed: {}'.format(args.seed))
-        logging.info('Smoothing over {} passes'.format(get_num_passes_to_smooth()))
+        if distributed.is_azureml_compute():
+            logging.info('Will emit Azure Machine Learning metrics')
+        if has_tensorboard():
+            logging.info('Will emit Tensorboard metrics to {}'.format(args.tensorboard_dir))
         logging.info('Weights are updated in one \'step\' and model is backpropagated in one \'pass\'')
+        logging.info('Smoothing over {} passes'.format(get_num_passes_to_smooth()))
+        logging.info('The first pass requires Pytorch to ONNX conversion and backward graph build')
         if resume_from_checkpoint():
             logging.info('Resuming from step: {}'.format(args.resume_from_step))
     distributed.world_barrier()
@@ -172,6 +191,7 @@ def build_onnxruntime_trainer(model):
     optim_config = build_onnxruntime_optimizer_configuration(model)
     lr_scheduler = build_onnxruntime_learning_rate_schedule()
     trainer_config = build_onnxruntime_trainer_options(model_desc, lr_scheduler)
+
     return onnxruntime.training.ORTTrainer(
         model, model_desc, optim_config, loss_fn=None, options=trainer_config)
 
@@ -232,14 +252,14 @@ def build_onnxruntime_trainer_options(model_desc, lr_scheduler):
         'lr_scheduler': lr_scheduler,
         'mixed_precision': {
             'enabled': True if args.fp16 else False,
-        },
+        }
         # https://github.com/microsoft/onnxruntime/pull/5354/files
         # '_internal_use': {
         #     'enable_gelu_approximation': True
         # }
     })
     
-def build_training_dataset():
+def build_training_dataloader():
     data_dir = args.data_dir
     training_datafiles = [
         os.path.join(data_dir, component) for component in os.listdir(data_dir) if
@@ -250,10 +270,12 @@ def build_training_dataset():
         raise ValueError('No prospective training data files found.')
 
     training_datafiles = sorted(training_datafiles)
-    return bert_dataset.BertMultiFileDataset(
+    return bert_dataset.BertMultiFileDataloader(
         training_datafiles[distributed.world_rank()::distributed.world_size()],
+        batch_size = args.gpu_feed_batch_size,
         shuffle = True,
-        loop = True)
+        loop = True,
+        num_workers = 1)
 
 def initial_weights_provided():
     return args.init_checkpoint is not None
@@ -266,19 +288,19 @@ def load_initial_weights(trainer):
 def resume_from_checkpoint():
     return args.resume_from_step is not None
 
-def restore_from_checkpoint(step, dataset, trainer):
+def restore_from_checkpoint(step, dataloader, trainer):
     mbs = args.gpu_feed_batch_size
     gas = args.gradient_accumulation_passes
     total_samples = step*gas*mbs
-    dataset.forward(total_samples)
+    dataloader.forward(total_samples)
 
     checkpoint_path = os.path.join(checkpoint_dir(), 'ckpt_{}.pt'.format(step))
     checkpoint = torch.load(checkpoint_path, map_location="cpu")
     onnxruntime.training.checkpoint.experimental_load_state_dict(trainer, checkpoint['model'], strict=False)
     logging.info('Restored checkpoint {}'.format(checkpoint_path))
 
-def training_loop(step, dataset, trainer):
-    t0 = t1 = time.perf_counter()
+def training_loop(step, dataloader, trainer):
+    t0 = time.perf_counter()
     results = Results(max_tail_length=get_num_passes_to_smooth())
 
     accumulate_steps = args.gradient_accumulation_passes
@@ -287,7 +309,7 @@ def training_loop(step, dataset, trainer):
     weight_step = step
     execution_step = 1 + (step-1)*accumulate_steps
 
-    batch_generator = iter(build_training_dataloader(dataset))
+    batch_generator = iter(dataloader)
     batch = next(batch_generator, None)
 
     if distributed.is_world_leader() or distributed.have_separate_log():
@@ -296,16 +318,16 @@ def training_loop(step, dataset, trainer):
     while not is_terminal_condition(weight_step, batch):
 
         # execute backward pass and record backend time
-        # warning: backend may exit early because CUDA is non-blocking!
-        loss, session_dt = run_timed_training_pass(trainer, batch)
+        loss, session_dt = run_training_pass_timed(trainer, batch)
         t0, script_dt = get_split_time(t0)
 
         # if CPU did not block, we can fetch next batch in downtime
-        # (if num_workers > 0, the batch should fetch in background)        
-        batch = next(batch_generator, None)
+        # (if num_workers > 0, the batch should fetch in background)
+        batch = fetch_next_batch(batch_generator)
 
         # CPU will block on loss.item() if it didn't already
-        results.add_datum(loss.item(), session_dt, script_dt)
+        total_loss = await_loss_value(loss)
+        store_loss_and_timing(results, total_loss, session_dt, script_dt)
 
         increment_weight_step = execution_step % accumulate_steps == 0
         if weight_step % args.num_steps_per_log_entry == 0:
@@ -333,14 +355,6 @@ def get_split_time(t_previous):
     t_current = time.perf_counter()
     return t_current, t_current - t_previous
 
-def build_training_dataloader(training_dataset):
-    return torch.utils.data.DataLoader(
-        training_dataset,
-        batch_size = args.gpu_feed_batch_size,
-        num_workers = 1,
-        pin_memory = True, 
-        drop_last = True)
-
 class Results():
     def __init__(self, max_history = None, max_tail_length = 16):
         self.time = collections.deque(maxlen=max_history)
@@ -354,6 +368,8 @@ class Results():
     def add_datum(self, *args):
         self.time.append(time.perf_counter())
         self.data.append(args)
+        if len(self.time) == 1:
+            self.first_time = self.time[0]
 
         if len(self.tail) >= self.max_tail_length:
             self.tail_sum = list(map(operator.sub, self.tail_sum, self.tail.popleft()))
@@ -362,6 +378,9 @@ class Results():
         
     def last_datum(self):
         return self.data[-1]
+
+    def get_firstpass_time(self):
+        return self.first_time - self.start_time
 
     def get_training_time(self):
         return self.time[-1] - self.start_time
@@ -375,7 +394,7 @@ class Results():
     def get_tail_mean(self):
         return tuple([x/len(self.tail) for x in self.tail_sum])
 
-def run_timed_training_pass(trainer, batch):
+def run_training_pass_timed(trainer, batch):
     input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels = batch
 
     t0 = time.perf_counter()
@@ -384,42 +403,72 @@ def run_timed_training_pass(trainer, batch):
 
     return loss, t1-t0
 
+def fetch_next_batch(batch_generator):
+    t0 = time.perf_counter()
+    batch = next(batch_generator, None)
+    t1 = time.perf_counter()
+    logging.log(logging.DEBUG-1, 'next-batch-time {:.6f}'.format(t1-t0))
+    return batch
+
+def await_loss_value(loss):
+    t0 = time.perf_counter()
+    total_loss = loss.item()
+    t1 = time.perf_counter()
+    logging.log(logging.DEBUG-1, 'await-loss-time {:.6f}'.format(t1-t0))
+    return total_loss
+
+def store_loss_and_timing(results, total_loss, session_dt, script_dt):
+    t0 = time.perf_counter()
+    results.add_datum(total_loss, session_dt, script_dt)
+    t1 = time.perf_counter()
+    logging.log(logging.DEBUG-1, 'store-pass-time {:.6f}'.format(t1-t0))
+
 def print_statistics_header():
-    if not args.debug:
+    if args.debug_level == 0:
         logging.info('{:^4} {:^4} {:^2} {:^10} {:^10} {:8^}'.format(
             'Step', 'Pass', 'Rank', 'Loss', 'Step(s)', 'Seq/sec'))
 
 def record_stepinfo(trainer, weight_step, execution_step, results):
+    t0 = time.perf_counter()
     record_statistics(weight_step, execution_step, results)
-    if args.debug:
+    t1 = time.perf_counter()
+    logging.log(logging.DEBUG-1, 'record-step-time {:.6f}'.format(t1-t0))
+    if args.debug_level > 0:
         print_internal_info(trainer)
 
 def record_statistics(weight_step, execution_step, results):
-    smooth_n, smooth_dt = results.get_tail_length(), results.get_tail_timespan()
-    loss, session_dt, script_dt = results.get_tail_mean()
-    print_statistics_line(weight_step, execution_step, smooth_n, smooth_dt, loss, script_dt, session_dt)
-    if distributed.is_world_leader() and distributed.is_azureml_compute():
-        record_azureml_metrics(weight_step, execution_step, smooth_n, smooth_dt, loss)
+    loss, session_dt, script_dt = results.last_datum()
+    average_loss, _, average_dt = results.get_tail_mean()
+    throughput = args.gpu_feed_batch_size/average_dt
 
-def print_statistics_line(weight_step, execution_step, smooth_n, smooth_dt, loss, script_dt, session_dt):
-    if not args.debug:
-        batch_size = args.gpu_feed_batch_size
+    print_statistics_line(weight_step, execution_step, average_loss, throughput, script_dt, session_dt)
+    if distributed.is_world_leader() and distributed.is_azureml_compute():
+        record_azureml_metrics(weight_step, execution_step, average_loss, script_dt, throughput)
+    if distributed.is_world_leader() and has_tensorboard():
+        record_tensorboard_metrics(weight_step, execution_step, average_loss, script_dt, throughput)
+
+def print_statistics_line(weight_step, execution_step, loss, throughput, script_dt, session_dt):
+    if args.debug_level == 0:
         logging.info('{:^4} {:^4} {:2d} {:10.6f} {:10.6f} {:8.2f}'.format(
             weight_step,
             execution_step,
             distributed.world_rank(),
             loss, 
-            smooth_dt/smooth_n, 
-            batch_size*smooth_n/smooth_dt))
+            script_dt, 
+            throughput))
     else:
         logging.debug('step {} pass {} session-time {:.6f} script-time {:.6f} loss {:.6f}'.format(
             weight_step, execution_step, session_dt, script_dt-session_dt, loss))
 
-def record_azureml_metrics(weight_step, execution_step, smooth_n, smooth_dt, loss):
-    batch_size = args.gpu_feed_batch_size    
-    azureml_context.log("step-time", numpy.float(smooth_dt/smooth_n))
-    azureml_context.log("total-loss", numpy.float(loss))
-    azureml_context.log("throughput", numpy.float(batch_size*smooth_n/smooth_dt))
+def record_azureml_metrics(weight_step, execution_step, loss, step_time, throughput):
+    azureml_context.log("Step Time (s)", step_time)
+    azureml_context.log("Total Loss", loss)
+    azureml_context.log("Throughput (ex/sec)", throughput)
+
+def record_tensorboard_metrics(weight_step, execution_step, loss, step_time, throughput):
+    tensorboard_writer.add_scalar("Step Time (s)", step_time, weight_step)
+    tensorboard_writer.add_scalar("Total Loss", loss, weight_step)
+    tensorboard_writer.add_scalar("Throughput (ex/sec)", throughput, weight_step)
     
 def print_internal_info(trainer):
     logging.debug('internal step {} learning rate {:.6f} loss scalar {} gradients finite {}'.format(
@@ -432,11 +481,14 @@ def get_num_passes_to_smooth():
     return max(args.num_passes_to_smooth_output, args.gradient_accumulation_passes)
 
 def roll_checkpoints(weight_step, trainer):
+    t0 = time.perf_counter()
     checkpoint_path = os.path.join(checkpoint_dir(), 'ckpt_{}.pt'.format(weight_step))
     save_checkpoint(checkpoint_path, trainer)
     roll_checkpoints.existing_checkpoints.append(checkpoint_path)
     if len(roll_checkpoints.existing_checkpoints) > args.max_checkpoints_to_retain:
         delete_checkpoint(roll_checkpoints.existing_checkpoints.pop(0))
+    t1 = time.perf_counter()
+    logging.debug('checkpoint-time: {:.6f}'.format(t1-t0))
     
 roll_checkpoints.existing_checkpoints = []
 
@@ -457,10 +509,15 @@ def save_onnx_model(trainer):
 def print_footer(results):
     if distributed.is_world_leader():
         final_loss, _, _ = results.last_datum()
-        logging.info('Final Loss: {:8.6f}'.format(final_loss))    
+        logging.info('Final Loss: {:8.6f}'.format(final_loss))
+        logging.info('First Pass: {:.2f}'.format(results.get_firstpass_time()))
         logging.info('Running Time: {:.2f}'.format(results.get_training_time()))
 
         logging.info(datetime.datetime.now().strftime('%m/%d/%Y %I:%M:%S %p'))
+
+def finalize_environment():
+    if has_tensorboard():
+        tensorboard_writer.close()
 
 if __name__ == "__main__":
     main()

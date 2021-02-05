@@ -12,11 +12,22 @@ import torch
 
 from .arguments import args
 
-class BertMultiFileDataset(torch.utils.data.IterableDataset):
+# require at top-level so no pickling errors
+def _singlefile_dataloader_factory(filepath, batch_size, shuffle, num_workers):
+    return torch.utils.data.DataLoader(
+        BertSingleFileDataset(filepath, shuffle),
+        batch_size = batch_size,
+        num_workers = num_workers,
+        pin_memory = True, 
+        drop_last = True)
 
-    def __init__(self, files, shuffle=False, loop=False):        
+class BertMultiFileDataloader:
+
+    def __init__(self, files, batch_size=1, shuffle=False, loop=False, num_workers=1):
         super().__init__()
+        self.num_workers = num_workers
         self.files = files
+        self.batch_size = batch_size
         self.loop = loop
         self.shuffle = shuffle
         if self.shuffle:
@@ -35,46 +46,51 @@ class BertMultiFileDataset(torch.utils.data.IterableDataset):
         logging.debug('Forwarded dataset to file_index {}, sample_index {}'.format(
             self.file_index, self.sample_index))
         self._destroy_datasets_if_exist()
-        self._destroy_threadworker_if_exists()
+        self._destroy_poolworker_if_exists()
 
     def reset(self):
         self.file_index = 0
         self.sample_index = 0
         self._destroy_datasets_if_exist()
-        self._destroy_threadworker_if_exists()
+        self._destroy_poolworker_if_exists()
 
     # note: iterator invoked by worker process (not the contructing process)
     # note: state of iterator resumes from (self.file_index, self.sample_index)
     def __iter__(self):
-        self._create_threadworker_if_not_exists()
+        self._create_poolworker_if_not_exists()
         self._fetch_future_dataset_or_none(self.file_index)
 
         while self.future_dataset is not None:
             self.dataset = self.future_dataset.result(timeout=None)
             self._fetch_future_dataset_or_none(self.file_index + 1)
 
-            while self.sample_index < len(self.dataset):
-                yield self.dataset[self.sample_index]
-                self.sample_index += 1
+            for batch in self.dataset:
+                yield batch
+                self.sample_index += self.batch_size
 
             self.file_index += 1
             self.sample_index = 0
 
         self.reset()
 
-    def _create_threadworker_if_not_exists(self):
+    def _create_poolworker_if_not_exists(self):
         if self.pool is None:
-            self.pool = concurrent.futures.ThreadPoolExecutor(1)            
+            self.pool = concurrent.futures.ProcessPoolExecutor(1)            
 
     def _fetch_future_dataset_or_none(self, index):
-        dataset_factory = lambda filepath: BertSingleFileDataset(filepath, self.shuffle)
         if self.loop or index < len(self.files):
             next_file = self.files[index % len(self.files)]
-            self.future_dataset = self.pool.submit(dataset_factory, next_file)
+            logging.debug('Requesting {}'.format(next_file))
+            self.future_dataset = self.pool.submit(
+                _singlefile_dataloader_factory, 
+                next_file, 
+                self.batch_size, 
+                self.shuffle, 
+                self.num_workers)
         else:
             self.future_dataset = None
 
-    def _destroy_threadworker_if_exists(self):
+    def _destroy_poolworker_if_exists(self):
         if self.pool is not None:
             del self.pool
         self.pool = None
