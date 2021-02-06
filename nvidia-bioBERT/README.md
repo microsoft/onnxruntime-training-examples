@@ -80,7 +80,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 
     # Create HDF5 files Phase 2
     python3 ${BERT_PREP_WORKING_DIR}/bertPrep.py --action create_hdf5_files --dataset pubmed_baseline --max_seq_length 512 --max_predictions_per_seq 80 --vocab_file ${BERT_PREP_WORKING_DIR}/download/google_pretrained_weights/cased_L-12_H-768_A-12/vocab.txt --do_lower_case=0
-```
+    ```
 
 3. Make data accessible for training
 
@@ -91,34 +91,34 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 
     Below instructions refer to these hdf5 data files as the data to make accessible to training process.
 
-## bioBERT pre-training with ONNX Runtime in Azure Machine Learning
+    ## bioBERT pre-training with ONNX Runtime in Azure Machine Learning
 
-1. Data Transfer
+    1. Data Transfer
 
-    * Transfer training data to Azure blob storage
+        * Transfer training data to Azure blob storage
 
-    To transfer the data to an Azure blob storage using [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest), use command:
-    ```bash
-    az storage blob upload-batch --account-name <storage-name> -d <container-name> -s ./workspace/BERT/data
-    ```
+        To transfer the data to an Azure blob storage using [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest), use command:
+        ```bash
+        az storage blob upload-batch --account-name <storage-name> -d <container-name> -s ./workspace/BERT/data
+        ```
 
-    * Register the blob container as a data store
-    * Mount the data store in the compute targets used for training
+        * Register the blob container as a data store
+        * Mount the data store in the compute targets used for training
 
-    Please refer to the [storage guidance](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-access-data#storage-guidance) for details on using Azure storage account for training in Azure Machine Learning. 
+        Please refer to the [storage guidance](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-access-data#storage-guidance) for details on using Azure storage account for training in Azure Machine Learning. 
 
-2. Execute pre-training
+    2. Execute pre-training
 
-    The bioBERT pre-training job in Azure Machine Learning can be launched using either of these environments:
+        The bioBERT pre-training job in Azure Machine Learning can be launched using either of these environments:
 
-    * Azure Machine Learning [Compute Instance](https://docs.microsoft.com/en-us/azure/machine-learning/concept-compute-instance) to run the Jupyter notebook.
-    * Azure Machine Learning [SDK](https://docs.microsoft.com/en-us/python/api/overview/azure/ml/?view=azure-ml-py)
+        * Azure Machine Learning [Compute Instance](https://docs.microsoft.com/en-us/azure/machine-learning/concept-compute-instance) to run the Jupyter notebook.
+        * Azure Machine Learning [SDK](https://docs.microsoft.com/en-us/python/api/overview/azure/ml/?view=azure-ml-py)
 
-    You will need a [GPU optimized compute target](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-set-up-training-targets#amlcompute) - _either NCv3 or NDv2 series_, to execute this pre-training job.
+        You will need a [GPU optimized compute target](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-set-up-training-targets#amlcompute) - _either NCv3 or NDv2 series_, to execute this pre-training job.
 
-    Execute the steps in the Python notebook [azureml-notebooks/run-pretraining.ipynb](azureml-notebooks/run-pretraining.ipynb) within your environment. If you have a local setup to run an Azure ML notebook, you could run the steps in the notebook in that environment. Otherwise, a compute instance in Azure Machine Learning could be created and used to run the steps.
+        Execute the steps in the Python notebook [azureml-notebooks/run-pretraining.ipynb](azureml-notebooks/run-pretraining.ipynb) within your environment. If you have a local setup to run an Azure ML notebook, you could run the steps in the notebook in that environment. Otherwise, a compute instance in Azure Machine Learning could be created and used to run the steps.
 
-## bioBERT pre-training with ONNX Runtime directly on ND40rs_v2 (or similar NVIDIA capable Azure VM) 
+## bioBERT pre-training with ONNX Runtime directly on ND40rs_v2 (or similar NVIDIA capable Azure VM)
 
 1. Check pre-requisites
 
