@@ -66,30 +66,20 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
     # Fix path to workspace to allow running outside of the docker container
     sed -i "s/python \/workspace\/bert/python .\/workspace\/BERT/g" ./workspace/BERT/data/bertPrep.py
 
-## UNCASED
+    ## UNCASED
+    # Create HDF5 files Phase 1
+    python3 ${BERT_PREP_WORKING_DIR}/bertPrep.py --action create_hdf5_files --dataset pubmed_baseline --max_seq_length 128 --max_predictions_per_seq 20 --vocab_file ${BERT_PREP_WORKING_DIR}/download/google_pretrained_weights/uncased_L-12_H-768_A-12/vocab.txt
 
-# Create HDF5 files Phase 1
-python3 ${BERT_PREP_WORKING_DIR}/bertPrep.py --action create_hdf5_files --dataset pubmed_baseline --max_seq_length 128 \
- --max_predictions_per_seq 20 --vocab_file ${BERT_PREP_WORKING_DIR}/download/google_pretrained_weights/uncased_L-12_H-768_A-12/vocab.txt
-
-
-# Create HDF5 files Phase 2
-python3 ${BERT_PREP_WORKING_DIR}/bertPrep.py --action create_hdf5_files --dataset pubmed_baseline --max_seq_length 512 \
- --max_predictions_per_seq 80 --vocab_file ${BERT_PREP_WORKING_DIR}/download/google_pretrained_weights/uncased_L-12_H-768_A-12/vocab.txt
+    # Create HDF5 files Phase 2
+    python3 ${BERT_PREP_WORKING_DIR}/bertPrep.py --action create_hdf5_files --dataset pubmed_baseline --max_seq_length 512 --max_predictions_per_seq 80 --vocab_file ${BERT_PREP_WORKING_DIR}/download/google_pretrained_weights/uncased_L-12_H-768_A-12/vocab.txt
 
 
-## CASED
+    ## CASED
+    # Create HDF5 files Phase 1
+    python3 ${BERT_PREP_WORKING_DIR}/bertPrep.py --action create_hdf5_files --dataset pubmed_baseline --max_seq_length 128 --max_predictions_per_seq 20 --vocab_file ${BERT_PREP_WORKING_DIR}/download/google_pretrained_weights/cased_L-12_H-768_A-12/vocab.txt --do_lower_case=0
 
-# Create HDF5 files Phase 1
-python3 ${BERT_PREP_WORKING_DIR}/bertPrep.py --action create_hdf5_files --dataset pubmed_baseline --max_seq_length 128 \
- --max_predictions_per_seq 20 --vocab_file ${BERT_PREP_WORKING_DIR}/download/google_pretrained_weights/cased_L-12_H-768_A-12/vocab.txt \
- --do_lower_case=0
-
-
-# Create HDF5 files Phase 2
-python3 ${BERT_PREP_WORKING_DIR}/bertPrep.py --action create_hdf5_files --dataset pubmed_baseline --max_seq_length 512 \
- --max_predictions_per_seq 80 --vocab_file ${BERT_PREP_WORKING_DIR}/download/google_pretrained_weights/cased_L-12_H-768_A-12/vocab.txt \
- --do_lower_case=0
+    # Create HDF5 files Phase 2
+    python3 ${BERT_PREP_WORKING_DIR}/bertPrep.py --action create_hdf5_files --dataset pubmed_baseline --max_seq_length 512 --max_predictions_per_seq 80 --vocab_file ${BERT_PREP_WORKING_DIR}/download/google_pretrained_weights/cased_L-12_H-768_A-12/vocab.txt --do_lower_case=0
 ```
 
 3. Make data accessible for training
@@ -119,7 +109,7 @@ python3 ${BERT_PREP_WORKING_DIR}/bertPrep.py --action create_hdf5_files --datase
 
 2. Execute pre-training
 
-    The BERT pre-training job in Azure Machine Learning can be launched using either of these environments:
+    The bioBERT pre-training job in Azure Machine Learning can be launched using either of these environments:
 
     * Azure Machine Learning [Compute Instance](https://docs.microsoft.com/en-us/azure/machine-learning/concept-compute-instance) to run the Jupyter notebook.
     * Azure Machine Learning [SDK](https://docs.microsoft.com/en-us/python/api/overview/azure/ml/?view=azure-ml-py)
