@@ -11,9 +11,11 @@ import numpy
 import torch
 
 from .arguments import args
+from . import distributed
 
 # require at top-level so no pickling errors
 def _singlefile_dataloader_factory(filepath, batch_size, shuffle, num_workers):
+    distributed.ensure_no_core_restriction()
     return torch.utils.data.DataLoader(
         BertSingleFileDataset(filepath, shuffle),
         batch_size = batch_size,
@@ -61,6 +63,7 @@ class BertMultiFileDataloader:
         self._fetch_future_dataset_or_none(self.file_index)
 
         while self.future_dataset is not None:
+            del self.dataset
             self.dataset = self.future_dataset.result(timeout=None)
             self._fetch_future_dataset_or_none(self.file_index + 1)
 
@@ -107,6 +110,8 @@ class BertSingleFileDataset(torch.utils.data.Dataset):
 
     def __init__(self, hdf5_filepath, shuffle=False):
         super().__init__()
+
+        distributed.ensure_no_core_restriction()
 
         # refer bert_model.py for description of input meanings
         self.input_names = [

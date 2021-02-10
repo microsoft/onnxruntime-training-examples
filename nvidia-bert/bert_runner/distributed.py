@@ -2,6 +2,7 @@
 # Licensed under the MIT License
 
 import hashlib
+import logging
 import os
 import socket
 
@@ -40,10 +41,17 @@ def world_barrier():
         _world_comm.barrier()
 
 def is_azureml_compute():
-    return 'AZ_BATCH_MASTER_NODE' in os.environ.keys() or 'AZ_BATCHAI_MPI_MASTER_NODE' in os.environ.keys()
-
+    aml_variables = ['AZUREML_RUN_ID', 'AZUREML_EXPERIMENT_ID', 'AZUREML_NODE_COUNT']
+    return any(key in os.environ.keys() for key in aml_variables)
+        
 def have_separate_log():
     return is_azureml_compute()
+
+def ensure_no_core_restriction():
+     process_cpu_affinities = os.sched_getaffinity(0)
+     if sorted(process_cpu_affinities) != sorted(range(os.cpu_count())):
+         os.sched_setaffinity(0, range(os.cpu_count()))
+         logging.debug('Reset CPU affinity to {}'.format(os.sched_getaffinity(0)))
 
 def _set_torch_device():
     torch.cuda.set_device(_local_rank)
@@ -58,7 +66,7 @@ def _discover_local_rank():
 
 def _set_nccl_debugging_level():
     if is_azureml_compute():
-        if args.debug:
+        if args.debug_level > 0:
             os.environ['NCCL_DEBUG'] = 'INFO'
         else:
             del os.environ['NCCL_DEBUG']

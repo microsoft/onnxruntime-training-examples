@@ -51,6 +51,9 @@ def main():
     bert = build_pytorch_model()
     trainer = build_onnxruntime_trainer(bert)
     dataloader = build_training_dataloader()
+
+    # some numeric package imports restrict used cores
+    distributed.ensure_no_core_restriction()
     
     if initial_weights_provided():
         load_initial_weights(trainer)
@@ -89,7 +92,7 @@ def initialize_environment():
         initialize_dirs()
     if distributed.is_azureml_compute():
         initialize_azureml()
-    if has_tensorboard():
+    if distributed.is_world_leader() and has_tensorboard():
         initialize_tensorboard()
 
 def has_tensorboard():
@@ -348,7 +351,7 @@ def is_terminal_condition(step, batch):
     if batch is None:
         return False
     if args.max_steps is not None:
-        return args.max_steps <= step
+        return args.max_steps < step
     return False
 
 def get_split_time(t_previous):
@@ -457,8 +460,8 @@ def print_statistics_line(weight_step, execution_step, loss, throughput, script_
             script_dt, 
             throughput))
     else:
-        logging.debug('step {} pass {} session-time {:.6f} script-time {:.6f} loss {:.6f}'.format(
-            weight_step, execution_step, session_dt, script_dt-session_dt, loss))
+        logging.debug('step {} pass {} session-time {:.6f} script-time {:.6f} throughput {:.2f} loss {:.6f}'.format(
+            weight_step, execution_step, session_dt, script_dt-session_dt, throughput, loss))
 
 def record_azureml_metrics(weight_step, execution_step, loss, step_time, throughput):
     azureml_context.log("Step Time (s)", step_time)
@@ -516,7 +519,7 @@ def print_footer(results):
         logging.info(datetime.datetime.now().strftime('%m/%d/%Y %I:%M:%S %p'))
 
 def finalize_environment():
-    if has_tensorboard():
+    if distributed.is_world_leader() and has_tensorboard():
         tensorboard_writer.close()
 
 if __name__ == "__main__":
