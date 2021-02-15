@@ -44,7 +44,7 @@ torch._C._jit_set_profiling_mode(False)
 torch._C._jit_set_profiling_executor(False)
 
 def main():
-    valid_inputs()
+    validate_inputs()
     initialize_environment()
     print_header()
 
@@ -70,7 +70,7 @@ def main():
     print_footer(results)
     finalize_environment()
 
-def valid_inputs():
+def validate_inputs():
     validate_starting_condition()
     validate_termination_condition()
 
@@ -88,6 +88,7 @@ def validate_termination_condition():
 def initialize_environment():
     initialize_logger()
     initialize_seeds()
+    initialize_memory_strategy()
     if distributed.is_world_leader():
         initialize_dirs()
     if distributed.is_azureml_compute():
@@ -95,11 +96,12 @@ def initialize_environment():
     if distributed.is_world_leader() and has_tensorboard():
         initialize_tensorboard()
 
+def initialize_memory_strategy():
+    from onnxruntime.capi._pybind_state import set_arena_extend_strategy, ArenaExtendStrategy
+    set_arena_extend_strategy(ArenaExtendStrategy.kSameAsRequested)
+
 def has_tensorboard():
     return not args.tensorboard_dir is None
-
-def print_cpu_affinity():
-    os.system("taskset -p %d" % os.getpid())
 
 def initialize_logger():
     if args.debug_level == 0:
