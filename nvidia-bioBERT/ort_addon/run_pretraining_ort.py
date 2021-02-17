@@ -38,6 +38,7 @@ import math
 import multiprocessing
 import modeling
 from onnxruntime.training.checkpoint import experimental_state_dict, experimental_load_state_dict
+from azureml.core.run import Run
 
 from utils import format_step
 
@@ -371,6 +372,7 @@ def prepare_model(args, device):
 def main():
 
     args = parse_arguments()
+    run = Run.get_context()
 
     if args.use_env and 'LOCAL_RANK' in os.environ:
         args.local_rank = int(os.environ['LOCAL_RANK'])
@@ -503,6 +505,10 @@ def main():
                             data = {"average_loss": average_loss / (args.log_freq * divisor),
                                     "step_loss": loss.item() * args.gradient_accumulation_steps / divisor}
                             dllogger.log(step=(epoch, global_step, ), data=data)
+                            run.log_row("loss", loss =  np.float(average_loss / (args.log_freq * divisor)))
+                            run.log_row("throughput(seq/sec)", throughput =  throughput)
+                            run.log_row("loss over steps", training_steps = training_steps, loss =  np.float(average_loss / (args.log_freq * divisor)))
+                            run.log_row("throughput(seq/sec) over steps", training_steps = training_steps, throughput =  throughput)
                         average_loss = 0
 
                     if global_step >= args.max_steps or training_steps % (
