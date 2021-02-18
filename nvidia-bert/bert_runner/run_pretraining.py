@@ -189,6 +189,8 @@ def build_pytorch_model():
     if config.vocab_size % 8 != 0:
         config.vocab_size += 8 - (config.vocab_size % 8)
 
+    # loss_fn = bert_model.BertPretrainingCriterion(config.vocab_size, args.gpu_feed_batch_size, args.max_seq_length)
+    # return bert_model.bert_model_with_loss(bert_model.BertForPreTraining(config), loss_fn)
     return bert_model.BertForPreTraining(config)
 
 def build_onnxruntime_trainer(model):
@@ -197,8 +199,9 @@ def build_onnxruntime_trainer(model):
     lr_scheduler = build_onnxruntime_learning_rate_schedule()
     trainer_config = build_onnxruntime_trainer_options(model_desc, lr_scheduler)
 
+    model_onnx = onnx.load('pytorch_export.onnx')
     return onnxruntime.training.ORTTrainer(
-        model, model_desc, optim_config, loss_fn=None, options=trainer_config)
+        model_onnx, model_desc, optim_config, loss_fn=None, options=trainer_config)
 
 def build_onnx_model_description():
     bs = args.gpu_feed_batch_size
@@ -328,11 +331,13 @@ def training_loop(step, dataloader, trainer):
 
         # if CPU did not block, we can fetch next batch in downtime
         # (if num_workers > 0, the batch should fetch in background)
-        batch = fetch_next_batch(batch_generator)
+        next_batch = fetch_next_batch(batch_generator)
 
         # CPU will block on loss.item() if it didn't already
         total_loss = await_loss_value(loss)
         store_loss_and_timing(results, total_loss, session_dt, script_dt)
+        
+        move_to_next_batch(batch, next_batch)
 
         increment_weight_step = execution_step % accumulate_steps == 0
         if weight_step % args.num_steps_per_log_entry == 0:
@@ -344,6 +349,10 @@ def training_loop(step, dataloader, trainer):
                 is_checkpointing() and
                 weight_step % checkpoint_steps == 0):
                 roll_checkpoints(weight_step, trainer)
+
+            if args.debug_level > 0:
+                print_memory_usage()
+
             weight_step += 1
         execution_step += 1
 
@@ -415,6 +424,10 @@ def fetch_next_batch(batch_generator):
     logging.log(logging.DEBUG-1, 'next-batch-time {:.6f}'.format(t1-t0))
     return batch
 
+def move_to_next_batch(this_batch, next_batch):
+    del this_batch
+    this_batch = next_batch
+
 def await_loss_value(loss):
     t0 = time.perf_counter()
     total_loss = loss.item()
@@ -464,6 +477,14 @@ def print_statistics_line(weight_step, execution_step, loss, throughput, script_
     else:
         logging.debug('step {} pass {} session-time {:.6f} script-time {:.6f} throughput {:.2f} loss {:.6f}'.format(
             weight_step, execution_step, session_dt, script_dt-session_dt, throughput, loss))
+
+def print_memory_usage():
+    import nvidia_smi
+    nvidia_smi.nvmlInit()
+    handle = nvidia_smi.nvmlDeviceGetHandleByIndex(distributed.local_rank)
+    res = nvidia_smi.nvmlDeviceGetUtilizationRates(handle)
+    print(f'gpu: {res.gpu}%, gpu-mem: {res.memory}%')
+
 
 def record_azureml_metrics(weight_step, execution_step, loss, step_time, throughput):
     azureml_context.log("Step Time (s)", step_time)

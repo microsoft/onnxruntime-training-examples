@@ -30,6 +30,9 @@ def local_size():
     global _local_size
     return _local_size
 
+def hostname():
+    return socket.gethostname()
+
 def is_world_leader():
     return world_rank() == 0
 
@@ -45,7 +48,7 @@ def is_azureml_compute():
     return any(key in os.environ.keys() for key in aml_variables)
         
 def have_separate_log():
-    return is_azureml_compute()
+    return False
 
 def ensure_no_core_restriction():
      process_cpu_affinities = os.sched_getaffinity(0)
