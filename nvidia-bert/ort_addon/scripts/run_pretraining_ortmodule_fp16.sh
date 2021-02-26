@@ -29,11 +29,11 @@ create_logfile=${9:-"true"}
 accumulate_gradients=${10:-"true"}
 deepspeed_zero_stage=${27:-"false"}
 
-train_batch_size=${1:-37}
+train_batch_size=${1:-42}
 learning_rate=${2:-"6e-3"}
 warmup_proportion=${5:-"0.2843"}
 train_steps=${6:-7038}
-save_checkpoint_steps=${7:-200}
+save_checkpoint_steps=${7:-1000}
 gradient_accumulation_steps=${11:-1} 
 
 train_batch_size_phase2=${17:-1}
