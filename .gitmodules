@@ -1,0 +1,3 @@
+[submodule "huggingface-transformers"]
+	path = huggingface-transformers
+	url = https://github.com/microsoft/huggingface-transformers
