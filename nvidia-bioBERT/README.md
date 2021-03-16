@@ -46,7 +46,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
     * Natural Language Toolkit (NLTK) `python3-pip install nltk`
     * Pubmed parser `pip install git+git://github.com/titipata/pubmed_parser.git`
 
-2. Download and prepare Wikicorpus training data in HDF5 format.
+2. Download and prepare PubMed training data in HDF5 format.
 
     ```bash
     export BERT_PREP_WORKING_DIR=./workspace/BERT/data/
