@@ -28,12 +28,8 @@ The sample will use the PubMed dataset for pretrinaing Phase-1 and Phase-2. You 
     mkdir -p workspace
     mv DeepLearningExamples/PyTorch/LanguageModeling/BERT/ workspace
     rm -rf DeepLearningExamples
+    mv ./nvidia-bert/bertPrep.py workspace/BERT
     cp -r ./nvidia-bert/ort_addon/* workspace/BERT
-    cd workspace
-    git clone https://github.com/attardi/wikiextractor.git
-    cd wikiextractor/
-    git checkout e4abb4cbd019b0257824ee47c23dd163919b731b
-    cd ../../ 
     ```
 
 ## Download and prepare data
@@ -48,81 +44,81 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 
     * Python 3.6
     * Natural Language Toolkit (NLTK) `python3-pip install nltk`
+    * Pubmed parser `pip install git+git://github.com/titipata/pubmed_parser.git`
 
-2. Download and prepare Wikicorpus training data in HDF5 format.
+2. Download and prepare PubMed training data in HDF5 format.
 
     ```bash
     export BERT_PREP_WORKING_DIR=./workspace/BERT/data/
 
     # Download google_pretrained_weights
-    python ./workspace/BERT/data/bertPrep.py --action download --dataset google_pretrained_weights
+    python3 ${BERT_PREP_WORKING_DIR}/bertPrep.py --action download --dataset google_pretrained_weights
 
-    # Download wikicorpus_en via wget
-    mkdir -p ./workspace/BERT/data/download/wikicorpus_en
-    cd ./workspace/BERT/data/download/wikicorpus_en
-    wget https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles.xml.bz2
-    bzip2 -dv enwiki-latest-pages-articles.xml.bz2
-    mv enwiki-latest-pages-articles.xml wikicorpus_en.xml
-    cd ../../../../..
-
-    # Fix path issue to use BERT_PREP_WORKING_DIR as prefix for path instead of hard-coded prefix
-    sed -i "s/path_to_wikiextractor_in_container = '/path_to_wikiextractor_in_container = './g" ./workspace/BERT/data/bertPrep.py
+    # Download Pubmed data
+    python3 ${BERT_PREP_WORKING_DIR}/bertPrep.py --action download --dataset pubmed_baseline
 
     # Format text files
-    python ./workspace/BERT/data/bertPrep.py --action text_formatting --dataset wikicorpus_en
+    python ${BERT_PREP_WORKING_DIR}/bertPrep.py --action text_formatting --dataset pubmed_baseline
 
     # Shard text files
-    python ./workspace/BERT/data/bertPrep.py --action sharding --dataset wikicorpus_en
+    python ${BERT_PREP_WORKING_DIR}/bertPrep.py --action sharding --dataset pubmed_baseline
 
     # Fix path to workspace to allow running outside of the docker container
     sed -i "s/python \/workspace\/bert/python .\/workspace\/BERT/g" ./workspace/BERT/data/bertPrep.py
 
+    ## UNCASED
     # Create HDF5 files Phase 1
-    python ./workspace/BERT/data/bertPrep.py --action create_hdf5_files --dataset wikicorpus_en --max_seq_length 128 \
-      --max_predictions_per_seq 20 --vocab_file ./workspace/BERT/data/download/google_pretrained_weights/uncased_L-24_H-1024_A-16/vocab.txt --do_lower_case 1
+    python3 ${BERT_PREP_WORKING_DIR}/bertPrep.py --action create_hdf5_files --dataset pubmed_baseline --max_seq_length 128 --max_predictions_per_seq 20 --vocab_file ${BERT_PREP_WORKING_DIR}/download/google_pretrained_weights/uncased_L-12_H-768_A-12/vocab.txt
 
     # Create HDF5 files Phase 2
-    python ./workspace/BERT/data/bertPrep.py --action create_hdf5_files --dataset wikicorpus_en --max_seq_length 512 \
-    --max_predictions_per_seq 80 --vocab_file ./workspace/BERT/data/download/google_pretrained_weights/uncased_L-24_H-1024_A-16/vocab.txt --do_lower_case 1
+    python3 ${BERT_PREP_WORKING_DIR}/bertPrep.py --action create_hdf5_files --dataset pubmed_baseline --max_seq_length 512 --max_predictions_per_seq 80 --vocab_file ${BERT_PREP_WORKING_DIR}/download/google_pretrained_weights/uncased_L-12_H-768_A-12/vocab.txt
+
+
+    ## CASED
+    # Create HDF5 files Phase 1
+    python3 ${BERT_PREP_WORKING_DIR}/bertPrep.py --action create_hdf5_files --dataset pubmed_baseline --max_seq_length 128 --max_predictions_per_seq 20 --vocab_file ${BERT_PREP_WORKING_DIR}/download/google_pretrained_weights/cased_L-12_H-768_A-12/vocab.txt --do_lower_case=0
+
+    # Create HDF5 files Phase 2
+    python3 ${BERT_PREP_WORKING_DIR}/bertPrep.py --action create_hdf5_files --dataset pubmed_baseline --max_seq_length 512 --max_predictions_per_seq 80 --vocab_file ${BERT_PREP_WORKING_DIR}/download/google_pretrained_weights/cased_L-12_H-768_A-12/vocab.txt --do_lower_case=0
     ```
 
 3. Make data accessible for training
 
     After completing the steps above, data in hdf5 format will be available at the following locations: 
 
-    * Phase 1 data: `./workspace/BERT/data/hdf5_lower_case_1_seq_len_128_max_pred_20_masked_lm_prob_0.15_random_seed_12345_dupe_factor_5/wikicorpus_en/train`
-    * Phase 2 data: `./workspace/BERT/data/hdf5_lower_case_1_seq_len_512_max_pred_80_masked_lm_prob_0.15_random_seed_12345_dupe_factor_5/wikicorpus_en/train`
+    * Phase 1 data: `./workspace/BERT/data/hdf5/lower_case_1_seq_len_128_max_pred_20_masked_lm_prob_0.15_random_seed_12345_dupe_factor_5_shard_1472_test_split_10/pubmed_baseline/training`
+    * Phase 2 data: `./workspace/BERT/data/hdf5/lower_case_1_seq_len_512_max_pred_80_masked_lm_prob_0.15_random_seed_12345_dupe_factor_5_shard_1472_test_split_10/pubmed_baseline/training`
 
     Below instructions refer to these hdf5 data files as the data to make accessible to training process.
 
-## BERT pre-training with ONNX Runtime in Azure Machine Learning
+    ## bioBERT pre-training with ONNX Runtime in Azure Machine Learning
 
-1. Data Transfer
+    1. Data Transfer
 
-    * Transfer training data to Azure blob storage
+        * Transfer training data to Azure blob storage
 
-    To transfer the data to an Azure blob storage using [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest), use command:
-    ```bash
-    az storage blob upload-batch --account-name <storage-name> -d <container-name> -s ./workspace/BERT/data
-    ```
+        To transfer the data to an Azure blob storage using [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest), use command:
+        ```bash
+        az storage blob upload-batch --account-name <storage-name> -d <container-name> -s ./workspace/BERT/data
+        ```
 
-    * Register the blob container as a data store
-    * Mount the data store in the compute targets used for training
+        * Register the blob container as a data store
+        * Mount the data store in the compute targets used for training
 
-    Please refer to the [storage guidance](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-access-data#storage-guidance) for details on using Azure storage account for training in Azure Machine Learning. 
+        Please refer to the [storage guidance](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-access-data#storage-guidance) for details on using Azure storage account for training in Azure Machine Learning. 
 
-2. Execute pre-training
+    2. Execute pre-training
 
-    The BERT pre-training job in Azure Machine Learning can be launched using either of these environments:
+        The bioBERT pre-training job in Azure Machine Learning can be launched using either of these environments:
 
-    * Azure Machine Learning [Compute Instance](https://docs.microsoft.com/en-us/azure/machine-learning/concept-compute-instance) to run the Jupyter notebook.
-    * Azure Machine Learning [SDK](https://docs.microsoft.com/en-us/python/api/overview/azure/ml/?view=azure-ml-py)
+        * Azure Machine Learning [Compute Instance](https://docs.microsoft.com/en-us/azure/machine-learning/concept-compute-instance) to run the Jupyter notebook.
+        * Azure Machine Learning [SDK](https://docs.microsoft.com/en-us/python/api/overview/azure/ml/?view=azure-ml-py)
 
-    You will need a [GPU optimized compute target](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-set-up-training-targets#amlcompute) - _either NCv3 or NDv2 series_, to execute this pre-training job.
+        You will need a [GPU optimized compute target](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-set-up-training-targets#amlcompute) - _either NCv3 or NDv2 series_, to execute this pre-training job.
 
-    Execute the steps in the Python notebook [azureml-notebooks/run-pretraining.ipynb](azureml-notebooks/run-pretraining.ipynb) within your environment. If you have a local setup to run an Azure ML notebook, you could run the steps in the notebook in that environment. Otherwise, a compute instance in Azure Machine Learning could be created and used to run the steps.
+        Execute the steps in the Python notebook [azureml-notebooks/run-pretraining.ipynb](azureml-notebooks/run-pretraining.ipynb) within your environment. If you have a local setup to run an Azure ML notebook, you could run the steps in the notebook in that environment. Otherwise, a compute instance in Azure Machine Learning could be created and used to run the steps.
 
-## BERT pre-training with ONNX Runtime directly on ND40rs_v2 (or similar NVIDIA capable Azure VM) 
+## bioBERT pre-training with ONNX Runtime directly on ND40rs_v2 (or similar NVIDIA capable Azure VM)
 
 1. Check pre-requisites
 
@@ -134,7 +130,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 
     Build the onnxruntime wheel from source into a Docker image.
     ```bash
-    cd nvidia-bert/docker
+    cd nvidia-biobert/docker
     bash build.sh
     cd ../..
     ```    
@@ -148,8 +144,8 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 
    ```bash
    ...
-   -v <replace-with-path-to-phase1-hdf5-training-data>:/data/128
-   -v <replace-with-path-to-phase2-hdf5-training-data>:/data/512
+   -v <replace-with-path-to-phase1-hdf5-training-data>:/data/hdf5/lower_case_1_seq_len_128_max_pred_20_masked_lm_prob_0.15_random_seed_12345_dupe_factor_5_shard_1472_test_split_10/pubmed_baseline/training
+   -v <replace-with-path-to-phase2-hdf5-training-data>:/data/hdf5/lower_case_1_seq_len_128_max_pred_20_masked_lm_prob_0.15_random_seed_12345_dupe_factor_5_shard_1472_test_split_10/pubmed_baseline/training
    ...
    ```
 
@@ -199,7 +195,7 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
 
     ```bash
     cd workspace/BERT
-    bash ../../nvidia-bert/docker/launch.sh
+    bash ../../nvidia-biobert/docker/launch.sh
     ```
 
 7. Launch pre-training run
@@ -209,7 +205,3 @@ Note that the datasets used for BERT pre-training need a large amount of disk sp
     ```
 
     If you get memory errors, try reducing the batch size or enabling the partition optimizer flag.
-
-## Fine-tuning
-
-For fine-tuning tasks, follow [model_evaluation.md](model_evaluation.md)
