@@ -16,14 +16,14 @@ set -e
 
 echo "Container nvidia build = " $NVIDIA_BUILD_ID
 
-precision=${3:-"fp32"}
+precision=${3:-"fp16"}
 num_gpus=${4:-8}
 gpu_memory_limit_gb=${26:-"32"}
 
 seed=${12:-42}
 job_name=${13:-"bert_lamb_pretraining"}
 allreduce_post_accumulation=${14:-"true"}
-allreduce_post_accumulation_fp16=${15:-"false"}
+allreduce_post_accumulation_fp16=${15:-"true"}
 
 resume_training=${8:-"false"}
 create_logfile=${9:-"true"}
@@ -35,13 +35,13 @@ learning_rate=${2:-"6e-3"}
 warmup_proportion=${5:-"0.2843"}
 train_steps=${6:-7038}
 save_checkpoint_steps=${7:-200}
-gradient_accumulation_steps=${11:-64}
+gradient_accumulation_steps=${11:-32}
 
 train_batch_size_phase2=${17:-4096}
 learning_rate_phase2=${18:-"4e-3"}
 warmup_proportion_phase2=${19:-"0.128"}
 train_steps_phase2=${20:-1563}
-gradient_accumulation_steps_phase2=${11:-512}
+gradient_accumulation_steps_phase2=${11:-256}
 
 #PATH_TO_PHASE1_TRAINING_DATA=/data/128
 PATH_TO_PHASE1_TRAINING_DATA=/data/wezhan/bert/hdf5/128/train
