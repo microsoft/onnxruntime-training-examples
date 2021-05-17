@@ -3,18 +3,25 @@ import math
 import torch
 import torch.nn as nn
 import torchtext
-from torchtext.data.utils import get_tokenizer
+# torchtext 0.9.0 deprecated legacy data loader
+if hasattr(torchtext, "legacy"):
+    from torchtext.legacy import data
+    from torchtext.legacy import datasets
+else:
+    # for torchtext versions < 0.9.0
+    from torchtext import data
+    from torchtext import datasets
 from model import TransformerModel
 from onnxruntime.training import ORTTrainer, optim
 
-basic_english_tokenizer=get_tokenizer("basic_english")
+basic_english_tokenizer=data.utils.get_tokenizer("basic_english")
 
-TEXT = torchtext.data.Field(tokenize=basic_english_tokenizer,
-                            init_token='<sos>',
-                            eos_token='<eos>',
-                            lower=True)
+TEXT = data.Field(tokenize=basic_english_tokenizer,
+                  init_token='<sos>',
+                  eos_token='<eos>',
+                  lower=True)
 
-train_txt, val_txt, test_txt = torchtext.datasets.WikiText2.splits(TEXT)
+train_txt, val_txt, test_txt = datasets.WikiText2.splits(TEXT)
 TEXT.build_vocab(train_txt)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -27,7 +34,7 @@ def get_batch(source, i):
     return data, target
 
 def batchify(data, bsz):
-    data = TEXT.numericalize([data.examples[0].text])    
+    data = TEXT.numericalize([data.examples[0].text])
     # Divide the dataset into bsz parts.
     nbatch = data.size(0) // bsz
     # Trim off any extra elements that wouldn't cleanly fit (remainders).
@@ -56,7 +63,7 @@ criterion = nn.CrossEntropyLoss()
 def loss_with_flat_output(output, target):
     output = output.view(-1, ntokens)
     return criterion(output, target)
-    
+
 learning_rate = 0.001
 
 def train():
