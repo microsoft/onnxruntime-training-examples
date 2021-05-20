@@ -1,5 +1,4 @@
 import os
-import requests
 import sys
 import shlex
 from datetime import datetime
@@ -45,13 +44,16 @@ parser.add_argument("--run_config",
                         help="One of pt-fp16, ort, ds_s0, ds_s0_ort, ds_s1, ds_s1_ort", type=str, required=True)
 
 parser.add_argument("--model_batchsize",
-                        help="Model batchsize", type=str, required=False)
+                        help="Model batchsize", type=int, required=False)
+
+parser.add_argument("--max_step",
+                        help="Max step that a model will run", type=int, default=200, required=False)
 
 parser.add_argument("--process_count",
-                        help="GPU process count", type=str, required=False, default=8)
+                        help="Total number of GPUs (not GPUs per node)", type=int, required=False, default=8)
 
 parser.add_argument("--node_count",
-                        help="node count", type=str, required=False, default=1)
+                        help="node count", type=int, required=False, default=1)
 
 args = parser.parse_args()                  
 
@@ -75,21 +77,18 @@ except ComputeTargetException:
 hf_model = args.hf_model
 run_config = args.run_config
 
-if args.process_count > 1:
-    torch_distributed_args = "python -m torch.distributed.launch --nproc_per_node 8 --use_env "
-else:
-    if args.run_config.contains("ds"):
-        torch_distributed_args = "CUDA_VISIBLE_DEVICES=0 deepspeed"
-    else:
-        torch_distributed_args = "CUDA_VISIBLE_DEVICES=0 python"
-
 model_batchsize_dict = {
-        "bert-large" : '8',
-        "distilbert-base" : '32',
-        "gpt2" : '8',
-        "bart-large" : '16',
-        "t5-large" : '16'
-    }
+    "bert-large" : '8',
+    "distilbert-base" : '32',
+    "gpt2" : '8',
+    "bart-large" : '16',
+    "t5-large" : '16'
+}
+
+if args.model_batchsize:
+    model_batchsize = args.model_batchsize
+else:
+    model_batchsize = model_batchsize_dict[hf_model]
 
 run_scripts_dict = {
     "bert-large" : 'run_mlm.py',
@@ -100,11 +99,11 @@ run_scripts_dict = {
 }
 
 base_args_dict = {
-    "bert-large" : ['--model_name_or_path', 'bert-large-uncased', '--dataset_name', 'wikitext', '--dataset_config_name', 'wikitext-2-raw-v1', '--do_train', '--max_steps', 200, '--logging_steps', 200, '--output_dir', '/tmp/test-mlm-bbu', '--overwrite_output_dir', '--per_device_train_batch_size', 8, '--fp16'],
-    "distilbert-base" : ['--model_name_or_path', 'distilbert-base-uncased', '--dataset_name', 'wikitext', '--dataset_config_name', 'wikitext-2-raw-v1', '--do_train', '--max_steps', 200, '--logging_steps', 200, '--output_dir', '/tmp/test-mlm-bbu', '--overwrite_output_dir', '--per_device_train_batch_size', 32, '--fp16'],
-    "gpt2" : ['--model_name_or_path', 'gpt2', '--dataset_name', 'wikitext', '--dataset_config_name', 'wikitext-2-raw-v1', '--do_train', '--label_smoothing', 0.1, '--max_steps', 200, '--logging_steps', 200, '--overwrite_output_dir', '--output_dir', '/tmp/test-clm', '--per_device_train_batch_size', 8, '--fp16'],
-    "bart-large" : ['--dataset_name', 'wmt16', '--dataset_config', 'ro-en', '--model_name_or_path', 'facebook/bart-large', '--output_dir', '/tmp/tst-translation', '--do_train', '--label_smoothing', 0.1, '--logging_steps', 200, '--overwrite_output_dir', '--per_device_train_batch_size', 16, '--predict_with_generate', '--source_lang', 'en', '--target_lang', 'ro', '--warmup_steps', 5, '--fp16', '--max_steps', 200],
-    "t5-large" : ['--source_prefix', 'translate English to Romanian:', '--dataset_name', 'wmt16', '--dataset_config', 'ro-en', '--model_name_or_path', 't5-large', '--output_dir', '/tmp/tst-translation', '--do_train', '--label_smoothing', 0.1, '--logging_steps', 200, '--overwrite_output_dir', '--per_device_train_batch_size', 16, '--predict_with_generate', '--source_lang', 'en', '--target_lang', 'ro', '--warmup_steps', 5, '--fp16', '--max_steps', 200],
+    "bert-large" : ['--model_name_or_path', 'bert-large-uncased', '--dataset_name', 'wikitext', '--dataset_config_name', 'wikitext-2-raw-v1', '--do_train', '--max_steps', args.max_steps, '--logging_steps', 200, '--output_dir', '/tmp/test-mlm-bbu', '--overwrite_output_dir', '--per_device_train_batch_size', f"{model_batchsize}", '--fp16'],
+    "distilbert-base" : ['--model_name_or_path', 'distilbert-base-uncased', '--dataset_name', 'wikitext', '--dataset_config_name', 'wikitext-2-raw-v1', '--do_train', '--max_steps', args.max_steps, '--logging_steps', 200, '--output_dir', '/tmp/test-mlm-bbu', '--overwrite_output_dir', '--per_device_train_batch_size', f"{model_batchsize}", '--fp16'],
+    "gpt2" : ['--model_name_or_path', 'gpt2', '--dataset_name', 'wikitext', '--dataset_config_name', 'wikitext-2-raw-v1', '--do_train', '--label_smoothing', 0.1, '--max_steps', args.max_steps, '--logging_steps', 200, '--overwrite_output_dir', '--output_dir', '/tmp/test-clm', '--per_device_train_batch_size', f"{model_batchsize}", '--fp16'],
+    "bart-large" : ['--dataset_name', 'wmt16', '--dataset_config', 'ro-en', '--model_name_or_path', 'facebook/bart-large', '--output_dir', '/tmp/tst-translation', '--do_train', '--label_smoothing', 0.1, '--logging_steps', 200, '--overwrite_output_dir', '--per_device_train_batch_size', f"{model_batchsize}", '--predict_with_generate', '--source_lang', 'en', '--target_lang', 'ro', '--warmup_steps', 5, '--fp16', '--max_steps', args.max_steps],
+    "t5-large" : ['--source_prefix', 'translate English to Romanian:', '--dataset_name', 'wmt16', '--dataset_config', 'ro-en', '--model_name_or_path', 't5-large', '--output_dir', '/tmp/tst-translation', '--do_train', '--label_smoothing', 0.1, '--logging_steps', 200, '--overwrite_output_dir', '--per_device_train_batch_size', f"{model_batchsize}", '--predict_with_generate', '--source_lang', 'en', '--target_lang', 'ro', '--warmup_steps', 5, '--fp16', '--max_steps', args.max_steps],
 }
 
 config_args_dict = {
@@ -116,15 +115,10 @@ config_args_dict = {
     "ds_s1_ort" : ['--ort', '--deepspeed', 'ds_config_zero_1.json'],
 }
 
-if args.model_batchsize:
-    model_batchsize = args.model_batchsize
-else:
-    model_batchsize = model_batchsize_dict[hf_model]
-
 hf_ort_env = Environment.from_dockerfile(name='hf-ort-dockerfile', dockerfile='../docker/Dockerfile')
 hf_ort_env.register(ws).build(ws).wait_for_completion()
 
-distr_config = PyTorchConfiguration(process_count=8, node_count=1)
+distr_config = PyTorchConfiguration(process_count=args.process_count, node_count=args.node_count)
 
 model_experiment_name = 'hf-ortmodule-' + args.hf_model
 model_run_args_base = base_args_dict[hf_model]
@@ -143,4 +137,4 @@ model_run_config = ScriptRunConfig(source_directory='../../huggingface-transform
 print("Submitting run for model: ", hf_model)
 print("Submitting run for config: ", run_config)
 run = model_experiment.submit(model_run_config)
-run.add_properties({'model' : hf_model, 'config' : run_config, 'bs' : model_batchsize, 'gpus' : '8'})
+run.add_properties({'model' : hf_model, 'config' : run_config, 'bs' : model_batchsize, 'gpus' : args.process_count})

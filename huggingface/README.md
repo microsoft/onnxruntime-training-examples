@@ -23,3 +23,6 @@ cd onnxruntime-training-examples/huggingface/azureml
 python hf-ort.py --workspace_name <your_workspace_name> --resource_group 
 <resource_group> --subscription_id <your_subscription_id> --gpu_cluster_name V100 --min_cluster_node 0 --max_cluster_node 7 --hf_model bert-large --run_config ort
 ```
+## Common Errors
+### Problem with Azure authentication
+If there's an Azure authentication issue, install Azure CLI [here](https://docs.microsoft.com/en-us/cli/azure/) and run `az login --use-device-code`
