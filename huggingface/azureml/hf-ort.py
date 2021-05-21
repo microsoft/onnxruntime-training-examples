@@ -132,8 +132,7 @@ hf_ort_env = Environment.from_dockerfile(name='hf-ort-dockerfile', dockerfile='.
 
 distr_config = PyTorchConfiguration(process_count=args.process_count, node_count=args.node_count)
 
-#model_experiment_name = 'hf-ortmodule-recipe-' + args.hf_model
-model_experiment_name = 'hf-ortmodule-recipe-test'
+model_experiment_name = 'hf-ortmodule-recipe-' + args.hf_model
 model_run_args_base = base_args_dict[args.hf_model]
 model_run_script = RUN_SCRIPT_DICT[args.hf_model]
 #copy run script to current folder
