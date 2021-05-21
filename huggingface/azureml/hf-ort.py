@@ -64,7 +64,7 @@ parser.add_argument("--gpu_cluster_name",
 
 parser.add_argument("--hf_model",
                         help="Huggingface models to run", type=str, required=True,
-                        choices=['bert-large', 'distilbert-base', 'gpt2', 'bart-large', 't5-large'])
+                        choices=['bert-large', 'distilbert-base', 'gpt2', 'bart-large', 't5-large', 'deberta-v2-xxlarge', 'roberta-large'])
 
 parser.add_argument("--run_config",
                         help="Run configuration indicating pytorch or ort, deepspeed stage", type=str, required=True,
@@ -133,7 +133,7 @@ hf_ort_env = Environment.from_dockerfile(name='hf-ort-dockerfile', dockerfile='.
 distr_config = PyTorchConfiguration(process_count=args.process_count, node_count=args.node_count)
 
 model_experiment_name = 'hf-ortmodule-recipe-' + args.hf_model
-model_run_args_base = base_args_dict[args.hf_model]
+#odel_run_args_base = base_args_dict[args.hf_model]
 model_run_script = RUN_SCRIPT_DICT[args.hf_model]
 #copy run script to current folder
 model_run_script_path = os.path.normcase(os.path.join('../../huggingface-transformers/examples/pytorch', RUN_SCRIPT_DIR_DICT[args.hf_model], model_run_script))
