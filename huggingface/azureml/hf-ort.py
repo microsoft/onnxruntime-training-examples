@@ -140,10 +140,10 @@ distr_config = PyTorchConfiguration(process_count=args.process_count, node_count
 model_run_args_base = base_args_dict[args.hf_model]
 model_run_script = RUN_SCRIPT_DICT[args.hf_model]
 model_run_script_path = os.path.normcase(os.path.join('/stage/huggingface-transformers/examples/pytorch', RUN_SCRIPT_DIR_DICT[args.hf_model], model_run_script))
-shutil.copy(model_run_script_path, '.')
 model_run_args_config = model_run_args_base + CONFIG_ARGS_DICT[args.run_config]
 
 if azureml_run:
+  shutil.copy(model_run_script_path, '.')
   # Create experiment for model
   model_experiment_name = 'hf-ortmodule-recipe-' + args.hf_model
   model_experiment = Experiment(ws, name=model_experiment_name)
@@ -162,4 +162,8 @@ else:
  import subprocess
  torch_launch_arguments = ['python', '-m', 'torch.distributed.launch', '--nproc_per_node', str(args.process_count)]
  model_script_arguments = torch_launch_arguments + [model_run_script_path] + [str(arg) for arg in model_run_args_config]
+ print('')
+ print(' '.join(model_script_arguments))
+ print('')
+ sys.stdout.flush()
  subprocess.run(model_script_arguments)
