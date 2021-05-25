@@ -1,0 +1,30 @@
+FROM rocm/pytorch:rocm4.2_ubuntu18.04_py3.6_pytorch_1.8.1
+ENV ROCM_HOME=/opt/rocm
+
+# Install and update tools to minimize security vulnerabilities
+RUN apt-get update
+RUN apt-get install -y software-properties-common wget apt-utils patchelf git libprotobuf-dev protobuf-compiler cmake unattended-upgrades
+RUN unattended-upgrade
+RUN apt-get autoremove -y
+
+# ORT Module
+RUN CC=mpicc MPICC=mpicc pip install mpi4py --no-binary mpi4py
+RUN pip install onnx ninja
+RUN pip install --pre onnxruntime-training -f https://onnxruntimepackages.z14.web.core.windows.net/onnxruntime_nightly_rocm42.html
+RUN pip install torch-ort
+
+WORKDIR /stage
+
+# Huggingface-Transformers
+RUN pip install azureml-defaults wget fairscale 
+RUN pip install datasets sacremoses sacrebleu sentencepiece scipy sklearn
+RUN git clone https://github.com/microsoft/huggingface-transformers.git &&\
+    cd huggingface-transformers && git checkout 5b7c295e &&\
+    pip install -e .
+
+# Benchmarking scripts
+RUN git clone https://github.com/microsoft/onnxruntime-training-examples.git &&\
+    cd onnxruntime-training-examples && git checkout sukha/jingywa/hf-rocm-benchmark 
+
+# Entry script should launch 
+

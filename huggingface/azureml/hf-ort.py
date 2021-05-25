@@ -93,62 +93,73 @@ parser.add_argument("--node_count",
 
 args = parser.parse_args()                  
 
-try:
-    ws = Workspace.from_config()
-except:
-    if args.workspace_name and args.subscription_id and args.resource_group:
-        ws = Workspace.get(name=args.workspace_name, subscription_id=args.subscription_id, resource_group=args.resource_group)
-    else:
-        print("Please provide workspace name, subscription id and resource group")
+azureml_run = (args.gpu_cluster_name != 'local')
 
-# Create the compute cluster
-gpu_cluster_name = args.gpu_cluster_name
+if azureml_run:
+    try:
+        ws = Workspace.from_config()
+    except:
+        if args.workspace_name and args.subscription_id and args.resource_group:
+            ws = Workspace.get(name=args.workspace_name, subscription_id=args.subscription_id, resource_group=args.resource_group)
+        else:
+            print("Please provide workspace name, subscription id and resource group")
 
-# Verify that the cluster doesn't exist already
-try:
-    gpu_compute_target = ComputeTarget(workspace=ws, name=gpu_cluster_name)
-    print('Found existing compute target.')
-except ComputeTargetException:
-    print(f'Compute target not found. Please create a compute target by name {gpu_cluster_name}')
-
+    # Create the compute cluster
+    gpu_cluster_name = args.gpu_cluster_name
+    
+    # Verify that the cluster doesn't exist already
+    try:
+        gpu_compute_target = ComputeTarget(workspace=ws, name=gpu_cluster_name)
+        print('Found existing compute target.')
+    except ComputeTargetException:
+        print(f'Compute target not found. Please create a compute target by name {gpu_cluster_name}')
+  
 if args.model_batchsize:
     model_batchsize = args.model_batchsize
 else:
     model_batchsize = MODEL_BATCHSIZE_DICT[args.hf_model]
 
 base_args_dict = {
-    "bert-large" : ['--model_name_or_path', 'bert-large-uncased', '--dataset_name', 'wikitext', '--dataset_config_name', 'wikitext-2-raw-v1', '--do_train', '--max_steps', args.max_steps, '--logging_steps', 200, '--output_dir', '/tmp/test-mlm-bbu', '--overwrite_output_dir', '--per_device_train_batch_size', model_batchsize, '--fp16'],
-    "distilbert-base" : ['--model_name_or_path', 'distilbert-base-uncased', '--dataset_name', 'wikitext', '--dataset_config_name', 'wikitext-2-raw-v1', '--do_train', '--max_steps', args.max_steps, '--logging_steps', 200, '--output_dir', '/tmp/test-mlm-bbu', '--overwrite_output_dir', '--per_device_train_batch_size', model_batchsize, '--fp16'],
-    "gpt2" : ['--model_name_or_path', 'gpt2', '--dataset_name', 'wikitext', '--dataset_config_name', 'wikitext-2-raw-v1', '--do_train', '--label_smoothing', 0.1, '--max_steps', args.max_steps, '--logging_steps', 200, '--overwrite_output_dir', '--output_dir', '/tmp/test-clm', '--per_device_train_batch_size', model_batchsize, '--fp16'],
-    "bart-large" : ['--dataset_name', 'wmt16', '--dataset_config', 'ro-en', '--model_name_or_path', 'facebook/bart-large', '--output_dir', '/tmp/tst-translation', '--do_train', '--label_smoothing', 0.1, '--logging_steps', 200, '--overwrite_output_dir', '--per_device_train_batch_size', model_batchsize, '--predict_with_generate', '--source_lang', 'en', '--target_lang', 'ro', '--warmup_steps', 5, '--fp16', '--max_steps', args.max_steps],
-    "t5-large" : ['--source_prefix', 'translate English to Romanian:', '--dataset_name', 'wmt16', '--dataset_config', 'ro-en', '--model_name_or_path', 't5-large', '--output_dir', '/tmp/tst-translation', '--do_train', '--label_smoothing', 0.1, '--logging_steps', 200, '--overwrite_output_dir', '--per_device_train_batch_size', model_batchsize, '--predict_with_generate', '--source_lang', 'en', '--target_lang', 'ro', '--warmup_steps', 5, '--fp16', '--max_steps', args.max_steps],
-    "deberta-v2-xxlarge" : ['--model_name_or_path', 'microsoft/deberta-v2-xxlarge', '--task_name', 'MRPC', '--do_train', '--max_seq_length', 128, '--per_device_train_batch_size', model_batchsize, '--learning_rate', '3e-6', '--max_steps', args.max_steps, '--output_dir', '/tmp/deberta_res', '--overwrite_output_dir', '--logging_steps', 200, '--fp16'],
-    "roberta-large" : ['--model_name_or_path', 'roberta-large', '--dataset_name', 'squad', '--do_train', '--per_device_train_batch_size', model_batchsize, '--learning_rate', '3e-5', '--max_steps', args.max_steps, '--max_seq_length', 384, '--doc_stride', 128, '--output_dir', '/tmp/roberta_res', '--overwrite_output_dir', '--logging_steps', 200, '--fp16']
+    "bert-large" : ['--model_name_or_path', 'bert-large-uncased', '--dataset_name', 'wikitext', '--dataset_config_name', 'wikitext-2-raw-v1', '--do_train', '--max_steps', args.max_steps, '--logging_steps', 1, '--output_dir', '/tmp/test-mlm-bbu', '--overwrite_output_dir', '--per_device_train_batch_size', model_batchsize, '--fp16'],
+    "distilbert-base" : ['--model_name_or_path', 'distilbert-base-uncased', '--dataset_name', 'wikitext', '--dataset_config_name', 'wikitext-2-raw-v1', '--do_train', '--max_steps', args.max_steps, '--logging_steps', 1, '--output_dir', '/tmp/test-mlm-bbu', '--overwrite_output_dir', '--per_device_train_batch_size', model_batchsize, '--fp16'],
+    "gpt2" : ['--model_name_or_path', 'gpt2', '--dataset_name', 'wikitext', '--dataset_config_name', 'wikitext-2-raw-v1', '--do_train', '--label_smoothing', 0.1, '--max_steps', args.max_steps, '--logging_steps', 1, '--overwrite_output_dir', '--output_dir', '/tmp/test-clm', '--per_device_train_batch_size', model_batchsize, '--fp16'],
+    "bart-large" : ['--dataset_name', 'wmt16', '--dataset_config', 'ro-en', '--model_name_or_path', 'facebook/bart-large', '--output_dir', '/tmp/tst-translation', '--do_train', '--label_smoothing', 0.1, '--logging_steps', 1, '--overwrite_output_dir', '--per_device_train_batch_size', model_batchsize, '--predict_with_generate', '--source_lang', 'en', '--target_lang', 'ro', '--warmup_steps', 5, '--fp16', '--max_steps', args.max_steps],
+    "t5-large" : ['--source_prefix', 'translate English to Romanian:', '--dataset_name', 'wmt16', '--dataset_config', 'ro-en', '--model_name_or_path', 't5-large', '--output_dir', '/tmp/tst-translation', '--do_train', '--label_smoothing', 0.1, '--logging_steps', 1, '--overwrite_output_dir', '--per_device_train_batch_size', model_batchsize, '--predict_with_generate', '--source_lang', 'en', '--target_lang', 'ro', '--warmup_steps', 5, '--fp16', '--max_steps', args.max_steps],
+    # warning: hack microsoft/deberta-v2-xxlarge => microsoft/deberta-v2-xlarge
+    "deberta-v2-xxlarge" : ['--model_name_or_path', 'microsoft/deberta-v2-xlarge', '--task_name', 'MRPC', '--do_train', '--max_seq_length', 128, '--per_device_train_batch_size', model_batchsize, '--learning_rate', '3e-6', '--max_steps', args.max_steps, '--output_dir', '/tmp/deberta_res', '--overwrite_output_dir', '--logging_steps', 1, '--fp16'],
+    "roberta-large" : ['--model_name_or_path', 'roberta-large', '--dataset_name', 'squad', '--do_train', '--per_device_train_batch_size', model_batchsize, '--learning_rate', '3e-5', '--max_steps', args.max_steps, '--max_seq_length', 384, '--doc_stride', 128, '--output_dir', '/tmp/roberta_res', '--overwrite_output_dir', '--logging_steps', 1, '--fp16']
 }
 
-hf_ort_env = Environment.from_dockerfile(name='hf-ort-dockerfile', dockerfile='../docker/Dockerfile')
-# This step builds a new docker image from dockerfile
-#hf_ort_env.register(ws).build(ws).wait_for_completion()
-
+if azureml_run:
+    hf_ort_env = Environment.from_dockerfile(name='hf-ort-dockerfile', dockerfile='../docker/Dockerfile')
+    # This step builds a new docker image from dockerfile
+    #hf_ort_env.register(ws).build(ws).wait_for_completion()
+  
 distr_config = PyTorchConfiguration(process_count=args.process_count, node_count=args.node_count)
 
-model_experiment_name = 'hf-ortmodule-recipe-' + args.hf_model
-#odel_run_args_base = base_args_dict[args.hf_model]
+model_run_args_base = base_args_dict[args.hf_model]
 model_run_script = RUN_SCRIPT_DICT[args.hf_model]
-#copy run script to current folder
-model_run_script_path = os.path.normcase(os.path.join('../../huggingface-transformers/examples/pytorch', RUN_SCRIPT_DIR_DICT[args.hf_model], model_run_script))
+model_run_script_path = os.path.normcase(os.path.join('/stage/huggingface-transformers/examples/pytorch', RUN_SCRIPT_DIR_DICT[args.hf_model], model_run_script))
 shutil.copy(model_run_script_path, '.')
-# Create experiment for model
-model_experiment = Experiment(ws, name=model_experiment_name)
 model_run_args_config = model_run_args_base + CONFIG_ARGS_DICT[args.run_config]
-# create script run config for the model+config
-model_run_config = ScriptRunConfig(source_directory='.',
-    script=model_run_script,
-    arguments=model_run_args_config,
-    compute_target=gpu_compute_target,
-    environment=hf_ort_env,
-    distributed_job_config=distr_config)
 
-print(f"Submitting run for model: {args.hf_model}, config: {args.run_config}")
-run = model_experiment.submit(model_run_config)
-run.add_properties({'model' : args.hf_model, 'config' : args.run_config, 'bs' : model_batchsize, 'gpus' : str(args.process_count)})
+if azureml_run:
+  # Create experiment for model
+  model_experiment_name = 'hf-ortmodule-recipe-' + args.hf_model
+  model_experiment = Experiment(ws, name=model_experiment_name)
+  # create script run config for the model+config
+  model_run_config = ScriptRunConfig(source_directory='.',
+      script=model_run_script,
+      arguments=model_run_args_config,
+      compute_target=gpu_compute_target,
+      environment=hf_ort_env,
+      distributed_job_config=distr_config)
+  
+  print(f"Submitting run for model: {args.hf_model}, config: {args.run_config}")
+  run = model_experiment.submit(model_run_config)
+  run.add_properties({'model' : args.hf_model, 'config' : args.run_config, 'bs' : model_batchsize, 'gpus' : str(args.process_count)})
+else:
+ import subprocess
+ torch_launch_arguments = ['python', '-m', 'torch.distributed.launch', '--nproc_per_node', str(args.process_count)]
+ model_script_arguments = torch_launch_arguments + [model_run_script_path] + [str(arg) for arg in model_run_args_config]
+ subprocess.run(model_script_arguments)
