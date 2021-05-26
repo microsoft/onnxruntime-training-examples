@@ -24,7 +24,7 @@ RUN git clone https://github.com/microsoft/huggingface-transformers.git &&\
     pip install -e .
 
 # Benchmarking scripts
-ARG BENCHMARK_CACHE_DATE=05-25-2021
+ARG BENCHMARK_CACHE_DATE=05-26-2021
 RUN git clone https://github.com/microsoft/onnxruntime-training-examples.git &&\
     cd onnxruntime-training-examples && git checkout sukha/jingywa/hf-rocm-benchmark 
 
