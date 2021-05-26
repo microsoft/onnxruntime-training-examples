@@ -9,13 +9,13 @@ MODEL_BATCHSIZE_DICT = {
 }
 
 RUN_SCRIPT_DICT= {
-    "bert-large" : 'run_mlm.py',
-    "distilbert-base" : 'run_mlm.py',
-    "gpt2" : 'run_clm.py',
-    "bart-large" : 'run_translation.py',
-    "t5-large" : 'run_translation.py',
-    "deberta-v2-xxlarge" : 'run_glue.py',
-    "roberta-large" : 'run_qa.py'
+    "bert-large" : ['run_mlm.py'],
+    "distilbert-base" : ['run_mlm.py'],
+    "gpt2" : ['run_clm.py'],
+    "bart-large" : ['run_translation.py'],
+    "t5-large" : ['run_translation.py'],
+    "deberta-v2-xxlarge" : ['run_glue.py'],
+    "roberta-large" : ['run_qa.py', 'trainer_qa.py', 'utils_qa.py']
 }
 
 RUN_SCRIPT_DIR_DICT= {
@@ -32,10 +32,12 @@ CONFIG_ARGS_DICT = {
     "pt-fp16" : [],
     "ort" : ['--ort'],
     "ds_s0" : ['--deepspeed', 'ds_config_zero_0.json'],
-    "ds_s1" : ['--deepspeed', 'ds_config_zero_1.json'],
     "ds_s0_ort" : ['--ort', '--deepspeed', 'ds_config_zero_0.json'],
-    "ds_s1_ort" : ['--ort', '--deepspeed', 'ds_config_zero_1.json'],
+    "ds_s1" : ['--deepspeed', 'ds_config_zero_1.json'],
+    "ds_s1_ort" : ['--ort', '--deepspeed', 'ds_config_zero_1.json']
 }
+
+TRAINER_DIR = '../../huggingface-transformers/examples/pytorch'
 
 import os
 import shutil
@@ -128,22 +130,30 @@ base_args_dict = {
 
 hf_ort_env = Environment.from_dockerfile(name='hf-ort-dockerfile', dockerfile='../docker/Dockerfile')
 # This step builds a new docker image from dockerfile
-#hf_ort_env.register(ws).build(ws).wait_for_completion()
-
-distr_config = PyTorchConfiguration(process_count=args.process_count, node_count=args.node_count)
+hf_ort_env.register(ws).build(ws).wait_for_completion()
 
 model_experiment_name = 'hf-ortmodule-recipe-' + args.hf_model
-#odel_run_args_base = base_args_dict[args.hf_model]
-model_run_script = RUN_SCRIPT_DICT[args.hf_model]
-#copy run script to current folder
-model_run_script_path = os.path.normcase(os.path.join('../../huggingface-transformers/examples/pytorch', RUN_SCRIPT_DIR_DICT[args.hf_model], model_run_script))
-shutil.copy(model_run_script_path, '.')
+model_run_args_base = base_args_dict[args.hf_model]
+model_run_scripts = RUN_SCRIPT_DICT[args.hf_model]
+
+# copy dependent run script to current folder
+for script_file in model_run_scripts:
+    model_run_script_path = os.path.normcase(os.path.join(TRAINER_DIR, RUN_SCRIPT_DIR_DICT[args.hf_model], script_file))
+    shutil.copy(model_run_script_path, '.')
+
+model_run_args_config = model_run_args_base + CONFIG_ARGS_DICT[args.run_config]
+# use _xxberta.json for deberta and roberta
+if args.hf_model in ['deberta-v2-xxlarge', 'roberta-large'] and args.run_config.startswith('ds_'):
+    model_run_args_config[-1] = model_run_args_config[-1].replace('.json','_xxberta.json')
+if args.hf_model in ['deberta-v2-xxlarge'] and not args.run_config.startswith('ds_'):
+    model_run_args_config += ['--sharded_ddp', 'simple']
+
 # Create experiment for model
 model_experiment = Experiment(ws, name=model_experiment_name)
-model_run_args_config = model_run_args_base + CONFIG_ARGS_DICT[args.run_config]
+distr_config = PyTorchConfiguration(process_count=args.process_count, node_count=args.node_count)
 # create script run config for the model+config
 model_run_config = ScriptRunConfig(source_directory='.',
-    script=model_run_script,
+    script=model_run_scripts[0],
     arguments=model_run_args_config,
     compute_target=gpu_compute_target,
     environment=hf_ort_env,
@@ -151,4 +161,4 @@ model_run_config = ScriptRunConfig(source_directory='.',
 
 print(f"Submitting run for model: {args.hf_model}, config: {args.run_config}")
 run = model_experiment.submit(model_run_config)
-run.add_properties({'model' : args.hf_model, 'config' : args.run_config, 'bs' : model_batchsize, 'gpus' : str(args.process_count)})
+run.set_tags({'model' : args.hf_model, 'config' : args.run_config, 'bs' : model_batchsize, 'gpus' : str(args.process_count)})

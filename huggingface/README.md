@@ -1,7 +1,7 @@
 # ORTModule Examples
 This example uses ORTModule to fine-tune several popular [HuggingFace](https://huggingface.co/) models.
 
-## Prerequisite
+## Prerequisites
 1. AzureML subscription is required to run this example. Either a config.json file ([How to get config.json file from Azure Portal](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-configure-environment#workspace)) or subscription_id, resource_group, workspace_name is required.
 2. The subscription should have a gpu cluster. This example was tested with GPU cluster of SKU [`Standard_ND40rs_v2`](https://docs.microsoft.com/en-us/azure/virtual-machines/ndv2-series). See this document for [creating gpu cluster] (https://docs.microsoft.com/en-us/azure/machine-learning/how-to-create-attach-compute-cluster?tabs=python).
 
@@ -20,12 +20,12 @@ pip install azureml-core
 3. Run this recipe
 
 ### If config.json is in `huggingface/azureml`
-
+#### BERT
 ```bash
 cd huggingface/azureml
 python hf-ort.py --gpu_cluster_name <gpu_cluster_name> --hf_model bert-large --run_config ort
 ```
-
+Please see [BERT.md](BERT.md) for more details on performance gain and convergence.
 ### Alternatively, pass AzureML Workspace info through parameters
 ```bash
 cd huggingface/azureml

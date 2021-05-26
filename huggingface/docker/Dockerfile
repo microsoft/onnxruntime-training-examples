@@ -43,3 +43,5 @@ RUN cd /stage && git clone https://github.com/microsoft/huggingface-transformers
 # Install AzureML support and commonly used packages.
 RUN pip install azureml-defaults wget fairscale
 RUN pip install sacrebleu datasets deepspeed
+RUN pip install scipy sklearn accelerate
+RUN pip install sentencepiece protobuf
