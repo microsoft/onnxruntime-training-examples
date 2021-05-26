@@ -17,11 +17,9 @@ for ngpu in 1 8; do
   echo $command
   $command 2>&1 | tee /logs/torch-$config-$model-$ngpu-gpu.txt
   echo "torch-$config-$model-$ngpu-gpu.txt" >> /logs/benchmark.txt
-  perf=`grep -e 'stable_train_samples_per_second.:' /workspace/torch-$config-$model-$ngpu-gpu.txt`
+  perf=`grep -e 'stable_train_samples_per_second.:' /logs/torch-$config-$model-$ngpu-gpu.txt`
   echo $perf >> /logs/benchmark.txt
   echo "" >> /logs/benchmark.txt
   echo "" 
 
 done; done; done
-~    
-
