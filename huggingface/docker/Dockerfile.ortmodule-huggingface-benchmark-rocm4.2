@@ -8,7 +8,7 @@ RUN unattended-upgrade
 RUN apt-get autoremove -y
 
 # ORT Module
-ARG BENCHMARK_CACHE_DATE=05-25-2021
+ARG ORT_CACHE_DATE=05-25-2021
 RUN CC=mpicc MPICC=mpicc pip install mpi4py --no-binary mpi4py
 RUN pip install onnx ninja
 RUN pip install --pre onnxruntime-training -f https://onnxruntimepackages.z14.web.core.windows.net/onnxruntime_nightly_rocm42.html
