@@ -1,3 +1,20 @@
+import os
+import shutil
+import sys
+import shlex
+from datetime import datetime
+import argparse
+
+# AzureML libraries
+import azureml.core
+from azureml.core import Experiment, Workspace, Datastore, Run, Environment
+from azureml.core.compute import ComputeTarget, AmlCompute, AksCompute
+from azureml.core.compute_target import ComputeTargetException
+from azureml.core import ScriptRunConfig
+from azureml.core.runconfig import PyTorchConfiguration
+
+TRAINER_DIR = '../../huggingface-transformers/examples/pytorch'
+
 MODEL_BATCHSIZE_DICT = {
     "bert-large" : '8',
     "distilbert-base" : '32',
@@ -37,23 +54,6 @@ CONFIG_ARGS_DICT = {
     "ds_s1_ort" : ['--ort', '--deepspeed', 'ds_config_zero_1.json']
 }
 
-TRAINER_DIR = '../../huggingface-transformers/examples/pytorch'
-
-import os
-import shutil
-import sys
-import shlex
-from datetime import datetime
-import argparse
-
-# AzureML libraries
-import azureml.core
-from azureml.core import Experiment, Workspace, Datastore, Run, Environment
-from azureml.core.compute import ComputeTarget, AmlCompute, AksCompute
-from azureml.core.compute_target import ComputeTargetException
-from azureml.core import ScriptRunConfig
-from azureml.core.runconfig import PyTorchConfiguration
-
 # Check core SDK version number
 print("SDK version:", azureml.core.VERSION)
 
@@ -82,7 +82,7 @@ parser.add_argument("--subscription_id",
                         help="Subscription of that AzureML workspace belongs to", type=str, required=False)
 # model params 
 parser.add_argument("--model_batchsize",
-                        help="Model batchsize", type=int, required=False)
+                        help="Model batchsize per GPU", type=int, required=False)
 
 parser.add_argument("--max_steps",
                         help="Max step that a model will run", type=int, default=200, required=False)
@@ -133,6 +133,7 @@ hf_ort_env = Environment.from_dockerfile(name='hf-ort-dockerfile', dockerfile='.
 hf_ort_env.register(ws).build(ws).wait_for_completion()
 
 model_experiment_name = 'hf-ortmodule-recipe-' + args.hf_model
+
 model_run_args_base = base_args_dict[args.hf_model]
 model_run_scripts = RUN_SCRIPT_DICT[args.hf_model]
 
@@ -162,3 +163,4 @@ model_run_config = ScriptRunConfig(source_directory='.',
 print(f"Submitting run for model: {args.hf_model}, config: {args.run_config}")
 run = model_experiment.submit(model_run_config)
 run.set_tags({'model' : args.hf_model, 'config' : args.run_config, 'bs' : model_batchsize, 'gpus' : str(args.process_count)})
+print(f"Job submitted to {run.get_portal_url()}")

@@ -13,11 +13,12 @@ cd onnxruntime-training-examples
 git submodule update --init --recursive
 git submodule foreach git pull origin master
 ```
-2. Install azureml-core
+2. Make sure python 3.6+ is installed
+3. Install azureml-core
 ```bash
 pip install azureml-core
 ```
-3. Run this recipe
+4. Run this recipe
 
 ### If config.json is in `huggingface/azureml`
 #### BERT
