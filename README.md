@@ -1,29 +1,53 @@
+# New to Onnx
+- Official ORT documentation: https://www.onnxruntime.ai/  
+- Official ORT GitHub Repo: https://github.com/microsoft/onnxruntime
+- Official ORT Samples Repo: https://github.com/microsoft/onnxruntime-training-examples
+
+# What is ONNX Runtime for PyTorch
+
+ONNX Runtime for PyTorch gives you the ability to accelerate training of large transformer PyTorch models. The training time and cost are reduced with just a one line code change.
+
+- One line code change: ORT provides a one-line addition for existing PyTorch training scripts allowing easier experimentation and greater agility.
+```python
+    from torch_ort import ORTModule
+    model = ORTModule(model)
+```
+
+- Flexible and extensible hardware support: The same model and API works with NVIDIA and AMD GPUs; the extensible "execution provider" architecture allow you to plug-in custom operators, optimizer and hardware accelerators.
+
+- Faster Training: Optimized kernels provide up to 1.4X speed up in training time.
+
+- Larger Models: Memory optimizations allow fitting a larger model such as GPT-2 on 16GB GPU, which runs out of memory with stock PyTorch.
+
+- Composable with other acceleration libraries such as Deepspeed, Fairscale, Megatron for even faster and more efficient training
+
+- Part of the PyTorch Ecosystem. It is available via the torch-ort python package.
+ 
+- Built on top of highly successful and proven technologies of ONNX Runtime and ONNX format.
+
 # ONNX Runtime Training Examples
 
-This repo has examples for using [ONNX Runtime](https://github.com/microsoft/onnxruntime) (ORT) for accelerating training of [Transformer](https://arxiv.org/abs/1706.03762) models. These examples focus on large scale model training and achieving the best performance in [Azure Machine Learning service](https://azure.microsoft.com/en-us/services/machine-learning/) and [NVIDIA DGX-2](https://www.nvidia.com/en-us/data-center/dgx-2). ONNX Runtime has the capability to train existing PyTorch models (implemented using `torch.nn.Module`) through its optimized backend. The examples in this repo demonstrate how [`ORTTrainer`](https://github.com/microsoft/onnxruntime/blob/orttraining_rc1/orttraining/orttraining/python/ort_trainer.py#L480)* API can be used to switch the training backend for such models to ONNX Runtime with just a few changes to the existing training code. 
+This repo has examples for using [ONNX Runtime](https://github.com/microsoft/onnxruntime) (ORT) for accelerating training of [Transformer](https://arxiv.org/abs/1706.03762) models. These examples focus on large scale model training and achieving the best performance in [Azure Machine Learning service](https://azure.microsoft.com/en-us/services/machine-learning/). ONNX Runtime has the capability to train existing PyTorch models (implemented using `torch.nn.Module`) through its optimized backend. The examples in this repo demonstrate how `ORTModule` can be used to switch the training backend. 
 
-*_[ORTTrainer API](https://github.com/microsoft/onnxruntime/blob/orttraining_rc1/orttraining/orttraining/python/ort_trainer.py#L480) is experimental and expected to see significant changes in the near future. A new version of the API is under active development. The improvements to the API will provide a more seamless integration with PyTorch training that requires minimal changes in users’ training code._
+** The old ORTTrainer API is no longer supported. Examples for ORTTrainer has been moved under [/orttrainer](/orttrainer).
 
 ## Examples
 
-Outline the examples in the repository. 
+Outline the examples in the repository.
 
-| Example       | Description                                |
-|-------------------|--------------------------------------------|
-| [getting-started](getting-started)| Get started with ONNX Runtime with a simple PyTorch transformer model |
-| [nvidia-bert](nvidia-bert)| Using ONNX Runtime Training with [BERT pretraining implementation in PyTorch](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT) maintained by nvidia |
-| [huggingface-gpt2](huggingface-gpt2)| Using ONNX Runtime Training with [GPT2 finetuning for Language Modeling in PyTorch](https://github.com/huggingface/transformers/tree/master/examples/language-modeling#language-model-training) maintained by huggingface |
+| Example                | Performance Comparison                      | Model Change                                |
+|------------------------|---------------------------------------------|---------------------------------------------|
+| HuggingFace BART       | See [BART](huggingface/BART.md)             | No model change required |
+| HuggingFace BERT       | See [BERT](huggingface/BERT.md)             | No model change required |
+| HuggingFace DeBERTa    | See [DeBERTA](huggingface/DeBERTA.md)       | See [this commit](https://github.com/microsoft/huggingface-transformers/commit/0b2532a4f1df90858472d1eb2ca3ac4eaea42af1) |
+| HuggingFace DistilBERT | See [DistilBERT](huggingface/DistilBERT.md) | No model change required |
+| HuggingFace GPT2       | See [GPT2](huggingface/GPT2.md)             | No model change required|
+| HuggingFace RoBERTa    | See [RoBERTa](huggingface/RoBERTa.md)       | See [this commit](https://github.com/microsoft/huggingface-transformers/commit/b25c43e533c5cadbc4734cc3615563a2304c18a2)|
+| HuggingFace T5         | See [T5](huggingface/T5.md)                 | No model change required|
 <!-- 
 | `CONTRIBUTING.md` | Guidelines for contributing to the sample. |
 -->
 
-## Prerequisites
-
-The examples in this repo depend on a Docker image that includes ONNX Runtime for training. The docker image is available at `mcr.microsoft.com/azureml/onnxruntime-training`. The Docker image is tested in AzureML and DGX-2 environments. For running the examples in other environments, building a new Docker image may be necessary.
-
-## Running the sample
-
-Readme files for every example listed above provide a step-by-step instructions to execute the example.
 
 ## Contributing
 

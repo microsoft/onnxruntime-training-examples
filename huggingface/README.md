@@ -1,39 +1,10 @@
-# What is ONNX Runtime for PyTorch
 
-ONNX Runtime for PyTorch gives you the ability to accelerate training of large transformer PyTorch models. The training time and cost are reduced with just a one line code change.
-
-- One line code change: ORT provides a one-line addition for existing PyTorch training scripts allowing easier experimentation and greater agility.
-```python
-    from torch_ort import ORTModule
-    model = ORTModule(model)
-```
-
-- Flexible and extensible hardware support: The same model and API works with NVIDIA and AMD GPUs; the extensible "execution provider" architecture allow you to plug-in custom operators, optimizer and hardware accelerators.
-
-- Faster Training: Optimized kernels provide up to 1.4X speed up in training time.
-
-- Larger Models: Memory optimizations allow fitting a larger model such as GPT-2 on 16GB GPU, which runs out of memory with stock PyTorch.
-
-- Composable with other acceleration libraries such as Deepspeed, Fairscale, Megatron for even faster and more efficient training
-
-- Part of the PyTorch Ecosystem. It is available via the torch-ort python package.
- 
-- Built on top of highly successful and proven technologies of ONNX Runtime and ONNX format.
-
-## Please also see
-- Official ORT documentation: https://www.onnxruntime.ai/  
-- Official ORT GitHub Repo: https://github.com/microsoft/onnxruntime
-- Official ORT Samples Repo: https://github.com/microsoft/onnxruntime-training-examples
 
 # ORTModule Examples
 This example uses ORTModule to fine-tune several popular [HuggingFace](https://huggingface.co/) models.
 
-## Prerequisites
-1. AzureML subscription is required to run this example. Either a config.json file ([How to get config.json file from Azure Portal](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-configure-environment#workspace)) or subscription_id, resource_group, workspace_name is required.
-2. The subscription should have a gpu cluster. This example was tested with GPU cluster of SKU [`Standard_ND40rs_v2`](https://docs.microsoft.com/en-us/azure/virtual-machines/ndv2-series). See this document for [creating gpu cluster](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-create-attach-compute-cluster?tabs=python).
-
-## Setup
-1. Clone this repo
+## 1 Setup
+1. Clone this repo and initialize git submodule
 ```bash
 git clone https://github.com/microsoft/onnxruntime-training-examples.git
 cd onnxruntime-training-examples
@@ -41,25 +12,55 @@ git submodule update --init --recursive
 git submodule foreach git pull origin master
 ```
 2. Make sure python 3.6+ is installed
+
+We recommend using conda to manage python environment. If you do not have conda installed, you can follow the instruction to install conda [here](https://conda.io/projects/conda/en/latest/user-guide/install/index.html). Once conda is installed, create a new python environment with 
+```bash
+conda create --name myenv python=3.6
+```
 3. Install azureml-core
+
+Activate conda environment just created.
+```bash
+conda activate myenv
+```
+Install azureml dependency for script submission.
 ```bash
 pip install azureml-core
 ```
-4. Run this recipe
+## 2 Run on AzureML
+### 2.1 Prerequisites
+1. AzureML subscription is required to run this example. Either a config.json file ([How to get config.json file from Azure Portal](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-configure-environment#workspace)) or subscription_id, resource_group, workspace_name information needs to be passed in through parameter.
+2. The subscription should have a gpu cluster. This example was tested with GPU cluster of SKU [`Standard_ND40rs_v2`](https://docs.microsoft.com/en-us/azure/virtual-machines/ndv2-series). See this document for [creating gpu cluster](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-create-attach-compute-cluster?tabs=python).
+### 2.2 Run this recipe
+Download config.json file in 2.1 to `huggingface/azureml` directory. Or append below run script with AzureML workspace information such as `--workspace_name <your_workspace_name> --resource_group 
+<resource_group> --subscription_id <your_subscription_id>`.
 
-### If config.json is in `huggingface/azureml`
-#### BERT
+Here's an example to run run bert-large with ORTModule. `hf-ort.py` builds a docker image based on [dockerfile](docker\Dockerfile) and submits run script to AzureML according to model and run configuration.
 ```bash
 cd huggingface/azureml
 python hf-ort.py --gpu_cluster_name <gpu_cluster_name> --hf_model bert-large --run_config ort
 ```
-Please see [BERT.md](BERT.md) for more details on performance gain and convergence.
-### Alternatively, pass AzureML Workspace info through parameters
-```bash
-cd huggingface/azureml
-python hf-ort.py --workspace_name <your_workspace_name> --resource_group 
-<resource_group> --subscription_id <your_subscription_id> --gpu_cluster_name <gpu_cluster_name> --hf_model bert-large --run_config ort
-```
+To run different models with different configuration, check below tables.
+
+This table summarizes if model changes are required.
+| Model                | Performance Comparison                      | Model Change                                |
+|------------------------|---------------------------------------------|---------------------------------------------|
+| bart-large      | See [BART](huggingface/BART.md)             | No model change required |
+| bert-large       | See [BERT](huggingface/BERT.md)             | No model change required |
+| deberta-v2-xxlarge   | See [DeBERTA](huggingface/DeBERTA.md)       | See [this commit](https://github.com/microsoft/huggingface-transformers/commit/0b2532a4f1df90858472d1eb2ca3ac4eaea42af1) |
+| distilbert-base | See [DistilBERT](huggingface/DistilBERT.md) | No model change required |
+| gpt2       | See [GPT2](huggingface/GPT2.md)             | No model change required|
+| roberta-large    | See [RoBERTa](huggingface/RoBERTa.md)       | See [this commit](https://github.com/microsoft/huggingface-transformers/commit/b25c43e533c5cadbc4734cc3615563a2304c18a2)|
+| t5-large         | See [T5](huggingface/T5.md)                 | No model change required|
+Here're the different configs and explaination that the recipe script take through `--run_config` parameter.
+
+| Config    | Description |
+|-----------|-------------|
+| pt-fp16   | PyTorch mixed precision | 
+| ort       | ORTModule mixed precision |
+| ds_s1     | PyTorch + Deepspeed stage 1 |
+| ds_s1_ort | ORTModule + Deepspeed stage 1|
+#### Notes
 - Our benchmarking and performance ran on ND40rs_v2 machine, Cuda 11, with stable release `onnxruntime_training-1.8.0%2Bcu111-cp36-cp36m-manylinux2014_x86_64.whl` from [here](https://onnxruntimepackages.z14.web.core.windows.net/onnxruntime_stable_cu111.html)
 - The finetuning script runs for 5-10 mins, on more available [NC24 machines](https://azure.microsoft.com/en-us/pricing/details/machine-learning/), each run will cost ~$0.3-$0.6 and will require a smaller batch size. Plus Azure container registry and storage cost.
 - This script takes ~20 mins to run. Most time is spent on building a new docker image. The step to build docker image (`hf_ort_env.register(ws).build(ws).wait_for_completion()`) can be skipped if not running for the first time.
