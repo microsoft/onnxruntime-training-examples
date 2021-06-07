@@ -29,7 +29,7 @@ ONNX Runtime for PyTorch gives you the ability to accelerate training of large t
 
 This repo has examples for using [ONNX Runtime](https://github.com/microsoft/onnxruntime) (ORT) for accelerating training of [Transformer](https://arxiv.org/abs/1706.03762) models. These examples focus on large scale model training and achieving the best performance in [Azure Machine Learning service](https://azure.microsoft.com/en-us/services/machine-learning/). ONNX Runtime has the capability to train existing PyTorch models (implemented using `torch.nn.Module`) through its optimized backend. The examples in this repo demonstrate how `ORTModule` can be used to switch the training backend. 
 
-** The old ORTTrainer API is no longer supported. Examples for ORTTrainer has been moved under [/orttrainer](/orttrainer).
+**The old ORTTrainer API is no longer supported. Examples for ORTTrainer has been moved under [/orttrainer](/orttrainer).**
 
 ## Examples
 

@@ -85,13 +85,16 @@ parser.add_argument("--model_batchsize",
                         help="Model batchsize per GPU", type=int, required=False)
 
 parser.add_argument("--max_steps",
-                        help="Max step that a model will run", type=int, default=200, required=False)
+                        help="Max step that a model will run", type=int, default=8000, required=False)
 
 parser.add_argument("--process_count",
                         help="Total number of GPUs (not GPUs per node)", type=int, required=False, default=8)
 
 parser.add_argument("--node_count",
-                        help="node count", type=int, required=False, default=1)
+                        help="Node count", type=int, required=False, default=1)
+
+parser.add_argument("--skip_docker_build",
+                        help="Skip docker build (use last built docker saved in AzureML environment)", type=bool, required=False, default=False)
 
 args = parser.parse_args()                  
 
@@ -130,7 +133,8 @@ base_args_dict = {
 
 hf_ort_env = Environment.from_dockerfile(name='hf-ort-dockerfile', dockerfile='../docker/Dockerfile')
 # This step builds a new docker image from dockerfile
-hf_ort_env.register(ws).build(ws).wait_for_completion()
+if not args.skip_docker_build:
+    hf_ort_env.register(ws).build(ws).wait_for_completion()
 
 model_experiment_name = 'hf-ortmodule-recipe-' + args.hf_model
 
