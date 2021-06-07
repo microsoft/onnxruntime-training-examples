@@ -61,6 +61,7 @@ Here're the different configs and description that the recipe script take throug
 | ort       | ORTModule mixed precision |
 | ds_s1     | PyTorch + Deepspeed stage 1 |
 | ds_s1_ort | ORTModule + Deepspeed stage 1|
+
 Other parameters. Please also see parameters [`azureml/hf-ort.py`](azureml/hf-ort.py#L64)
 
 | Name               | Description |
