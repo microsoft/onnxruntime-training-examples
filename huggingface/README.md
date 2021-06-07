@@ -52,7 +52,8 @@ This table summarizes if model changes are required.
 | gpt2       | See [GPT2](GPT2.md)             | No model change required|
 | roberta-large    | See [RoBERTa](RoBERTa.md)       | See [this commit](https://github.com/microsoft/huggingface-transformers/commit/b25c43e533c5cadbc4734cc3615563a2304c18a2)|
 | t5-large         | See [T5](T5.md)                 | No model change required|
-Here're the different configs and explaination that the recipe script take through `--run_config` parameter.
+
+Here're the different configs and description that the recipe script take through `--run_config` parameter.
 
 | Config    | Description |
 |-----------|-------------|
@@ -69,11 +70,9 @@ Other parameters. Please also see parameters [`azureml/hf-ort.py`](azureml/hf-or
 | --process_count    | Total number of GPUs (not GPUs per node). **Adjust this if target cluster is not 8 gpus** |
 | --node_count       | Node count|
 #### Notes
-- Our benchmarking and performance ran on ND40rs_v2 machine (V100 32G, 8 GPUs), Cuda 11, with stable release `onnxruntime_training-1.8.0%2Bcu111-cp36-cp36m-manylinux2014_x86_64.whl` published [here](https://onnxruntimepackages.z14.web.core.windows.net/onnxruntime_stable_cu111.html). Please see dependency version details in [Dockerfile](docker/Dockerfile). Also please note since ORTModule takes some time to do initial setup, small `--max_steps` may lead to longer total run time for ORTModule compared to PyTorch.
-- The finetuning script runs for 5-10 mins on AzureML GPUs, on more available [NC24 machines](https://azure.microsoft.com/en-us/pricing/details/machine-learning/), each run will cost ~$0.3-$0.6 and will require a smaller batch size, plus Azure container registry and storage cost.
-- This script takes ~20 mins to submit the finetuning job. Most of time is spent on building a new docker image. The step to build docker image [`hf_ort_env.register(ws).build(ws).wait_for_completion()`](azureml/hf-ort.py#L133) can be skipped if not running for the first time.
-- Choices for --hf_model are `bert-large`, `distilbert-base`, `gpt2`, `bart-large`, `t5-large`, `deberta-v2-xxlarge`, `roberta-large`.
-- Choices for --run_config ort are `pt-fp16` for PyTorch fp16, `ort` for fp16 with ORTModule, `ds_s0` for deepspeed stage 0 with pytorch, `ds_s0_ort` for deepspeed stage 0 with ORTModule, `ds_s1` for deepspeed stage 1 with pytorch, `ds_s1_ort` for deepspeed stage 1 with ORTModule.
+- Our benchmarking and performance ran on `ND40rs_v2` machine (V100 32G, 8 GPUs), Cuda 11, with stable release `onnxruntime_training-1.8.0%2Bcu111-cp36-cp36m-manylinux2014_x86_64.whl` published [here](https://onnxruntimepackages.z14.web.core.windows.net/onnxruntime_stable_cu111.html). Please see dependency version details in [Dockerfile](docker/Dockerfile). Also please note since ORTModule takes some time to do initial setup, small `--max_steps` may lead to longer total run time for ORTModule compared to PyTorch.
+- **Cost**: The finetuning script runs for ~1hr for 8000 steps on `ND40rs_v2`. On more available [NC24 machines](https://azure.microsoft.com/en-us/pricing/details/machine-learning/), each run will cost ~$4-$10 and will require a smaller batch size, in addition to monthly Azure container registry and storage cost as it occurs.
+- This script takes ~20 mins to submit the finetuning job due to building a new docker image. The step to build docker image [`hf_ort_env.register(ws).build(ws).wait_for_completion()`](azureml/hf-ort.py#L136) can be skipped if not running for the first time.
 
 ## FAQ
 ### Problem with Azure Authentication
