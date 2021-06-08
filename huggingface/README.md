@@ -51,7 +51,7 @@ This table summarizes if model changes are required.
 | distilbert-base | See [DistilBERT](DistilBERT.md) | No model change required |
 | gpt2       | See [GPT2](GPT2.md)             | No model change required|
 | roberta-large    | See [RoBERTa](RoBERTa.md)       | See [this commit](https://github.com/microsoft/huggingface-transformers/commit/b25c43e533c5cadbc4734cc3615563a2304c18a2)|
-| t5-large         | See [T5](T5.md)                 | No model change required|
+| t5-large         | See [T5](T5.md)                 | See [this PR](https://github.com/microsoft/huggingface-transformers/pull/4/files) |
 
 Here're the different configs and description that the recipe script take through `--run_config` parameter.
 
@@ -64,16 +64,17 @@ Here're the different configs and description that the recipe script take throug
 
 Other parameters. Please also see parameters [`azureml/hf-ort.py`](azureml/hf-ort.py#L64)
 
-| Name               | Description |
-|--------------------|-------------|
-| --model_batchsize  | Model batchsize per GPU | 
-| --max_steps        | Max step that a model will run |
-| --process_count    | Total number of GPUs (not GPUs per node). **Adjust this if target cluster is not 8 gpus** |
-| --node_count       | Node count|
+| Name                | Description |
+|---------------------|-------------|
+| --model_batchsize   | Model batchsize per GPU | 
+| --max_steps         | Max step that a model will run |
+| --process_count     | Total number of GPUs (not GPUs per node). **Adjust this if target cluster is not 8 gpus** |
+| --node_count        | Node count |
+| --skip_docker_build | Skip docker build (use last built docker saved in AzureML environment) |
 #### Notes
-- Our benchmarking and performance ran on `ND40rs_v2` machine (V100 32G, 8 GPUs), Cuda 11, with stable release `onnxruntime_training-1.8.0%2Bcu111-cp36-cp36m-manylinux2014_x86_64.whl` published [here](https://onnxruntimepackages.z14.web.core.windows.net/onnxruntime_stable_cu111.html). Please see dependency version details in [Dockerfile](docker/Dockerfile). Also please note since ORTModule takes some time to do initial setup, small `--max_steps` may lead to longer total run time for ORTModule compared to PyTorch.
-- **Cost**: The finetuning script runs for ~1hr for 8000 steps on `ND40rs_v2`. On more available [NC24 machines](https://azure.microsoft.com/en-us/pricing/details/machine-learning/), each run will cost ~$4-$10 and will require a smaller batch size, in addition to monthly Azure container registry and storage cost as it occurs.
-- This script takes ~20 mins to submit the finetuning job due to building a new docker image. The step to build docker image [`hf_ort_env.register(ws).build(ws).wait_for_completion()`](azureml/hf-ort.py#L136) can be skipped if not running for the first time.
+- Our benchmarking and performance ran on [`ND40rs_v2`](https://azure.microsoft.com/en-us/pricing/details/machine-learning/) machine (V100 32G, 8 GPUs), Cuda 11, with stable release [`onnxruntime_training-1.8.0%2Bcu111-cp36-cp36m-manylinux2014_x86_64.whl`](https://onnxruntimepackages.z14.web.core.windows.net/onnxruntime_stable_cu111.html). Please see dependency version details in [Dockerfile](docker/Dockerfile). Also please note since ORTModule takes some time to do initial setup, smaller `--max_steps` may lead to longer total run time for ORTModule compared to PyTorch.
+- **Cost**: The finetuning job runs for ~1hr for default 8000 steps on [`ND40rs_v2`](https://azure.microsoft.com/en-us/pricing/details/machine-learning/) machines, which costs $22.03/hr per run. More available [`NC24`](https://azure.microsoft.com/en-us/pricing/details/machine-learning/) machine costs $3.60/hr and will require a smaller batch size. Adjust `--max_steps` to reduce total job run time. Additional costs are [Azure container registry costs](https://azure.microsoft.com/en-us/pricing/details/container-registry/) for docker image build and storage, as well as [Azure Storage cost](https://azure.microsoft.com/en-us/pricing/details/storage/) for storing run history.
+- On first run, this script takes ~20 mins to submit the finetuning job due to building a new docker image from Dockerfile. The step to build docker image [`hf_ort_env.register(ws).build(ws).wait_for_completion()`](azureml/hf-ort.py#L136) can be skipped by passing `--skip_docker_build True` if not running for the first time.
 
 ## FAQ
 ### Problem with Azure Authentication
