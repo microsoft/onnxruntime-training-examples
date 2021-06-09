@@ -96,25 +96,25 @@ parser.add_argument("--node_count",
 parser.add_argument("--skip_docker_build",
                         help="Skip docker build (use last built docker saved in AzureML environment)", type=bool, required=False, default=False)
 
+parser.add_argument("--use_cu102",
+                        help="Use Cuda 10.2 dockerfile", type=bool, required=False, default=False)
+
 args = parser.parse_args()                  
 
-try:
-    ws = Workspace.from_config()
-except:
-    if args.workspace_name and args.subscription_id and args.resource_group:
+if args.workspace_name and args.subscription_id and args.resource_group:
         ws = Workspace.get(name=args.workspace_name, subscription_id=args.subscription_id, resource_group=args.resource_group)
-    else:
-        print("Please provide workspace name, subscription id and resource group")
+else:
+    try:
+        ws = Workspace.from_config()
+    except:
+        print("Please provide either config.json file or workspace name, subscription id and resource group")
 
-# Create the compute cluster
-gpu_cluster_name = args.gpu_cluster_name
-
-# Verify that the cluster doesn't exist already
+# Verify that the cluster exists
 try:
-    gpu_compute_target = ComputeTarget(workspace=ws, name=gpu_cluster_name)
+    gpu_compute_target = ComputeTarget(workspace=ws, name=args.gpu_cluster_name)
     print('Found existing compute target.')
 except ComputeTargetException:
-    print(f'Compute target not found. Please create a compute target by name {gpu_cluster_name}')
+    print(f'Compute target not found. Please create a compute target by name {args.gpu_cluster_name}')
 
 if args.model_batchsize:
     model_batchsize = args.model_batchsize
@@ -131,12 +131,16 @@ base_args_dict = {
     "roberta-large" : ['--model_name_or_path', 'roberta-large', '--dataset_name', 'squad', '--do_train', '--per_device_train_batch_size', model_batchsize, '--learning_rate', '3e-5', '--max_steps', args.max_steps, '--max_seq_length', 384, '--doc_stride', 128, '--output_dir', '/tmp/roberta_res', '--overwrite_output_dir', '--logging_steps', 200, '--fp16']
 }
 
-hf_ort_env = Environment.from_dockerfile(name='hf-ort-dockerfile', dockerfile='../docker/Dockerfile')
+if args.use_cu102:
+    hf_ort_env = Environment.from_dockerfile(name='hf-ort-dockerfile-10.2', dockerfile='../docker/Dockerfile-10.2')
+else:    
+    hf_ort_env = Environment.from_dockerfile(name='hf-ort-dockerfile', dockerfile='../docker/Dockerfile')
 # This step builds a new docker image from dockerfile
 if not args.skip_docker_build:
     hf_ort_env.register(ws).build(ws).wait_for_completion()
 
 model_experiment_name = 'hf-ortmodule-recipe-' + args.hf_model
+#model_experiment_name = 'hf-ortmodule-recipe-test'
 
 model_run_args_base = base_args_dict[args.hf_model]
 model_run_scripts = RUN_SCRIPT_DICT[args.hf_model]
