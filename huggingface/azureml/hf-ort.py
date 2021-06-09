@@ -140,7 +140,6 @@ if not args.skip_docker_build:
     hf_ort_env.register(ws).build(ws).wait_for_completion()
 
 model_experiment_name = 'hf-ortmodule-recipe-' + args.hf_model
-#model_experiment_name = 'hf-ortmodule-recipe-test'
 
 model_run_args_base = base_args_dict[args.hf_model]
 model_run_scripts = RUN_SCRIPT_DICT[args.hf_model]
