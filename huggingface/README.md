@@ -35,7 +35,7 @@ pip install azureml-core
 Download config.json file in 2.1 to `huggingface/azureml` directory. Or append below run script with AzureML workspace information such as `--workspace_name <your_workspace_name> --resource_group 
 <resource_group> --subscription_id <your_subscription_id>`.
 
-Here's an example to run run bert-large with ORTModule. `hf-ort.py` builds a docker image based on [dockerfile](docker\Dockerfile) and submits run script to AzureML according to model and run configuration. Default docker image uses cuda 11.1.
+Here's an example to run run bert-large with ORTModule. `hf-ort.py` builds a docker image based on [dockerfile](docker/Dockerfile) and submits run script to AzureML according to model and run configuration. Default docker image uses cuda 11.1.
 ```bash
 cd huggingface/azureml
 python hf-ort.py --gpu_cluster_name <gpu_cluster_name> --hf_model bert-large --run_config ort
@@ -43,15 +43,15 @@ python hf-ort.py --gpu_cluster_name <gpu_cluster_name> --hf_model bert-large --r
 To run different models with different configuration, check below tables.
 
 This table summarizes if model changes are required.
-| Model                | Performance Comparison                      | Model Change                                |
-|------------------------|---------------------------------------------|---------------------------------------------|
-| bart-large      | See [BART](BART.md)             | No model change required |
-| bert-large       | See [BERT](BERT.md)             | No model change required |
-| deberta-v2-xxlarge   | See [DeBERTA](DeBERTA.md)       | See [this commit](https://github.com/microsoft/huggingface-transformers/commit/0b2532a4f1df90858472d1eb2ca3ac4eaea42af1) |
-| distilbert-base | See [DistilBERT](DistilBERT.md) | No model change required |
-| gpt2       | See [GPT2](GPT2.md)             | No model change required|
-| roberta-large    | See [RoBERTa](RoBERTa.md)       | See [this commit](https://github.com/microsoft/huggingface-transformers/commit/b25c43e533c5cadbc4734cc3615563a2304c18a2)|
-| t5-large         | See [T5](T5.md)                 | See [this PR](https://github.com/microsoft/huggingface-transformers/pull/4/files) |
+| Model                | Performance Compariso           | Model Change                                |
+|----------------------|---------------------------------|---------------------------------------------|
+| bart-large           | See [BART](BART.md)             | No model change required |
+| bert-large           | See [BERT](BERT.md)             | No model change required |
+| deberta-v2-xxlarge   | See [DeBERTa](DeBERTa.md)       | See [this commit](https://github.com/microsoft/huggingface-transformers/commit/0b2532a4f1df90858472d1eb2ca3ac4eaea42af1) |
+| distilbert-base      | See [DistilBERT](DistilBERT.md) | No model change required |
+| gpt2                 | See [GPT2](GPT2.md)             | No model change required |
+| roberta-large        | See [RoBERTa](RoBERTa.md)       | See [this commit](https://github.com/microsoft/huggingface-transformers/commit/b25c43e533c5cadbc4734cc3615563a2304c18a2)|
+| t5-large             | See [T5](T5.md)                 | See [this PR](https://github.com/microsoft/huggingface-transformers/pull/4/files) |
 
 Here're the different configs and description that the recipe script take through `--run_config` parameter.
 

@@ -39,11 +39,11 @@ Outline the examples in the repository.
 |------------------------|---------------------------------------------|---------------------------------------------|
 | HuggingFace BART       | See [BART](huggingface/BART.md)             | No model change required |
 | HuggingFace BERT       | See [BERT](huggingface/BERT.md)             | No model change required |
-| HuggingFace DeBERTa    | See [DeBERTA](huggingface/DeBERTA.md)       | See [this commit](https://github.com/microsoft/huggingface-transformers/commit/0b2532a4f1df90858472d1eb2ca3ac4eaea42af1) |
+| HuggingFace DeBERTa    | See [DeBERTa](huggingface/DeBERTa.md)       | See [this commit](https://github.com/microsoft/huggingface-transformers/commit/0b2532a4f1df90858472d1eb2ca3ac4eaea42af1)|
 | HuggingFace DistilBERT | See [DistilBERT](huggingface/DistilBERT.md) | No model change required |
 | HuggingFace GPT2       | See [GPT2](huggingface/GPT2.md)             | No model change required|
 | HuggingFace RoBERTa    | See [RoBERTa](huggingface/RoBERTa.md)       | See [this commit](https://github.com/microsoft/huggingface-transformers/commit/b25c43e533c5cadbc4734cc3615563a2304c18a2)|
-| HuggingFace T5         | See [T5](huggingface/T5.md)                 | No model change required|
+| t5-large               | See [T5](huggingface/T5.md)                 | See [this PR](https://github.com/microsoft/huggingface-transformers/pull/4/files) |
 <!-- 
 | `CONTRIBUTING.md` | Guidelines for contributing to the sample. |
 -->
