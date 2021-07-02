@@ -26,13 +26,13 @@ AML_MODEL_BATCHSIZE_DICT = {
 }
 
 LOCAL_MODEL_BATCHSIZE_DICT = {
-    "bert-large" : '1', # 2 OOM
+    "bert-large" : '1',
     "distilbert-base" : '16',
     "gpt2" : '2',
-    "bart-large" : '2', # 4 ORT OOM, PT works
+    "bart-large" : '2', 
     "t5-large" : '4',
-    "deberta-v2-xxlarge" : '1', #1 still OOM for ds1 both and ort, 
-    "roberta-large" : '2' #4 OOM
+    "deberta-v2-xxlarge" : '1',
+    "roberta-large" : '2'
 }
 
 RUN_SCRIPT_DICT= {
