@@ -175,8 +175,7 @@ if args.local_run:
         cmd_arry = [sys.executable, '-m', 'torch.distributed.launch', '--nproc_per_node', args.process_count, model_run_scripts[0]] + model_run_args_config
     cmd_arry = [str(s) for s in cmd_arry]
     cmd = ' '.join(cmd_arry)
-    output = open(f"log102/{args.hf_model}-{args.run_config}-{args.process_count}gpu.log", "w")
-    subprocess.run(cmd_arry, env=env, stdout=output, stderr=subprocess.STDOUT)
+    subprocess.run(cmd_arry, env=env)
 else:
     # Create experiment for model
     model_experiment = Experiment(ws, name=model_experiment_name)
@@ -191,5 +190,6 @@ else:
     
     print(f"Submitting run for model: {args.hf_model}, config: {args.run_config}")
     run = model_experiment.submit(model_run_config)
-    run.set_tags({'model' : args.hf_model, 'config' : args.run_config, 'bs' : model_batchsize, 'gpus' : str(args.process_count)})
+    cuda_version = "10.2" if args.use_cu102 else "11.1"
+    run.set_tags({'model' : args.hf_model, 'config' : args.run_config, 'bs' : model_batchsize, 'gpus' : str(args.process_count), 'cuda': cuda_version})
     print(f"Job submitted to {run.get_portal_url()}")
