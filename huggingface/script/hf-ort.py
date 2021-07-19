@@ -94,13 +94,13 @@ parser.add_argument("--node_count",
                         help="Node count", type=int, required=False, default=1)
 
 parser.add_argument("--skip_docker_build",
-                        help="Skip docker build (use last built docker saved in AzureML environment)", type=bool, required=False, default=False)
+                        help="Skip docker build (use last built docker saved in AzureML environment). Default to False", action='store_true')
 
 parser.add_argument("--use_cu102",
-                        help="Use Cuda 10.2 dockerfile. Default to False", type=bool, required=False, default=False)
+                        help="Use Cuda 10.2 dockerfile. Default to False", action='store_true')
 
 parser.add_argument("--local_run",
-                        help="Run recipe locally, false for azureml run. Default to False", type=bool, required=False, default=False)
+                        help="Run recipe locally, false for azureml run. Default to False", action='store_true')
 
 args = parser.parse_args()                  
 

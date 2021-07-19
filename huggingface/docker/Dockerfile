@@ -26,7 +26,7 @@ RUN pip install --upgrade pip
 
 # PyTorch
 RUN pip install onnx ninja
-RUN pip install pip install torch==1.9.0+cu111 torchvision==0.10.0+cu111 torchaudio==0.9.0 -f https://download.pytorch.org/whl/torch_stable.html
+RUN pip install torch==1.9.0+cu111 torchvision==0.10.0+cu111 torchaudio==0.9.0 -f https://download.pytorch.org/whl/torch_stable.html
 
 # ORT Module
 RUN pip install onnxruntime-training==1.8.1 -f https://onnxruntimepackages.z14.web.core.windows.net/onnxruntime_stable_torch190.cu111.html

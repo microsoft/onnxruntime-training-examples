@@ -9,7 +9,7 @@ python hf-ort.py --gpu_cluster_name <gpu_cluster_name> --hf_model roberta-large 
 If running locally, 
 ```bash
 cd huggingface/azureml
-python hf-ort.py --hf_model roberta-large --run_config ort --process_count <process_count> --local_run True
+python hf-ort.py --hf_model roberta-large --run_config ort --process_count <process_count> --local_run
 ```
 
 # Performance Comparison

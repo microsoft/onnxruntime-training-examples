@@ -76,7 +76,7 @@ Other parameters. Please also see parameters [`script/hf-ort.py`](azureml/hf-ort
 #### Notes
 - **Benchmark methodology**: We report samples/sec on [`ND40rs_v2`](https://azure.microsoft.com/en-us/pricing/details/machine-learning/) VMs (V100 32G x 8), Cuda 11, with stable release [`onnxruntime_training-1.8.0%2Bcu111-cp36-cp36m-manylinux2014_x86_64.whl`](https://onnxruntimepackages.z14.web.core.windows.net/onnxruntime_stable_cu111.html). Cuda 10.2 option is also available through `--use_cu102` flag. Please check dependency details in [Dockerfile](docker/Dockerfile). We look at the metrics `stable_train_samples_per_second` in the log, which discards first step that includes setup time. Also please note since ORTModule takes some time to do initial setup, smaller `--max_steps` value may lead to longer total run time for ORTModule compared to PyTorch. However, if you want to see finetuning to finish faster, adjust `--max_steps` to a smaller value. Lastly, we do not recommend running this recipe on [`NC`] series VMs which uses old architecture (K80).
 - **Cost and VM availability**: The finetuning job runs for ~1hr for default 8000 steps on [`ND40rs_v2`](https://azure.microsoft.com/en-us/pricing/details/machine-learning/) VMs, which costs $22.03/hr per run. Additional costs are [Azure container registry costs](https://azure.microsoft.com/en-us/pricing/details/container-registry/) for docker image storage, as well as [Azure Storage cost](https://azure.microsoft.com/en-us/pricing/details/storage/) for run history storage. Please note, [`ND40rs_v2`](https://azure.microsoft.com/en-us/pricing/details/machine-learning/) is **not** publicly available by default. To get it, after the subscription is created, user need to create a support ticket [here](https://ms.portal.azure.com/#blade/Microsoft_Azure_Support/HelpAndSupportBlade/overview), then ND series will be available.
-- On first run, this script takes ~20 mins to submit the finetuning job due to building a new docker image from Dockerfile. The step to build docker image [`hf_ort_env.register(ws).build(ws).wait_for_completion()`](script/hf-ort.py#L147) can be skipped by passing `--skip_docker_build True` if not running for the first time.
+- On first run, this script takes ~20 mins to submit the finetuning job due to building a new docker image from Dockerfile. The step to build docker image [`hf_ort_env.register(ws).build(ws).wait_for_completion()`](script/hf-ort.py#L147) can be skipped by passing `--skip_docker_build` if not running for the first time.
 ## 3 Run on local
 ### 3.1 Prerequisites
 1. A machine that you can access with GPU. This recipe was tested on 8 x 32G V100 GPUs machine.
@@ -96,10 +96,10 @@ sudo docker run -it -v /dev/shm:/dev/shm -v <onnxruntime-training-examples_path>
 Run `hf-ort.py` script
 * Reminder to use the number of GPUs available locally to parameter `--process_count`
 * Depending on the memory available to local GPU, you might need to overwrite default batch size by passing in `--model_batchsize`
-* `--local_run True` runs the script locally
+* `--local_run` runs the script locally
 ```
 cd /onnxruntime-training-examples/huggingface/script/
-python hf-ort.py --hf_model {hf_model} --run_config {run_config} --process_count <process_count> --local_run True
+python hf-ort.py --hf_model {hf_model} --run_config {run_config} --process_count <process_count> --local_run
 ```
 
 ## FAQ
