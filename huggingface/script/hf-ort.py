@@ -62,7 +62,7 @@ print("The arguments are: " + str(sys.argv))
 parser = argparse.ArgumentParser()
 
 parser.add_argument("--gpu_cluster_name",
-                        help="GPU cluster for the script to run on", type=str, required=True)
+                        help="GPU cluster for the script to run on", type=str, required=False)
 
 parser.add_argument("--hf_model",
                         help="Huggingface models to run", type=str, required=True,
@@ -94,27 +94,33 @@ parser.add_argument("--node_count",
                         help="Node count", type=int, required=False, default=1)
 
 parser.add_argument("--skip_docker_build",
-                        help="Skip docker build (use last built docker saved in AzureML environment)", type=bool, required=False, default=False)
+                        help="Skip docker build (use last built docker saved in AzureML environment). Default to False", action='store_true')
 
 parser.add_argument("--use_cu102",
-                        help="Use Cuda 10.2 dockerfile", type=bool, required=False, default=False)
+                        help="Use Cuda 10.2 dockerfile. Default to False", action='store_true')
+
+parser.add_argument("--local_run",
+                        help="Run recipe locally, false for azureml run. Default to False", action='store_true')
 
 args = parser.parse_args()                  
 
-if args.workspace_name and args.subscription_id and args.resource_group:
-        ws = Workspace.get(name=args.workspace_name, subscription_id=args.subscription_id, resource_group=args.resource_group)
+if args.local_run:
+    print(f"Running model: {args.hf_model}, config: {args.run_config} locally")
 else:
-    try:
-        ws = Workspace.from_config()
-    except:
-        print("Please provide either config.json file or workspace name, subscription id and resource group")
+    if args.workspace_name and args.subscription_id and args.resource_group:
+            ws = Workspace.get(name=args.workspace_name, subscription_id=args.subscription_id, resource_group=args.resource_group)
+    else:
+        try:
+            ws = Workspace.from_config()
+        except:
+            print("Please provide either config.json file or workspace name, subscription id and resource group")
 
-# Verify that the cluster exists
-try:
-    gpu_compute_target = ComputeTarget(workspace=ws, name=args.gpu_cluster_name)
-    print('Found existing compute target.')
-except ComputeTargetException:
-    print(f'Compute target not found. Please create a compute target by name {args.gpu_cluster_name}')
+    # Verify that the cluster exists
+    try:
+        gpu_compute_target = ComputeTarget(workspace=ws, name=args.gpu_cluster_name)
+        print('Found existing compute target.')
+    except ComputeTargetException:
+        print(f'Compute target not found. Please create a compute target by name {args.gpu_cluster_name}')
 
 if args.model_batchsize:
     model_batchsize = args.model_batchsize
@@ -131,13 +137,14 @@ base_args_dict = {
     "roberta-large" : ['--model_name_or_path', 'roberta-large', '--dataset_name', 'squad', '--do_train', '--per_device_train_batch_size', model_batchsize, '--learning_rate', '3e-5', '--max_steps', args.max_steps, '--max_seq_length', 384, '--doc_stride', 128, '--output_dir', '/tmp/roberta_res', '--overwrite_output_dir', '--logging_steps', 200, '--fp16']
 }
 
-if args.use_cu102:
-    hf_ort_env = Environment.from_dockerfile(name='hf-ort-dockerfile-10.2', dockerfile='../docker/Dockerfile-10.2')
-else:    
-    hf_ort_env = Environment.from_dockerfile(name='hf-ort-dockerfile', dockerfile='../docker/Dockerfile')
-# This step builds a new docker image from dockerfile
-if not args.skip_docker_build:
-    hf_ort_env.register(ws).build(ws).wait_for_completion()
+if not args.local_run:
+    if args.use_cu102:
+        hf_ort_env = Environment.from_dockerfile(name='hf-ort-dockerfile-10.2', dockerfile='../docker/Dockerfile-10.2')
+    else:
+        hf_ort_env = Environment.from_dockerfile(name='hf-ort-dockerfile', dockerfile='../docker/Dockerfile')
+    # This step builds a new docker image from dockerfile
+    if not args.skip_docker_build:
+        hf_ort_env.register(ws).build(ws).wait_for_completion()
 
 model_experiment_name = 'hf-ortmodule-recipe-' + args.hf_model
 
@@ -153,21 +160,36 @@ model_run_args_config = model_run_args_base + CONFIG_ARGS_DICT[args.run_config]
 # use _xxberta.json for deberta and roberta
 if args.hf_model in ['deberta-v2-xxlarge', 'roberta-large'] and args.run_config.startswith('ds_'):
     model_run_args_config[-1] = model_run_args_config[-1].replace('.json','_xxberta.json')
-if args.hf_model in ['deberta-v2-xxlarge'] and not args.run_config.startswith('ds_'):
+if args.hf_model in ['deberta-v2-xxlarge'] and not args.run_config.startswith('ds_') and args.process_count > 1:
     model_run_args_config += ['--sharded_ddp', 'simple']
 
-# Create experiment for model
-model_experiment = Experiment(ws, name=model_experiment_name)
-distr_config = PyTorchConfiguration(process_count=args.process_count, node_count=args.node_count)
-# create script run config for the model+config
-model_run_config = ScriptRunConfig(source_directory='.',
-    script=model_run_scripts[0],
-    arguments=model_run_args_config,
-    compute_target=gpu_compute_target,
-    environment=hf_ort_env,
-    distributed_job_config=distr_config)
-
-print(f"Submitting run for model: {args.hf_model}, config: {args.run_config}")
-run = model_experiment.submit(model_run_config)
-run.set_tags({'model' : args.hf_model, 'config' : args.run_config, 'bs' : model_batchsize, 'gpus' : str(args.process_count)})
-print(f"Job submitted to {run.get_portal_url()}")
+if args.local_run:
+    #from subprocess import call, run
+    import sys
+    import subprocess
+    env = os.environ.copy()
+    if args.process_count == 1:
+        env['CUDA_VISIBLE_DEVICES'] = '0'
+        cmd_arry = [sys.executable, model_run_scripts[0]] + model_run_args_config
+    else:
+        cmd_arry = [sys.executable, '-m', 'torch.distributed.launch', '--nproc_per_node', args.process_count, model_run_scripts[0]] + model_run_args_config
+    cmd_arry = [str(s) for s in cmd_arry]
+    cmd = ' '.join(cmd_arry)
+    subprocess.run(cmd_arry, env=env)
+else:
+    # Create experiment for model
+    model_experiment = Experiment(ws, name=model_experiment_name)
+    distr_config = PyTorchConfiguration(process_count=args.process_count, node_count=args.node_count)
+    # create script run config for the model+config
+    model_run_config = ScriptRunConfig(source_directory='.',
+        script=model_run_scripts[0],
+        arguments=model_run_args_config,
+        compute_target=gpu_compute_target,
+        environment=hf_ort_env,
+        distributed_job_config=distr_config)
+    
+    print(f"Submitting run for model: {args.hf_model}, config: {args.run_config}")
+    run = model_experiment.submit(model_run_config)
+    cuda_version = "10.2" if args.use_cu102 else "11.1"
+    run.set_tags({'model' : args.hf_model, 'config' : args.run_config, 'bs' : model_batchsize, 'gpus' : str(args.process_count), 'cuda': cuda_version})
+    print(f"Job submitted to {run.get_portal_url()}")
