@@ -1,6 +1,6 @@
 {
   "zero_optimization": {
-    "stage": 1,
+    "stage": 0,
     "reduce_bucket_size": 500000000,
     "allgather_bucket_size": 500000000,
     "cpu-offload": false
