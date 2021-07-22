@@ -43,7 +43,8 @@ RUN cd /stage && git clone https://github.com/microsoft/huggingface-transformers
     pip install -e .
 
 # Install AzureML support and commonly used packages.
+# pin datasets==1.9.0 due 'Sequence to truncate too short to respect the provided max_length' on roberta-large 
 RUN pip install azureml-defaults wget fairscale
-RUN pip install sacrebleu datasets deepspeed
+RUN pip install sacrebleu datasets==1.9.0 deepspeed
 RUN pip install scipy sklearn accelerate
 RUN pip install sentencepiece protobuf
