@@ -14,7 +14,7 @@
                 "overlap_comm": true,
                 "reduce_scatter": true,
                 "reduce_bucket_size": 2e8,
-                "contiguous_gradients": true,
+                "contiguous_gradients": false,
                 "cpu_offload": false
         },
     
