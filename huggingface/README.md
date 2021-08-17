@@ -82,10 +82,10 @@ Other parameters. Please also see parameters [`script/hf-ort.py`](azureml/hf-ort
 1. A machine that you can access with GPU. This recipe was tested on 8 x 32G V100 GPUs machine.
 2. Know how many GPUs are there. This needs to be passed to parameter `--process_count`
 ### 3.2 Run this recipe
-Build docker image. `Dockerfile-local` is for cuda 11.1, `Dockerfile-local-10.2` is for cuda 10.2.
+Build docker image. `Dockerfile` is for cuda 11.1, `Dockerfile-10.2` is for cuda 10.2.
 ```
 cd huggingface/docker
-sudo docker build -t hf-recipe-local-docker -f Dockerfile-local .
+sudo docker build -t hf-recipe-local-docker -f Dockerfile .
 ```
 Run built docker image
 * Replace `<onnxruntime-training-examples_path>` to your local `onnxruntime-training-examples/` path
