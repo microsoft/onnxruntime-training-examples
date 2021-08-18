@@ -3,12 +3,12 @@
 2. Launch script in [2.2 Run this recipe](README.md#2.2-Run-this-recipe) for BERT
 If running on AzureML,
 ```bash
-cd huggingface/azureml
+cd huggingface/script
 python hf-ort.py --gpu_cluster_name <gpu_cluster_name> --hf_model bert-large --run_config ort
 ```
 If running locally,
 ```bash
-cd huggingface/azureml
+cd huggingface/script
 python hf-ort.py --hf_model bert-large --run_config ort --process_count <process_count> --local_run
 ```
 
