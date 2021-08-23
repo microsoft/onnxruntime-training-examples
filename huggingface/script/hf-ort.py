@@ -51,8 +51,6 @@ CONFIG_ARGS_DICT = {
 }
 
 # Check core SDK version number
-print("SDK version:", azureml.core.VERSION)
-
 print("The arguments are: " + str(sys.argv))
 
 parser = argparse.ArgumentParser()
