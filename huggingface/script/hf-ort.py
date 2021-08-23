@@ -5,14 +5,6 @@ import shlex
 from datetime import datetime
 import argparse
 
-# AzureML libraries
-import azureml.core
-from azureml.core import Experiment, Workspace, Datastore, Run, Environment
-from azureml.core.compute import ComputeTarget, AmlCompute, AksCompute
-from azureml.core.compute_target import ComputeTargetException
-from azureml.core import ScriptRunConfig
-from azureml.core.runconfig import PyTorchConfiguration
-
 TRAINER_DIR = '../../huggingface-transformers/examples/pytorch'
 
 MODEL_BATCHSIZE_DICT = {
@@ -55,8 +47,6 @@ CONFIG_ARGS_DICT = {
 }
 
 # Check core SDK version number
-print("SDK version:", azureml.core.VERSION)
-
 print("The arguments are: " + str(sys.argv))
 
 parser = argparse.ArgumentParser()
@@ -71,15 +61,6 @@ parser.add_argument("--hf_model",
 parser.add_argument("--run_config",
                         help="Run configuration indicating pytorch or ort, deepspeed stage", type=str, required=True,
                         choices=['pt-fp16', 'ort', 'ds_s0', 'ds_s0_ort', 'ds_s1', 'ds_s1_ort'])
-
-parser.add_argument("--workspace_name",
-                        help="Name of the AzureML workspace", type=str, required=False)
-
-parser.add_argument("--resource_group",
-                        help="Resource group that AzureML workspace belongs to", type=str, required=False)
-
-parser.add_argument("--subscription_id",
-                        help="Subscription of that AzureML workspace belongs to", type=str, required=False)
 # model params 
 parser.add_argument("--model_batchsize",
                         help="Model batchsize per GPU", type=int, required=False)
@@ -93,9 +74,6 @@ parser.add_argument("--process_count",
 parser.add_argument("--node_count",
                         help="Node count", type=int, required=False, default=1)
 
-parser.add_argument("--skip_docker_build",
-                        help="Skip docker build (use last built docker saved in AzureML environment). Default to False", action='store_true')
-
 parser.add_argument("--use_cu102",
                         help="Use Cuda 10.2 dockerfile. Default to False", action='store_true')
 
@@ -104,23 +82,7 @@ parser.add_argument("--local_run",
 
 args = parser.parse_args()                  
 
-if args.local_run:
-    print(f"Running model: {args.hf_model}, config: {args.run_config} locally")
-else:
-    if args.workspace_name and args.subscription_id and args.resource_group:
-            ws = Workspace.get(name=args.workspace_name, subscription_id=args.subscription_id, resource_group=args.resource_group)
-    else:
-        try:
-            ws = Workspace.from_config()
-        except:
-            print("Please provide either config.json file or workspace name, subscription id and resource group")
-
-    # Verify that the cluster exists
-    try:
-        gpu_compute_target = ComputeTarget(workspace=ws, name=args.gpu_cluster_name)
-        print('Found existing compute target.')
-    except ComputeTargetException:
-        print(f'Compute target not found. Please create a compute target by name {args.gpu_cluster_name}')
+print(f"Running model: {args.hf_model}, config: {args.run_config} locally")
 
 if args.model_batchsize:
     model_batchsize = args.model_batchsize
@@ -163,33 +125,15 @@ if args.hf_model in ['deberta-v2-xxlarge', 'roberta-large'] and args.run_config.
 if args.hf_model in ['deberta-v2-xxlarge'] and not args.run_config.startswith('ds_') and args.process_count > 1:
     model_run_args_config += ['--sharded_ddp', 'simple']
 
-if args.local_run:
-    #from subprocess import call, run
-    import sys
-    import subprocess
-    env = os.environ.copy()
-    if args.process_count == 1:
-        env['CUDA_VISIBLE_DEVICES'] = '0'
-        cmd_arry = [sys.executable, model_run_scripts[0]] + model_run_args_config
-    else:
-        cmd_arry = [sys.executable, '-m', 'torch.distributed.launch', '--nproc_per_node', args.process_count, model_run_scripts[0]] + model_run_args_config
-    cmd_arry = [str(s) for s in cmd_arry]
-    cmd = ' '.join(cmd_arry)
-    subprocess.run(cmd_arry, env=env)
+#from subprocess import call, run
+import sys
+import subprocess
+env = os.environ.copy()
+if args.process_count == 1:
+    env['CUDA_VISIBLE_DEVICES'] = '0'
+    cmd_arry = [sys.executable, model_run_scripts[0]] + model_run_args_config
 else:
-    # Create experiment for model
-    model_experiment = Experiment(ws, name=model_experiment_name)
-    distr_config = PyTorchConfiguration(process_count=args.process_count, node_count=args.node_count)
-    # create script run config for the model+config
-    model_run_config = ScriptRunConfig(source_directory='.',
-        script=model_run_scripts[0],
-        arguments=model_run_args_config,
-        compute_target=gpu_compute_target,
-        environment=hf_ort_env,
-        distributed_job_config=distr_config)
-    
-    print(f"Submitting run for model: {args.hf_model}, config: {args.run_config}")
-    run = model_experiment.submit(model_run_config)
-    cuda_version = "10.2" if args.use_cu102 else "11.1"
-    run.set_tags({'model' : args.hf_model, 'config' : args.run_config, 'bs' : model_batchsize, 'gpus' : str(args.process_count), 'cuda': cuda_version})
-    print(f"Job submitted to {run.get_portal_url()}")
+    cmd_arry = [sys.executable, '-m', 'torch.distributed.launch', '--nproc_per_node', args.process_count, model_run_scripts[0]] + model_run_args_config
+cmd_arry = [str(s) for s in cmd_arry]
+cmd = ' '.join(cmd_arry)
+subprocess.run(cmd_arry, env=env)
