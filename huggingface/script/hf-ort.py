@@ -5,13 +5,6 @@ import shlex
 from datetime import datetime
 import argparse
 
-# AzureML libraries
-import azureml.core
-from azureml.core import Experiment, Workspace, Datastore, Run, Environment
-from azureml.core.compute import ComputeTarget, AmlCompute, AksCompute
-from azureml.core.compute_target import ComputeTargetException
-from azureml.core import ScriptRunConfig
-from azureml.core.runconfig import PyTorchConfiguration
 
 TRAINER_DIR = '../../huggingface-transformers/examples/pytorch'
 
