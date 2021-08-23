@@ -14,7 +14,8 @@ MODEL_BATCHSIZE_DICT = {
     "bart-large" : '16',
     "t5-large" : '16',
     "deberta-v2-xxlarge" : '4',
-    "roberta-large" : '16'
+    "roberta-large" : '16',
+    "albert-base-v2": "1"
 }
 
 RUN_SCRIPT_DICT= {
@@ -24,7 +25,8 @@ RUN_SCRIPT_DICT= {
     "bart-large" : ['run_translation.py'],
     "t5-large" : ['run_translation.py'],
     "deberta-v2-xxlarge" : ['run_glue.py'],
-    "roberta-large" : ['run_qa.py', 'trainer_qa.py', 'utils_qa.py']
+    "roberta-large" : ['run_qa.py', 'trainer_qa.py', 'utils_qa.py'],
+    "albert-base-v2" : ['run_qa.py', 'trainer_qa.py', 'utils_qa.py']
 }
 
 RUN_SCRIPT_DIR_DICT= {
@@ -34,7 +36,8 @@ RUN_SCRIPT_DIR_DICT= {
     "bart-large" : 'translation',
     "t5-large" : 'translation',
     "deberta-v2-xxlarge" : 'text-classification',
-    "roberta-large" : 'question-answering'
+    "roberta-large" : 'question-answering',
+    "albert-base-v2" : 'question-answering'
 }
 
 CONFIG_ARGS_DICT = {
@@ -56,7 +59,7 @@ parser.add_argument("--gpu_cluster_name",
 
 parser.add_argument("--hf_model",
                         help="Huggingface models to run", type=str, required=True,
-                        choices=['bert-large', 'distilbert-base', 'gpt2', 'bart-large', 't5-large', 'deberta-v2-xxlarge', 'roberta-large'])
+                        choices=['bert-large', 'distilbert-base', 'gpt2', 'bart-large', 't5-large', 'deberta-v2-xxlarge', 'roberta-large', 'albert-base-v2'])
 
 parser.add_argument("--run_config",
                         help="Run configuration indicating pytorch or ort, deepspeed stage", type=str, required=True,
@@ -96,7 +99,8 @@ base_args_dict = {
     "bart-large" : ['--dataset_name', 'wmt16', '--dataset_config', 'ro-en', '--model_name_or_path', 'facebook/bart-large', '--output_dir', '/tmp/tst-translation', '--do_train', '--label_smoothing', 0.1, '--logging_steps', 200, '--overwrite_output_dir', '--per_device_train_batch_size', model_batchsize, '--predict_with_generate', '--source_lang', 'en', '--target_lang', 'ro', '--warmup_steps', 5, '--fp16', '--max_steps', args.max_steps],
     "t5-large" : ['--source_prefix', 'translate English to Romanian:', '--dataset_name', 'wmt16', '--dataset_config', 'ro-en', '--model_name_or_path', 't5-large', '--output_dir', '/tmp/tst-translation', '--do_train', '--label_smoothing', 0.1, '--logging_steps', 200, '--overwrite_output_dir', '--per_device_train_batch_size', model_batchsize, '--predict_with_generate', '--source_lang', 'en', '--target_lang', 'ro', '--warmup_steps', 5, '--fp16', '--max_steps', args.max_steps],
     "deberta-v2-xxlarge" : ['--model_name_or_path', 'microsoft/deberta-v2-xxlarge', '--task_name', 'MRPC', '--do_train', '--max_seq_length', 128, '--per_device_train_batch_size', model_batchsize, '--learning_rate', '3e-6', '--max_steps', args.max_steps, '--output_dir', '/tmp/deberta_res', '--overwrite_output_dir', '--logging_steps', 200, '--fp16'],
-    "roberta-large" : ['--model_name_or_path', 'roberta-large', '--dataset_name', 'squad', '--do_train', '--per_device_train_batch_size', model_batchsize, '--learning_rate', '3e-5', '--max_steps', args.max_steps, '--max_seq_length', 384, '--doc_stride', 128, '--output_dir', '/tmp/roberta_res', '--overwrite_output_dir', '--logging_steps', 200, '--fp16']
+    "roberta-large" : ['--model_name_or_path', 'roberta-large', '--dataset_name', 'squad', '--do_train', '--per_device_train_batch_size', model_batchsize, '--learning_rate', '3e-5', '--max_steps', args.max_steps, '--max_seq_length', 384, '--doc_stride', 128, '--output_dir', '/tmp/roberta_res', '--overwrite_output_dir', '--logging_steps', 200, '--fp16'],
+    "albert-base-v2" : ['--model_name_or_path', 'albert-base-v2', '--dataset_name', 'squad', '--do_train', '--per_device_train_batch_size', model_batchsize, '--learning_rate', '3e-5', '--max_steps', args.max_steps, '--max_seq_length', 384, '--doc_stride', 128, '--output_dir', '/tmp/alberta_res', '--overwrite_output_dir', '--logging_steps', 200, '--fp16']
 }
 
 if not args.local_run:
