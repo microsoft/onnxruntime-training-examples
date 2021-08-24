@@ -25,6 +25,7 @@ RUN update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 1
 RUN pip install --upgrade pip
 
 # PyTorch
+# pin onnx==1.9.0 to align with torch_ort dockerfile, otherwise AssertionError
 RUN pip install onnx==1.9.0 ninja
 RUN pip install torch==1.9.0+cu102 torchvision==0.10.0+cu102 torchaudio==0.9.0 -f https://download.pytorch.org/whl/torch_stable.html
 
