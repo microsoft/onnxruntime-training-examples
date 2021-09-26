@@ -1,0 +1,204 @@
+From 4fbeb1b674d6a31bbc6873f9bcd364e9ced2f008 Mon Sep 17 00:00:00 2001
+From: Peng Wang <pengwa@microsoft.com>
+Date: Sun, 26 Sep 2021 15:59:10 +0000
+Subject: [PATCH] intergrate ORTModule with DeepSpeedExample Megatron-LM
+
+---
+ .../megatron/arguments.py                     |  3 +++
+ .../megatron/fp16/fp16.py                     |  5 ++--
+ .../megatron/mpu/layers.py                    |  7 +++++-
+ .../megatron/mpu/mappings.py                  | 24 +++++++++----------
+ Megatron-LM-v1.1.5-ZeRO3/megatron/training.py | 18 ++++++++++++--
+ Megatron-LM-v1.1.5-ZeRO3/ortmodule.json       | 22 +++++++++++++++++
+ Megatron-LM-v1.1.5-ZeRO3/pretrain_gpt2.py     |  2 +-
+ 7 files changed, 63 insertions(+), 18 deletions(-)
+ create mode 100644 Megatron-LM-v1.1.5-ZeRO3/ortmodule.json
+
+diff --git a/Megatron-LM-v1.1.5-ZeRO3/megatron/arguments.py b/Megatron-LM-v1.1.5-ZeRO3/megatron/arguments.py
+index bb1cb67..b94d8af 100644
+--- a/Megatron-LM-v1.1.5-ZeRO3/megatron/arguments.py
++++ b/Megatron-LM-v1.1.5-ZeRO3/megatron/arguments.py
+@@ -267,6 +267,9 @@ def _add_training_args(parser):
+                        help='Run optimizer on CPU')
+     group.add_argument('--cpu_torch_adam', action='store_true',
+                        help='Use Torch Adam as optimizer on CPU.')
++
++    group.add_argument('--use-ort', action='store_true',
++                       help='Use ONNX Runtime to train and inference.')
+     return parser
+ 
+ 
+diff --git a/Megatron-LM-v1.1.5-ZeRO3/megatron/fp16/fp16.py b/Megatron-LM-v1.1.5-ZeRO3/megatron/fp16/fp16.py
+index bdea6ad..c36d242 100755
+--- a/Megatron-LM-v1.1.5-ZeRO3/megatron/fp16/fp16.py
++++ b/Megatron-LM-v1.1.5-ZeRO3/megatron/fp16/fp16.py
+@@ -73,8 +73,9 @@ def __init__(self, module):
+     def forward(self, *inputs, **kwargs):
+         return fp16_to_fp32(self.module(*(fp32_to_fp16(inputs)), **kwargs))
+ 
+-    def state_dict(self, destination=None, prefix='', keep_vars=False):
+-        return self.module.state_dict(destination, prefix, keep_vars)
++    # disable override here, otherwise, some weight name mismatch after Pytorch export to ONNX.
++    # def state_dict(self, destination=None, prefix='', keep_vars=False):
++    #     return self.module.state_dict(destination, prefix, keep_vars)
+ 
+     def state_dict_for_save_checkpoint(self, destination=None, prefix='',
+                                        keep_vars=False):
+diff --git a/Megatron-LM-v1.1.5-ZeRO3/megatron/mpu/layers.py b/Megatron-LM-v1.1.5-ZeRO3/megatron/mpu/layers.py
+index c09c7fb..2b493c3 100644
+--- a/Megatron-LM-v1.1.5-ZeRO3/megatron/mpu/layers.py
++++ b/Megatron-LM-v1.1.5-ZeRO3/megatron/mpu/layers.py
+@@ -167,7 +167,12 @@ def forward(self, input_):
+                                       self.sparse)
+         # Mask the output embedding.
+         if self.model_parallel_size > 1:
+-            output_parallel[input_mask, :] = 0.0
++            # output_parallel[input_mask, :] = 0.0
++            # this is to workaround Non-ZeRO op inferred shape is not correct, that would make the consumer fail to match all its inputs shapes.
++            # this workaround bring some overhead for each forward run.
++            # RuntimeError: Error in execution: Non-zero status code returned while running Add node. Name:'Add_25' Status Message: Add_25: left operand cannot broadcast on dim 1 LeftShape: {2,58}, RightShape: {511}
++            expanded_mask = input_mask.unsqueeze(-1).expand(output_parallel.size())
++            output_parallel = output_parallel.masked_fill(expanded_mask, 0.0)
+         # Reduce across all the model parallel GPUs.
+         output = reduce_from_model_parallel_region(output_parallel)
+         return output
+diff --git a/Megatron-LM-v1.1.5-ZeRO3/megatron/mpu/mappings.py b/Megatron-LM-v1.1.5-ZeRO3/megatron/mpu/mappings.py
+index 291c499..197fd06 100644
+--- a/Megatron-LM-v1.1.5-ZeRO3/megatron/mpu/mappings.py
++++ b/Megatron-LM-v1.1.5-ZeRO3/megatron/mpu/mappings.py
+@@ -76,9 +76,9 @@ def _gather(input_):
+ class _CopyToModelParallelRegion(torch.autograd.Function):
+     """Pass the input to the model parallel region."""
+ 
+-    @staticmethod
+-    def symbolic(graph, input_):
+-        return input_
++    # @staticmethod
++    # def symbolic(graph, input_):
++    #     return input_
+     
+     @staticmethod
+     def forward(ctx, input_):
+@@ -92,9 +92,9 @@ def backward(ctx, grad_output):
+ class _ReduceFromModelParallelRegion(torch.autograd.Function):
+     """All-redcue the input from the model parallel region."""
+ 
+-    @staticmethod
+-    def symbolic(graph, input_):
+-        return _reduce(input_)
++    # @staticmethod
++    # def symbolic(graph, input_):
++    #     return _reduce(input_)
+     
+     @staticmethod
+     def forward(ctx, input_):
+@@ -108,9 +108,9 @@ def backward(ctx, grad_output):
+ class _ScatterToModelParallelRegion(torch.autograd.Function):
+     """Split the input and keep only the corresponding chuck to the rank."""
+ 
+-    @staticmethod
+-    def symbolic(graph, input_):
+-        return _split(input_)
++    # @staticmethod
++    # def symbolic(graph, input_):
++    #     return _split(input_)
+ 
+     @staticmethod
+     def forward(ctx, input_):
+@@ -124,9 +124,9 @@ def backward(ctx, grad_output):
+ class _GatherFromModelParallelRegion(torch.autograd.Function):
+     """Gather the input from model parallel region and concatinate."""
+ 
+-    @staticmethod
+-    def symbolic(graph, input_):
+-        return _gather(input_)
++    # @staticmethod
++    # def symbolic(graph, input_):
++    #     return _gather(input_)
+     
+     @staticmethod
+     def forward(ctx, input_):
+diff --git a/Megatron-LM-v1.1.5-ZeRO3/megatron/training.py b/Megatron-LM-v1.1.5-ZeRO3/megatron/training.py
+index 8fc8791..b0d8a94 100644
+--- a/Megatron-LM-v1.1.5-ZeRO3/megatron/training.py
++++ b/Megatron-LM-v1.1.5-ZeRO3/megatron/training.py
+@@ -144,6 +144,17 @@ def get_model(model_provider_func):
+     if args.fp16:
+         model = FP16_Module(model)
+ 
++    if args.use_ort:
++        print('Use ORTModule')
++        from onnxruntime.training.ortmodule._custom_autograd_function import enable_custom_autograd_support
++        from onnxruntime.training.ortmodule.experimental.json_config import load_from_json
++        from torch_ort import ORTModule
++        import os
++        enable_custom_autograd_support()
++        model = ORTModule(model)
++        # load from json once.
++        path_to_json = os.path.join(os.getcwd(), 'ortmodule.json')
++        load_from_json(model, path_to_json)
+     # Wrap model for distributed training."""
+     if args.DDP_impl == 'torch':
+         i = torch.cuda.current_device()
+@@ -184,8 +195,8 @@ def get_optimizer(model):
+                                        weight_decay=args.weight_decay)
+     else:
+         # Use torch Adam instead of Fused Adam from NVIDIA which seems to have some issue.
+-        #optimizer = Adam(param_groups,
+-        optimizer = torch.optim.AdamW(param_groups,
++        #optimizer = torch.optim.AdamW(param_groups,
++        optimizer = Adam(param_groups,
+                          lr=args.lr,
+                          weight_decay=args.weight_decay,
+                          betas=(args.adam_beta1, args.adam_beta2),
+@@ -204,6 +215,9 @@ def get_optimizer(model):
+                                        'scale_window': args.loss_scale_window,
+                                        'min_scale': args.min_scale,
+                                        'delayed_shift': args.hysteresis})
++        from onnxruntime.training.ortmodule.optimizer.fp16_optimizer import FP16_Optimizer as ORT_FP16_Optimizer
++        optimizer = ORT_FP16_Optimizer(optimizer, get_horizontal_model_parallel_rank=mpu.get_model_parallel_rank, 
++                                       get_horizontal_model_parallel_group=mpu.get_model_parallel_group)
+ 
+     return optimizer
+ 
+diff --git a/Megatron-LM-v1.1.5-ZeRO3/ortmodule.json b/Megatron-LM-v1.1.5-ZeRO3/ortmodule.json
+new file mode 100644
+index 0000000..2f2f354
+--- /dev/null
++++ b/Megatron-LM-v1.1.5-ZeRO3/ortmodule.json
+@@ -0,0 +1,22 @@
++{
++    "UseExternalGPUAllocator" : true,
++    "UseStaticShape": false,
++    "RunSymbolicShapeInference": true,
++    "SkipCheck":
++    [
++        "SKIP_CHECK_DEVICE",
++        "SKIP_CHECK_BUILD_GRADIENT",
++        "SKIP_CHECK_EXECUTION_AGENT"
++    ],
++    "DebugOptions":
++    {
++        "LogLevel": "INFO",
++        "SaveONNX": true,
++        "ONNXPrefix": "my_other_model"
++    },
++    "UseMemoryEfficientGradient" : false,
++    "FallbackPolicy":
++    [
++        "FALLBACK_DISABLE"
++    ]
++}
+diff --git a/Megatron-LM-v1.1.5-ZeRO3/pretrain_gpt2.py b/Megatron-LM-v1.1.5-ZeRO3/pretrain_gpt2.py
+index 026702d..4ccc215 100644
+--- a/Megatron-LM-v1.1.5-ZeRO3/pretrain_gpt2.py
++++ b/Megatron-LM-v1.1.5-ZeRO3/pretrain_gpt2.py
+@@ -83,7 +83,7 @@ def get_batch(data_iterator):
+         args.reset_attention_mask,
+         args.eod_mask_loss)
+ 
+-    return tokens, labels, loss_mask, attention_mask, position_ids
++    return tokens, labels, loss_mask.contiguous(), attention_mask.contiguous(), position_ids.contiguous()
+ 
+ 
+ def forward_step(data_iterator, model, curriculum_learning=False):

@@ -1,3 +1,6 @@
 [submodule "huggingface-transformers"]
 	path = huggingface-transformers
 	url = https://github.com/microsoft/huggingface-transformers
+[submodule "DeepSpeedExamples"]
+	path = DeepSpeedExamples
+	url = https://github.com/microsoft/DeepSpeedExamples
