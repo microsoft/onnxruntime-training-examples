@@ -2,8 +2,9 @@
 
 echo '' > /logs/benchmark.txt
 
-for config in ort pt-fp16; do 
-for model in bert-large distilbert-base gpt2 bart-large t5-large deberta-v2-xxlarge roberta-large; do
+# for config in ort pt-fp16; do 
+for config in ort; do 
+for model in bert-large distilbert-base gpt2 bart-large roberta-large; do
 for ngpu in 1 8; do
 
   if [ "$ngpu" == "8" ] && [ "$config" == "pt-fp16" ]; then
