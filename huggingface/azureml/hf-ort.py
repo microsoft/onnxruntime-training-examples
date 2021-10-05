@@ -1,11 +1,11 @@
 MODEL_BATCHSIZE_DICT = {
-    "bert-large" : '18',
-    "distilbert-base" : '68',
-    "gpt2" : '12',
+    "bert-large" : '14',
+    "distilbert-base" : '60',
+    "gpt2" : '10',
     "bart-large" : '24',
     "t5-large" : '16',
     "deberta-v2-xxlarge" : '4',
-    "roberta-large" : '32'
+    "roberta-large" : '28'
 }
 
 RUN_SCRIPT_DICT= {
