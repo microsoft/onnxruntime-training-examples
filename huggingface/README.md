@@ -112,9 +112,7 @@ The issue is most likely caused by hitting a HW limitation on the target, this c
 
 `--model_batchsize` <parameter> - Change to smaller batchsize
   
-`--max_steps` <parameter> - Change the number of training steps
-  
-`--process_count` <parameter> - Change the number of GUPs to activate 
+`--process_count` <parameter> - Change the number of GPUs to activate 
   
 #### For example
   ```
