@@ -88,7 +88,8 @@ cd huggingface/docker
 sudo docker build -t hf-recipe-local-docker -f Dockerfile .
 ```
 Run built docker image
-* Replace `<onnxruntime-training-examples_path>` to your local `onnxruntime-training-examples/` path
+* Replace `<onnxruntime-training-examples_path>` to your local **full path** to `onnxruntime-training-examples`
+  * Usually it's located at `~/onnxruntime-training-examples/`
 * `-v /dev/shm:/dev/shm` mounts `/dev/shm` to inside docker `/dev/shm`. Similarly `-v <onnxruntime-training-examples_path>:/onnxruntime-training-examples` mounts `<onnxruntime-training-examples_path>` to inside docker `/onnxruntime-training-examples/`
 ```
 sudo docker run -it -v /dev/shm:/dev/shm -v <onnxruntime-training-examples_path>:/onnxruntime-training-examples --gpus all hf-recipe-local-docker
@@ -105,5 +106,15 @@ python hf-ort.py --hf_model {hf_model} --run_config {run_config} --process_count
 ## FAQ
 ### Problem with Azure Authentication
 If there's an Azure authentication issue, install Azure CLI [here](https://docs.microsoft.com/en-us/cli/azure/) and run `az login --use-device-code`
-### `RuntimeError: CUDA out of memory` error
-Change to smaller batchsize, use `--model_batchsize` parameter
+
+### In case of `RuntimeError: CUDA out of memory` error
+The issue is most likely caused by hitting a HW limitation on the target, this can be mitigated by using the following switches
+
+`--model_batchsize` <parameter> - Change to smaller batchsize
+  
+`--process_count` <parameter> - Change the number of GPUs to activate 
+  
+#### For example
+  ```
+python hf-ort.py --hf_model bart-large --run_config pt-fp16 --process_count 1 --local_run --model_batchsize 1 --max_steps 20
+```
