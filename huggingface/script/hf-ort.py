@@ -13,7 +13,7 @@ from azureml.core.compute_target import ComputeTargetException
 from azureml.core import ScriptRunConfig
 from azureml.core.runconfig import PyTorchConfiguration
 
-TRAINER_DIR = '../../huggingface-transformers/examples/pytorch'
+TRAINER_DIR = '../../huggingface-transformers/examples/'
 
 MODEL_BATCHSIZE_DICT = {
     "bert-large" : '8',
