@@ -53,9 +53,6 @@ from transformers.utils.versions import require_version
 from optimum.onnxruntime import ORTTrainer
 
 
-# Will error if the minimal version of Transformers is not installed. Remove at your own risks.
-# check_min_version("4.20.0.dev0")
-
 require_version("datasets>=1.8.0", "To fix: pip install -r examples/pytorch/language-modeling/requirements.txt")
 
 logger = logging.getLogger(__name__)
@@ -537,10 +534,10 @@ def main():
     # Training
     if training_args.do_train:
         checkpoint = None
-        # if training_args.resume_from_checkpoint is not None:
-        #    checkpoint = training_args.resume_from_checkpoint
-        #elif last_checkpoint is not None:
-        #    checkpoint = last_checkpoint
+        if training_args.resume_from_checkpoint is not None:
+            checkpoint = training_args.resume_from_checkpoint
+        elif last_checkpoint is not None:
+            checkpoint = last_checkpoint
         train_result = trainer.train(resume_from_checkpoint=checkpoint)
         trainer.save_model()  # Saves the tokenizer too for easy upload
 
