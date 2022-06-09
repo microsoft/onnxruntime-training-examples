@@ -52,6 +52,9 @@ from transformers.utils import check_min_version
 from transformers.utils.versions import require_version
 from optimum.onnxruntime import ORTTrainer
 
+# Script requires transformers==4.16.0
+# Versions above it run into a Type error when running GPT2 with fp16 enabled. 
+# https://github.com/microsoft/onnxruntime/issues/11279 
 
 require_version("datasets>=1.8.0", "To fix: pip install -r examples/pytorch/language-modeling/requirements.txt")
 
