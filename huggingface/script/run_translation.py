@@ -48,6 +48,7 @@ from transformers import (
 from transformers.trainer_utils import get_last_checkpoint
 from transformers.utils import check_min_version, send_example_telemetry
 from transformers.utils.versions import require_version
+from optimum.onnxruntime import ORTSeq2SeqTrainer
 
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
@@ -95,6 +96,12 @@ class ModelArguments:
                 "Will use the token generated when running `transformers-cli login` (necessary to use this script "
                 "with private models)."
             )
+        },
+    )
+    ort: bool = field(
+        default=False,
+        metadata={
+            "help": "Will use ORT to accelerate training when set to true."
         },
     )
 
@@ -553,15 +560,26 @@ def main():
         return result
 
     # Initialize our Trainer
-    trainer = Seq2SeqTrainer(
-        model=model,
-        args=training_args,
-        train_dataset=train_dataset if training_args.do_train else None,
-        eval_dataset=eval_dataset if training_args.do_eval else None,
-        tokenizer=tokenizer,
-        data_collator=data_collator,
-        compute_metrics=compute_metrics if training_args.predict_with_generate else None,
-    )
+    if model_args.ort:
+        trainer = ORTSeq2SeqTrainer(
+            model=model,
+            args=training_args,
+            train_dataset=train_dataset if training_args.do_train else None,
+            eval_dataset=eval_dataset if training_args.do_eval else None,
+            tokenizer=tokenizer,
+            data_collator=data_collator,
+            compute_metrics=compute_metrics if training_args.predict_with_generate else None,
+        )
+    else:
+        trainer = Seq2SeqTrainer(
+            model=model,
+            args=training_args,
+            train_dataset=train_dataset if training_args.do_train else None,
+            eval_dataset=eval_dataset if training_args.do_eval else None,
+            tokenizer=tokenizer,
+            data_collator=data_collator,
+            compute_metrics=compute_metrics if training_args.predict_with_generate else None,
+        )
 
     # Training
     if training_args.do_train:
