@@ -510,27 +510,20 @@ def main():
 
     # Initialize our Trainer
     if model_args.ort:
-        trainer = ORTTrainer(
-            model=model,
-            args=training_args,
-            train_dataset=train_dataset if training_args.do_train else None,
-            eval_dataset=eval_dataset if training_args.do_eval else None,
-            tokenizer=tokenizer,
-            # Data collator will default to DataCollatorWithPadding, so we change it.
-            data_collator=default_data_collator,
-            compute_metrics=compute_metrics if training_args.do_eval and not is_torch_tpu_available() else None,
-        )
+        trainer_class = ORTTrainer
     else:
-        trainer = Trainer(
-            model=model,
-            args=training_args,
-            train_dataset=train_dataset if training_args.do_train else None,
-            eval_dataset=eval_dataset if training_args.do_eval else None,
-            tokenizer=tokenizer,
-            # Data collator will default to DataCollatorWithPadding, so we change it.
-            data_collator=default_data_collator,
-             compute_metrics=compute_metrics if training_args.do_eval and not is_torch_tpu_available() else None
-        )
+        trainer_class = Trainer
+
+    trainer = trainer_class(
+        model=model,
+        args=training_args,
+        train_dataset=train_dataset if training_args.do_train else None,
+        eval_dataset=eval_dataset if training_args.do_eval else None,
+        tokenizer=tokenizer,
+        # Data collator will default to DataCollatorWithPadding, so we change it.
+        data_collator=default_data_collator,
+        compute_metrics=compute_metrics if training_args.do_eval and not is_torch_tpu_available() else None,
+    )
 
     # Training
     if training_args.do_train:
