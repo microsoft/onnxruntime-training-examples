@@ -13,7 +13,7 @@ from azureml.core.compute_target import ComputeTargetException
 from azureml.core import ScriptRunConfig
 from azureml.core.runconfig import PyTorchConfiguration
 
-TRAINER_DIR = '../../huggingface-transformers/examples/pytorch'
+TRAINER_DIR = '../../optimum/examples/onnxruntime/training'
 
 MODEL_BATCHSIZE_DICT = {
     "bert-large" : '8',
@@ -96,9 +96,6 @@ parser.add_argument("--node_count",
 parser.add_argument("--skip_docker_build",
                         help="Skip docker build (use last built docker saved in AzureML environment). Default to False", action='store_true')
 
-parser.add_argument("--use_cu102",
-                        help="Use Cuda 10.2 dockerfile. Default to False", action='store_true')
-
 parser.add_argument("--local_run",
                         help="Run recipe locally, false for azureml run. Default to False", action='store_true')
 
@@ -138,10 +135,7 @@ base_args_dict = {
 }
 
 if not args.local_run:
-    if args.use_cu102:
-        hf_ort_env = Environment.from_dockerfile(name='hf-ort-dockerfile-10.2', dockerfile='../docker/Dockerfile-10.2')
-    else:
-        hf_ort_env = Environment.from_dockerfile(name='hf-ort-dockerfile', dockerfile='../docker/Dockerfile')
+    hf_ort_env = Environment.from_dockerfile(name='hf-ort-dockerfile', dockerfile='../docker/Dockerfile')
     # This step builds a new docker image from dockerfile
     if not args.skip_docker_build:
         hf_ort_env.register(ws).build(ws).wait_for_completion()
@@ -190,6 +184,6 @@ else:
     
     print(f"Submitting run for model: {args.hf_model}, config: {args.run_config}")
     run = model_experiment.submit(model_run_config)
-    cuda_version = "10.2" if args.use_cu102 else "11.1"
+    cuda_version = "11.3"
     run.set_tags({'model' : args.hf_model, 'config' : args.run_config, 'bs' : model_batchsize, 'gpus' : str(args.process_count), 'cuda': cuda_version})
     print(f"Job submitted to {run.get_portal_url()}")
