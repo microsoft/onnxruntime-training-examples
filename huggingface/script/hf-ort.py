@@ -13,14 +13,14 @@ from azureml.core.compute_target import ComputeTargetException
 from azureml.core import ScriptRunConfig
 from azureml.core.runconfig import PyTorchConfiguration
 
-TRAINER_DIR = '../../optimum/examples/onnxruntime/training'
+OPT_TRAINER_DIR = '../../optimum/examples/onnxruntime/training'
 
 MODEL_BATCHSIZE_DICT = {
     "bert-large" : '8',
     "distilbert-base" : '32',
     "gpt2" : '8',
     "bart-large" : '16',
-    "t5-large" : '16',
+    "t5-large" : '8',
     "deberta-v2-xxlarge" : '4',
     "roberta-large" : '16'
 }
