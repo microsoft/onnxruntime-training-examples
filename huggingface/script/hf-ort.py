@@ -13,7 +13,8 @@ from azureml.core.compute_target import ComputeTargetException
 from azureml.core import ScriptRunConfig
 from azureml.core.runconfig import PyTorchConfiguration
 
-OPT_TRAINER_DIR = '../../optimum/examples/onnxruntime/training'
+OPTIMUM_TRAINER_DIR = '../../optimum/examples/onnxruntime/training'
+TRANSFORMERS_TRAINER_DIR = '../../transformers/examples/pytorch'
 
 MODEL_BATCHSIZE_DICT = {
     "bert-large" : '8',
@@ -47,11 +48,11 @@ RUN_SCRIPT_DIR_DICT= {
 
 CONFIG_ARGS_DICT = {
     "pt-fp16" : [],
-    "ort" : ['--ort'],
+    "ort" : [],
     "ds_s0" : ['--deepspeed', 'ds_config_zero_0.json'],
-    "ds_s0_ort" : ['--ort', '--deepspeed', 'ds_config_zero_0.json'],
+    "ds_s0_ort" : ['--deepspeed', 'ds_config_zero_0.json'],
     "ds_s1" : ['--deepspeed', 'ds_config_zero_1.json'],
-    "ds_s1_ort" : ['--ort', '--deepspeed', 'ds_config_zero_1.json']
+    "ds_s1_ort" : ['--deepspeed', 'ds_config_zero_1.json']
 }
 
 # Check core SDK version number
@@ -146,8 +147,10 @@ model_run_args_base = base_args_dict[args.hf_model]
 model_run_scripts = RUN_SCRIPT_DICT[args.hf_model]
 
 # copy dependent run script to current folder
+# check if ort exists as a substring in the run configuration
+trainer_dir = OPTIMUM_TRAINER_DIR if "ort" in args.run_config else TRANSFORMERS_TRAINER_DIR
 for script_file in model_run_scripts:
-    model_run_script_path = os.path.normcase(os.path.join(TRAINER_DIR, RUN_SCRIPT_DIR_DICT[args.hf_model], script_file))
+    model_run_script_path = os.path.normcase(os.path.join(trainer_dir, RUN_SCRIPT_DIR_DICT[args.hf_model], script_file))
     shutil.copy(model_run_script_path, '.')
 
 model_run_args_config = model_run_args_base + CONFIG_ARGS_DICT[args.run_config]
