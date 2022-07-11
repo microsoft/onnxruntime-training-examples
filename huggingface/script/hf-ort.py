@@ -136,7 +136,10 @@ base_args_dict = {
 }
 
 if not args.local_run:
-    hf_ort_env = Environment.from_dockerfile(name='hf-ort-dockerfile', dockerfile='../docker/Dockerfile')
+    if args.hf_model == 'gpt2':
+        hf_ort_env = Environment.from_dockerfile(name='hf-ort-dockerfile', dockerfile='../docker/Dockerfile_clm')
+    else:
+        hf_ort_env = Environment.from_dockerfile(name='hf-ort-dockerfile', dockerfile='../docker/Dockerfile')
     # This step builds a new docker image from dockerfile
     if not args.skip_docker_build:
         hf_ort_env.register(ws).build(ws).wait_for_completion()
