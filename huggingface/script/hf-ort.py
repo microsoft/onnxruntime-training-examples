@@ -135,6 +135,19 @@ base_args_dict = {
     "roberta-large" : ['--model_name_or_path', 'roberta-large', '--dataset_name', 'squad', '--do_train', '--per_device_train_batch_size', model_batchsize, '--learning_rate', '3e-5', '--max_steps', args.max_steps, '--max_seq_length', 384, '--doc_stride', 128, '--output_dir', '/tmp/roberta_res', '--overwrite_output_dir', '--logging_steps', 200, '--fp16']
 }
 
+model_run_scripts = RUN_SCRIPT_DICT[args.hf_model]
+
+# copy scripts and requirements to current folder
+# check if ort exists as a substring in the run configuration
+trainer_dir = OPTIMUM_TRAINER_DIR if "ort" in args.run_config else TRANSFORMERS_TRAINER_DIR
+for script_file in model_run_scripts:
+    # copy dependent run script to current folder
+    model_run_script_path = os.path.normcase(os.path.join(trainer_dir, RUN_SCRIPT_DIR_DICT[args.hf_model], script_file))
+    shutil.copy(model_run_script_path, '.')
+# copy requirements to current folder
+requirements_path = os.path.normcase(os.path.join(trainer_dir, RUN_SCRIPT_DIR_DICT[args.hf_model], 'requirements.txt'))
+shutil.copy(requirements_path, '../docker')
+
 if not args.local_run:
     if args.hf_model == 'gpt2':
         hf_ort_env = Environment.from_dockerfile(name='hf-ort-dockerfile', dockerfile='../docker/Dockerfile_clm')
@@ -147,14 +160,6 @@ if not args.local_run:
 model_experiment_name = 'hf-ortmodule-recipe-' + args.hf_model
 
 model_run_args_base = base_args_dict[args.hf_model]
-model_run_scripts = RUN_SCRIPT_DICT[args.hf_model]
-
-# copy dependent run script to current folder
-# check if ort exists as a substring in the run configuration
-trainer_dir = OPTIMUM_TRAINER_DIR if "ort" in args.run_config else TRANSFORMERS_TRAINER_DIR
-for script_file in model_run_scripts:
-    model_run_script_path = os.path.normcase(os.path.join(trainer_dir, RUN_SCRIPT_DIR_DICT[args.hf_model], script_file))
-    shutil.copy(model_run_script_path, '.')
 
 model_run_args_config = model_run_args_base + CONFIG_ARGS_DICT[args.run_config]
 # use _xxberta.json for deberta and roberta
