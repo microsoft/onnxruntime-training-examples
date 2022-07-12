@@ -8,3 +8,5 @@ RUN python -m pip install \
                         onnx>=1.9.0 \
                         onnxruntime-training>=1.9.0 \
                         torch-ort
+
+RUN pip uninstall -y mlflow-skinny
