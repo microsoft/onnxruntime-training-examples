@@ -6,7 +6,7 @@ RUN python -m pip install \
                         sentencepiece>0.1.92 \
                         transformers==4.16.0 \
                         onnx>=1.9.0 \
-                        onnxruntime-training>=1.9.0 \
+                        onnxruntime-training>=1.11.0 \
                         torch-ort
 
 RUN pip uninstall -y mlflow-skinny
