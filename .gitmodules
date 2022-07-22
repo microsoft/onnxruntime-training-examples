@@ -1,3 +1,6 @@
-[submodule "huggingface-transformers"]
-	path = huggingface-transformers
-	url = https://github.com/microsoft/huggingface-transformers
+[submodule "optimum"]
+	path = optimum
+	url = https://github.com/huggingface/optimum.git
+[submodule "transformers"]
+	path = transformers
+	url = https://github.com/huggingface/transformers.git

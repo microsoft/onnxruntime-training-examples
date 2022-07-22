@@ -13,14 +13,15 @@ from azureml.core.compute_target import ComputeTargetException
 from azureml.core import ScriptRunConfig
 from azureml.core.runconfig import PyTorchConfiguration
 
-TRAINER_DIR = '../../huggingface-transformers/examples/pytorch'
+OPTIMUM_TRAINER_DIR = '../../optimum/examples/onnxruntime/training'
+TRANSFORMERS_TRAINER_DIR = '../../transformers/examples/pytorch'
 
 MODEL_BATCHSIZE_DICT = {
     "bert-large" : '8',
     "distilbert-base" : '32',
     "gpt2" : '8',
     "bart-large" : '16',
-    "t5-large" : '16',
+    "t5-large" : '8',
     "deberta-v2-xxlarge" : '4',
     "roberta-large" : '16'
 }
@@ -47,11 +48,11 @@ RUN_SCRIPT_DIR_DICT= {
 
 CONFIG_ARGS_DICT = {
     "pt-fp16" : [],
-    "ort" : ['--ort'],
+    "ort" : [],
     "ds_s0" : ['--deepspeed', 'ds_config_zero_0.json'],
-    "ds_s0_ort" : ['--ort', '--deepspeed', 'ds_config_zero_0.json'],
+    "ds_s0_ort" : ['--deepspeed', 'ds_config_zero_0.json'],
     "ds_s1" : ['--deepspeed', 'ds_config_zero_1.json'],
-    "ds_s1_ort" : ['--ort', '--deepspeed', 'ds_config_zero_1.json']
+    "ds_s1_ort" : ['--deepspeed', 'ds_config_zero_1.json']
 }
 
 # Check core SDK version number
@@ -96,9 +97,6 @@ parser.add_argument("--node_count",
 parser.add_argument("--skip_docker_build",
                         help="Skip docker build (use last built docker saved in AzureML environment). Default to False", action='store_true')
 
-parser.add_argument("--use_cu102",
-                        help="Use Cuda 10.2 dockerfile. Default to False", action='store_true')
-
 parser.add_argument("--local_run",
                         help="Run recipe locally, false for azureml run. Default to False", action='store_true')
 
@@ -138,8 +136,8 @@ base_args_dict = {
 }
 
 if not args.local_run:
-    if args.use_cu102:
-        hf_ort_env = Environment.from_dockerfile(name='hf-ort-dockerfile-10.2', dockerfile='../docker/Dockerfile-10.2')
+    if args.hf_model == 'gpt2':
+        hf_ort_env = Environment.from_dockerfile(name='hf-ort-dockerfile', dockerfile='../docker/Dockerfile_clm')
     else:
         hf_ort_env = Environment.from_dockerfile(name='hf-ort-dockerfile', dockerfile='../docker/Dockerfile')
     # This step builds a new docker image from dockerfile
@@ -152,8 +150,10 @@ model_run_args_base = base_args_dict[args.hf_model]
 model_run_scripts = RUN_SCRIPT_DICT[args.hf_model]
 
 # copy dependent run script to current folder
+# check if ort exists as a substring in the run configuration
+trainer_dir = OPTIMUM_TRAINER_DIR if "ort" in args.run_config else TRANSFORMERS_TRAINER_DIR
 for script_file in model_run_scripts:
-    model_run_script_path = os.path.normcase(os.path.join(TRAINER_DIR, RUN_SCRIPT_DIR_DICT[args.hf_model], script_file))
+    model_run_script_path = os.path.normcase(os.path.join(trainer_dir, RUN_SCRIPT_DIR_DICT[args.hf_model], script_file))
     shutil.copy(model_run_script_path, '.')
 
 model_run_args_config = model_run_args_base + CONFIG_ARGS_DICT[args.run_config]
@@ -190,6 +190,6 @@ else:
     
     print(f"Submitting run for model: {args.hf_model}, config: {args.run_config}")
     run = model_experiment.submit(model_run_config)
-    cuda_version = "10.2" if args.use_cu102 else "11.1"
+    cuda_version = "11.3"
     run.set_tags({'model' : args.hf_model, 'config' : args.run_config, 'bs' : model_batchsize, 'gpus' : str(args.process_count), 'cuda': cuda_version})
     print(f"Job submitted to {run.get_portal_url()}")
