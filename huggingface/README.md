@@ -11,11 +11,11 @@ cd onnxruntime-training-examples
 git submodule update --init --recursive
 git submodule foreach git pull origin master
 ```
-2. Make sure python 3.6+ is installed
+2. Make sure python 3.8+ is installed
 
 We recommend using conda to manage python environment. If you do not have conda installed, you can follow the instruction to install conda [here](https://conda.io/projects/conda/en/latest/user-guide/install/index.html). Once conda is installed, create a new python environment with 
 ```bash
-conda create --name myenv python=3.6
+conda create --name myenv python=3.8
 ```
 3. Install azureml-core
 
@@ -82,7 +82,7 @@ Other parameters. Please also see parameters [`script/hf-ort.py`](azureml/hf-ort
 1. A machine that you can access with GPU. This recipe was tested on 8 x 32G V100 GPUs machine.
 2. Know how many GPUs are there. This needs to be passed to parameter `--process_count`
 ### 3.2 Run this recipe
-Build docker image. `Dockerfile` is for cuda 11.1, `Dockerfile-10.2` is for cuda 10.2.
+Build docker image. `Dockerfile` is for all models besides GPT2, `Dockerfile_clm` is for GPT2 model and any model that requires the run\_clm.py script.
 ```
 cd huggingface/docker
 sudo docker build -t hf-recipe-local-docker -f Dockerfile .
