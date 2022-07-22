@@ -13,6 +13,11 @@ from azureml.core.compute_target import ComputeTargetException
 from azureml.core import ScriptRunConfig
 from azureml.core.runconfig import PyTorchConfiguration
 
+# NOTE: DeBERTa currently does not run with the Optimum ORT wrapper
+# see: https://github.com/huggingface/optimum/issues/305
+# as well as: https://github.com/microsoft/onnx-converters-private/issues/15
+# DeBERTa code commented out for now
+
 OPTIMUM_TRAINER_DIR = '../../optimum/examples/onnxruntime/training'
 TRANSFORMERS_TRAINER_DIR = '../../transformers/examples/pytorch'
 
@@ -22,7 +27,7 @@ MODEL_BATCHSIZE_DICT = {
     "gpt2" : '8',
     "bart-large" : '16',
     "t5-large" : '8',
-    "deberta-v2-xxlarge" : '4',
+    # "deberta-v2-xxlarge" : '4',
     "roberta-large" : '16'
 }
 
@@ -32,7 +37,7 @@ RUN_SCRIPT_DICT= {
     "gpt2" : ['run_clm.py'],
     "bart-large" : ['run_translation.py'],
     "t5-large" : ['run_translation.py'],
-    "deberta-v2-xxlarge" : ['run_glue.py'],
+    # "deberta-v2-xxlarge" : ['run_glue.py'],
     "roberta-large" : ['run_qa.py', 'trainer_qa.py', 'utils_qa.py']
 }
 
@@ -42,7 +47,7 @@ RUN_SCRIPT_DIR_DICT= {
     "gpt2" : 'language-modeling',
     "bart-large" : 'translation',
     "t5-large" : 'translation',
-    "deberta-v2-xxlarge" : 'text-classification',
+    # "deberta-v2-xxlarge" : 'text-classification',
     "roberta-large" : 'question-answering'
 }
 
@@ -67,7 +72,8 @@ parser.add_argument("--gpu_cluster_name",
 
 parser.add_argument("--hf_model",
                         help="Huggingface models to run", type=str, required=True,
-                        choices=['bert-large', 'distilbert-base', 'gpt2', 'bart-large', 't5-large', 'deberta-v2-xxlarge', 'roberta-large'])
+                        # choices=['bert-large', 'distilbert-base', 'gpt2', 'bart-large', 't5-large', 'deberta-v2-xxlarge', 'roberta-large'])
+                        choices=['bert-large', 'distilbert-base', 'gpt2', 'bart-large', 't5-large', 'roberta-large'])
 
 parser.add_argument("--run_config",
                         help="Run configuration indicating pytorch or ort, deepspeed stage", type=str, required=True,
