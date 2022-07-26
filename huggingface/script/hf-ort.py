@@ -18,11 +18,8 @@ from azureml.core.runconfig import PyTorchConfiguration
 # as well as: https://github.com/microsoft/onnx-converters-private/issues/15
 # DeBERTa code commented out for now
 
-# NOTE: RoBERTa currently does not run because it requires ORT==1.12.0
-# and ORT==1.12.0 is running into issues with the Optimum scripts.
+# NOTE: RoBERTa requires ORT==1.12.0
 # see: https://github.com/microsoft/onnxruntime/issues/11268
-# as well as: https://github.com/microsoft/onnxruntime/issues/12312
-# RoBERTa code commented out for now
 
 OPTIMUM_TRAINER_DIR = '../../optimum/examples/onnxruntime/training'
 TRANSFORMERS_TRAINER_DIR = '../../transformers/examples/pytorch'
@@ -79,7 +76,7 @@ parser.add_argument("--gpu_cluster_name",
 parser.add_argument("--hf_model",
                         help="Huggingface models to run", type=str, required=True,
                         # choices=['bert-large', 'distilbert-base', 'gpt2', 'bart-large', 't5-large', 'deberta-v2-xxlarge', 'roberta-large'])
-                        choices=['bert-large', 'distilbert-base', 'gpt2', 'bart-large', 't5-large'])
+                        choices=['bert-large', 'distilbert-base', 'gpt2', 'bart-large', 't5-large', 'roberta-large'])
 
 parser.add_argument("--run_config",
                         help="Run configuration indicating pytorch or ort, deepspeed stage", type=str, required=True,
