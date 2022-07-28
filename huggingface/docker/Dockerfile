@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/azureml/aifx/stable-ubuntu2004-cu115-py38-torch1110
+FROM ptebic.azurecr.io/internal/azureml/aifx/stable-ubuntu2004-cu116-py38-torch1120
 ENV DISABLE_MLFLOW_INTEGRATION TRUE
 
 RUN pip3 install accelerate
