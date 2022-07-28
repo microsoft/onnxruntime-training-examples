@@ -9,7 +9,7 @@ This example uses ORTModule to fine-tune several popular [HuggingFace](https://h
 git clone https://github.com/microsoft/onnxruntime-training-examples.git
 cd onnxruntime-training-examples
 git submodule update --init --recursive
-git submodule foreach git pull origin master
+git submodule foreach git pull origin main
 ```
 2. Make sure python 3.8+ is installed
 
