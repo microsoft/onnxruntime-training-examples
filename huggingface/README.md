@@ -82,7 +82,7 @@ Other parameters. Please also see parameters [`script/hf-ort.py`](azureml/hf-ort
 1. A machine that you can access with GPU. This recipe was tested on 8 x 32G V100 GPUs machine.
 2. Know how many GPUs are there. This needs to be passed to parameter `--process_count`
 ### 3.2 Run this recipe
-Build docker image. `Dockerfile` is for all models besides GPT2, `Dockerfile_clm` is for GPT2 model and any model that requires the run\_clm.py script.
+Build docker image.
 ```
 cd huggingface/docker
 sudo docker build -t hf-recipe-local-docker -f Dockerfile .
