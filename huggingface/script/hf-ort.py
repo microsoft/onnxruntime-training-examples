@@ -79,7 +79,7 @@ parser.add_argument("--gpu_cluster_name",
 parser.add_argument("--hf_model",
                         help="Huggingface models to run", type=str, required=True,
                         # choices=['bert-large', 'distilbert-base', 'gpt2', 'bart-large', 't5-large', 'deberta-v2-xxlarge', 'roberta-large'])
-                        choices=['bert-large', 'distilbert-base', 'gpt2', 'bart-large', 't5-large'])
+                        choices=['bert-large', 'distilbert-base', 'gpt2', 'bart-large', 't5-large', 'roberta-large'])
 
 parser.add_argument("--run_config",
                         help="Run configuration indicating pytorch or ort, deepspeed stage", type=str, required=True,
