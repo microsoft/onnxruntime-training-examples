@@ -18,12 +18,6 @@ from azureml.core.runconfig import PyTorchConfiguration
 # as well as: https://github.com/microsoft/onnx-converters-private/issues/15
 # DeBERTa code commented out for now
 
-# NOTE: RoBERTa currently does not run because it requires ORT==1.12.0
-# and ORT==1.12.0 is running into issues with the Optimum scripts.
-# see: https://github.com/microsoft/onnxruntime/issues/11268
-# as well as: https://github.com/microsoft/onnxruntime/issues/12312
-# RoBERTa code commented out for now
-
 OPTIMUM_TRAINER_DIR = '../../optimum/examples/onnxruntime/training'
 TRANSFORMERS_TRAINER_DIR = '../../transformers/examples/pytorch'
 
