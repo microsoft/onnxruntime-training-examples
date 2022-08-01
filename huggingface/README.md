@@ -9,7 +9,7 @@ This example uses ORTModule to fine-tune several popular [HuggingFace](https://h
 git clone https://github.com/microsoft/onnxruntime-training-examples.git
 cd onnxruntime-training-examples
 git submodule update --init --recursive
-git submodule foreach git pull origin master
+git submodule foreach git pull origin main
 ```
 2. Make sure python 3.8+ is installed
 
@@ -118,3 +118,10 @@ The issue is most likely caused by hitting a HW limitation on the target, this c
   ```
 python hf-ort.py --hf_model bart-large --run_config pt-fp16 --process_count 1 --local_run --model_batchsize 1 --max_steps 20
 ```
+
+## Notes
+RoBERTa & DeBERTa currently decommissioned from the hf-ort.py script because of unresolved issues.
+
+RoBERTa currently requires ORT >= 1.12.0 according to this issue ([#11268](https://github.com/microsoft/onnxruntime/issues/11268)) which was resolved in ORT 1.12.0. However, running with ORT 1.12.0 with the PTCA Docker container and on the specified machine for benchmarking causes this issue ([#12312](https://github.com/microsoft/onnxruntime/issues/12312)).
+
+DeBERTa has the following unresolved issues when using Optimum's ORTTrainer: [#15](https://github.com/microsoft/onnx-converters-private/issues/15) and [#305](https://github.com/huggingface/optimum/issues/305)
