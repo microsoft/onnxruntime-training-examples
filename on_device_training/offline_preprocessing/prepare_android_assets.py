@@ -107,9 +107,8 @@ def save_data_as_bin(np_data_list, out_filename, data_type):
 
 
 # Save batches of preprocessed data
-# step_size: determines number of batches saved in a single file
-# stop_at: total number of batches to pick
-def process_and_save_data(data_loader, data_loc, step_size):
+# num_batches: determines number of batches saved in a single file
+def process_and_save_data(data_loader, data_loc, num_batches):
     inputs_pack, labels_pack = [], []
     for i, data in enumerate(data_loader, 0):
         # get the inputs; data is a tuple of (inputs, labels)
@@ -117,9 +116,9 @@ def process_and_save_data(data_loader, data_loc, step_size):
         inputs_pack.append(inputs.detach().numpy().flatten())
         labels_pack.append(labels.detach().numpy().flatten())
 
-        if (i + 1) % step_size == 0:
-            save_data_as_bin(inputs_pack, os.path.join(data_loc, "input_" + str(i // step_size) + ".bin"), "float")
-            save_data_as_bin(labels_pack, os.path.join(data_loc, "labels_" + str(i // step_size) + ".bin"), "int")
+        if (i + 1) % num_batches == 0:
+            save_data_as_bin(inputs_pack, os.path.join(data_loc, "input_" + str(i // num_batches) + ".bin"), "float")
+            save_data_as_bin(labels_pack, os.path.join(data_loc, "labels_" + str(i // num_batches) + ".bin"), "int")
             inputs_pack, labels_pack = [], []
 
 
@@ -145,6 +144,15 @@ def get_data(batch_size, data_loc, output_loc):
     if not os.path.exists(test_data_loc):
         os.makedirs(test_data_loc)
 
+    # Training data has 50,000 images. Test data has 10,000 images.
+    # We create input and label files of 1000 images each.
+    # batch size = 4, number of batches tensors per file = 250
+    # number of images per file = 1000
+    # Each call to TrainStep/EvalStep in onnxruntime will process 1 batch (4 images)
+    # per call.
+    # For the android application, each click of "Train" button results in training
+    # 1 file (250 batches = 1000 images). And each click of "Eval" button results in
+    # evaluation across all test_data files (250*10 = 2500 batches= 10,000 images).
     process_and_save_data(trainloader, train_data_loc, 250)
     process_and_save_data(testloader, test_data_loc, 250)
 
