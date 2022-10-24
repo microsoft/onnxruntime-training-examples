@@ -1,6 +1,28 @@
 ## Getting Started
 
-This is a guide on how to use the resources in this repository to build the android app. There are two parts to performing on device training:
+This is a guide on how to use the resources in this repository to build the android app. There are two parts to performing on device training.
+
+1. Offline processing step - This step builds all the files necessary for performing training.
+2. The actuat training on an android device.
+
+## About the task
+
+In this tutorial, we will show how to use onnxruntime C++ apis to perform on-device training. The task at hand is to categorize an image into one of ten labels:
+1. an airplane
+2. a car,
+3. a bird,
+4. a cat,
+5. a deer,
+6. a dog,
+7. a frog,
+8. a horse,
+9. a ship,
+20. a truck
+
+We will use the cifar10 dataset and model to perform this classification. All the model training, evaluation and inference is performed entirely on the android device.
+
+## Setup
+
 1. Offline processing step - This step builds all the files necessary for performing training.
     
     The files generated in this step are:
