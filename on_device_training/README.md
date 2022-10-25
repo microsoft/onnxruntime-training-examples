@@ -4,6 +4,9 @@ This directory includes tutorials for on-device training with onnxruntime. READM
 
 This file answers some common questions around on-device training with onnxruntime.
 
+> **Note**
+> onnxruntime on-device training is under active development. At the moment, we have not released a binary and the library will need to be built from source. Please create an [issue](https://github.com/microsoft/onnxruntime-training-examples/issues/new) with your scenario and requirements if you encounter problems, and we will be sure to respond and follow up on the request.
+
 ## What is On-Device Training?
 On-device training refers to training a model on the device, without the data ever leaving the device. Such a training enables applications to leverage the user data without compromising users privacy.
 
@@ -34,6 +37,7 @@ The task of performing training on the device should be broken down into two ste
 ## Where are the C/C++ APIs for On-Device Training?
 - [C APIs](https://github.com/microsoft/onnxruntime/blob/main/orttraining/orttraining/training_api/include/onnxruntime_training_c_api.h)
 - [C++ APIs](https://github.com/microsoft/onnxruntime/blob/main/orttraining/orttraining/training_api/include/onnxruntime_training_cxx_api.h)
+- [C# APIs](https://github.com/microsoft/onnxruntime/tree/main/csharp/src/Microsoft.ML.OnnxRuntime/Training)
 
 
 ## What tutorials does this repo include?

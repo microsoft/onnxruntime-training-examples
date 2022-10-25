@@ -146,13 +146,13 @@ def get_data(batch_size, data_loc, output_loc):
 
     # Training data has 50,000 images. Test data has 10,000 images.
     # We create input and label files of 1000 images each.
-    # batch size = 4, number of batches tensors per file = 250
+    # batch size = 4, number of batched tensors per file = 250
     # number of images per file = 1000
     # Each call to TrainStep/EvalStep in onnxruntime will process 1 batch (4 images)
     # per call.
     # For the android application, each click of "Train" button results in training
     # 1 file (250 batches = 1000 images). And each click of "Eval" button results in
-    # evaluation across all test_data files (250*10 = 2500 batches= 10,000 images).
+    # evaluation across all test_data files (250*10 = 2500 batches = 10,000 images).
     process_and_save_data(trainloader, train_data_loc, 250)
     process_and_save_data(testloader, test_data_loc, 250)
 
