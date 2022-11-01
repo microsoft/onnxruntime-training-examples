@@ -233,7 +233,8 @@ Java_com_example_ondevicetraining_MainActivity_infer(
 
     // Export the eval model to an inference ready model at path provided.
     auto *session_cache = (TrainingSessionCache *)training_resource;
-    session_cache->session.ExportModelForInferencing(JString2String(env, model_path).c_str());
+    const std::vector<std::string> graph_outputs({"output"});
+    session_cache->session.ExportModelForInferencing(JString2String(env, model_path).c_str(), graph_outputs);
 
     // Create the inference session
     Ort::Env ort_env(ORT_LOGGING_LEVEL_VERBOSE, LOG_TAG);
