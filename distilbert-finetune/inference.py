@@ -11,12 +11,9 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 print("device: ", device)
 
 def infer(args):
-    # load model and update state dictionary
-    print("loading tokenizer and model...")
+    # load tokenizer to preprocess data
+    print("loading tokenizer...")
     tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
-    model = AutoModelForQuestionAnswering.from_pretrained("distilbert-base-uncased")
-    model.load_state_dict(torch.load("pytorch_model.bin"))
-    model.eval()
 
     # load test data
     context = """
@@ -42,6 +39,13 @@ def infer(args):
     print('tokenizing...')
     encoding = tokenizer.batch_encode_plus(inputs, padding=True, return_tensors="pt")
     input_ids, attention_mask = encoding["input_ids"], encoding["attention_mask"]
+    input_ids = input_ids.to(device)
+    attention_mask = attention_mask.to(device)
+
+    # load model and update state dictionary...
+    model = AutoModelForQuestionAnswering.from_pretrained("distilbert-base-uncased")
+    model.load_state_dict(torch.load("pytorch_model.bin"))
+    model.eval()
 
     # if using onnnxruntime, convert to onnx format
     # documentation: https://onnxruntime.ai/docs/api/python/api_summary.html
@@ -60,6 +64,8 @@ def infer(args):
             'input_ids': input_ids.contiguous(),
             'attention_mask' : attention_mask.contiguous(),
         }
+
+    model.to(device)
 
     # run inference
     start = time.time()
@@ -97,4 +103,3 @@ def main(raw_args=None):
 
 if __name__ == "__main__":
     main()
-    
