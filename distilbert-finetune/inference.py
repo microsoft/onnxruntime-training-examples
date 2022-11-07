@@ -1,6 +1,7 @@
 import argparse
 import time
 import numpy as np
+import os
 
 import torch
 from transformers import AutoModelForQuestionAnswering, AutoTokenizer
@@ -47,11 +48,12 @@ def infer(args):
     # ...more documentation: https://github.com/microsoft/onnxruntime/blob/main/onnxruntime/python/tools/transformers/notebooks/Inference_GPT2-OneStepSearch_OnnxRuntime_CPU.ipynb
 
     if args.ort:
-        torch.onnx.export(model, \
-                          (input_ids, attention_mask), \
-                          "model.onnx", \
-                          input_names=['input_ids', 'attention_mask'], \
-                          output_names=['start_logits', "end_logits"]) 
+        if not os.path.exists("model.onnx"):
+            torch.onnx.export(model, \
+                            (input_ids, attention_mask), \
+                            "model.onnx", \
+                            input_names=['input_ids', 'attention_mask'], \
+                            output_names=['start_logits', "end_logits"]) 
 
         sess = onnxruntime.InferenceSession('model.onnx', providers=['CUDAExecutionProvider'])
         ort_input = {
