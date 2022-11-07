@@ -121,7 +121,8 @@ def infer(args):
         start = time.time()
         if args.ort:
             if device == "cuda":
-                output = sess.run_with_iobinding(binding)
+                sess.run_with_iobinding(binding)
+                output = binding.copy_outputs_to_cpu()
             elif device == "cpu":
                 output = sess.run(None, ort_input)
         else:
