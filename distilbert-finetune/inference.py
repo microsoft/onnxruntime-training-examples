@@ -39,6 +39,7 @@ def infer(args):
     print('tokenizing...')
     encoding = tokenizer.batch_encode_plus(inputs, padding=True, return_tensors="pt")
     input_ids, attention_mask = encoding["input_ids"], encoding["attention_mask"]
+    print(input_ids.shape)
 
     # load model and update state...
     model = AutoModelForQuestionAnswering.from_pretrained("distilbert-base-uncased")
@@ -82,7 +83,7 @@ def infer(args):
                 buffer_ptr=attention_mask_tensor.data_ptr(),
             )
 
-            start_logits_shape = (4, 164)
+            start_logits_shape = (len(questions), 164)
             start_logits_tensor = torch.empty(start_logits_shape, dtype=torch.int64, device='cuda:0').contiguous()
             binding.bind_output(
                 name='start_logits',
@@ -93,7 +94,7 @@ def infer(args):
                 buffer_ptr=start_logits_tensor.data_ptr(),
             )
 
-            end_logits_shape = (4, 164)
+            end_logits_shape = (len(questions), 164)
             end_logits_tensor = torch.empty(end_logits_shape, dtype=torch.int64, device='cuda:0').contiguous()
             binding.bind_output(
                 name='end_logits',
