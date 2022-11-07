@@ -130,8 +130,6 @@ def infer(args):
         duration.append(time.time() - start)
     average_inference_time = sum(duration) / n_trials
 
-    print(output)
-
     # postprocess test data
     print("\n--------- RESULTS ---------")
     print("Context: ", context)
