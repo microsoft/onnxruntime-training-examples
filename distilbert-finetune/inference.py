@@ -39,10 +39,8 @@ def infer(args):
     print('tokenizing...')
     encoding = tokenizer.batch_encode_plus(inputs, padding=True, return_tensors="pt")
     input_ids, attention_mask = encoding["input_ids"], encoding["attention_mask"]
-    input_ids = input_ids.to(device)
-    attention_mask = attention_mask.to(device)
 
-    # load model and update state dictionary...
+    # load model and update state...
     model = AutoModelForQuestionAnswering.from_pretrained("distilbert-base-uncased")
     model.load_state_dict(torch.load("pytorch_model.bin"))
     model.eval()
@@ -61,19 +59,25 @@ def infer(args):
 
         sess = onnxruntime.InferenceSession('model.onnx', providers=['CUDAExecutionProvider'])
         ort_input = {
-            'input_ids': input_ids.contiguous(),
-            'attention_mask' : attention_mask.contiguous(),
+            'input_ids': np.ascontiguousarray(input_ids.numpy()),
+            'attention_mask' : np.ascontiguousarray(attention_mask.numpy()),
         }
 
     model.to(device)
+    input_ids = input_ids.to(device)
+    attention_mask = attention_mask.to(device)
 
     # run inference
-    start = time.time()
-    if args.ort:
-        output = sess.run(None, ort_input)
-    else:
-        output = model(input_ids, attention_mask=attention_mask)
-    end = time.time()
+    print('running inference...')
+    duration = []
+    n_trials = 100
+    for i in range(n_trials):
+        start = time.time()
+        if args.ort:
+            output = sess.run(None, ort_input)
+        else:
+            output = model(input_ids, attention_mask=attention_mask)
+        duration.append(time.time() - start)
 
     # postprocess test data
     print("\n--------- RESULTS ---------")
@@ -92,7 +96,7 @@ def infer(args):
         print("Answer: ", answer_tokens_to_string)
 
     # brag about how fast we are
-    print("Inference time: ", end - start, "seconds")
+    print("Inference time: ", sum(duration)/n_trials, "seconds")
 
 def main(raw_args=None):
     parser = argparse.ArgumentParser(description="DistilBERT Fine-Tuning")
