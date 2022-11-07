@@ -64,8 +64,6 @@ def infer(args):
             input_ids_tensor = input_ids.contiguous()
             attention_mask_tensor = attention_mask.contiguous()
 
-            print("SHAPE", tuple(input_ids_tensor.shape))
-
             binding.bind_input(
                 name='input_ids',
                 device_type='cuda',
