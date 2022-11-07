@@ -81,7 +81,7 @@ def infer(args):
             buffer_ptr=attention_mask_tensor.data_ptr(),
         )
 
-        start_logits_shape = (164,)
+        start_logits_shape = (4, 164)
         start_logits_tensor = torch.empty(start_logits_shape, dtype=torch.int64, device='cuda:0').contiguous()
         binding.bind_output(
             name='start_logits',
@@ -92,7 +92,7 @@ def infer(args):
             buffer_ptr=start_logits_tensor.data_ptr(),
         )
 
-        end_logits_shape = (164,)
+        end_logits_shape = (4, 164)
         end_logits_tensor = torch.empty(end_logits_shape, dtype=torch.int64, device='cuda:0').contiguous()
         binding.bind_output(
             name='end_logits',
@@ -131,7 +131,7 @@ def infer(args):
     for i in range(len(questions)):
         if args.ort:
             max_start_logits = output[0][i].argmax()
-            print(input_ids.shape)
+            print("input_ids_shape", input_ids.shape)
             print("start_logits_shape", output[0][i].shape)
             max_end_logits = output[1][i].argmax()
             print("end_logits_shape", output[1][i].shape)
