@@ -59,6 +59,7 @@ def infer(args):
 
         sess = onnxruntime.InferenceSession('model.onnx', providers=['CUDAExecutionProvider'])
         binding = sess.io_binding()
+
         input_ids_tensor = input_ids.contiguous()
         attention_mask_tensor = attention_mask.contiguous()
 
@@ -81,12 +82,12 @@ def infer(args):
         )
 
         Y_shape = ... # You need to specify the output PyTorch tensor shape
-        Y_tensor = torch.empty(Y_shape, dtype=torch.float32, device='cuda:0').contiguous()
+        Y_tensor = torch.empty(Y_shape, dtype=torch.int64, device='cuda:0').contiguous()
         binding.bind_output(
             name='Y',
             device_type='cuda',
             device_id=0,
-            element_type=np.float32,
+            element_type=np.int64,
             shape=tuple(Y_tensor.shape),
             buffer_ptr=Y_tensor.data_ptr(),
         )
@@ -111,7 +112,7 @@ def infer(args):
             #output = sess.run(None, ort_input)
         else:
             output = model(input_ids, attention_mask=attention_mask)
-            print("SHAPE", output.shape)
+            print(output)
         duration.append(time.time() - start)
 
     # postprocess test data
