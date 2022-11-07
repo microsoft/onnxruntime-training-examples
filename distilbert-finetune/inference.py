@@ -57,10 +57,7 @@ def infer(args):
                             input_names=['input_ids', 'attention_mask'], \
                             output_names=['start_logits', "end_logits"]) 
 
-        session_options = onnxruntime.SessionOptions()
-        session_options.log_severity_level = 1
-
-        sess = onnxruntime.InferenceSession('model.onnx', session_options=session_options, providers=['CUDAExecutionProvider'])
+        sess = onnxruntime.InferenceSession('model.onnx', providers=['CUDAExecutionProvider'])
         binding = sess.io_binding()
 
         input_ids_tensor = input_ids.contiguous()
