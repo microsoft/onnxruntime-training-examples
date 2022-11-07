@@ -66,7 +66,7 @@ def infer(args):
             name='input_ids',
             device_type='cuda',
             device_id=0,
-            element_type=np.float32,
+            element_type=np.int64,
             shape=tuple(input_ids_tensor.shape),
             buffer_ptr=input_ids_tensor.data_ptr(),
         )
@@ -75,7 +75,7 @@ def infer(args):
             name='attention_mask',
             device_type='cuda',
             device_id=0,
-            element_type=np.float32,
+            element_type=np.int64,
             shape=tuple(attention_mask_tensor.shape),
             buffer_ptr=attention_mask_tensor.data_ptr(),
         )
