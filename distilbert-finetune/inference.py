@@ -39,7 +39,7 @@ def infer(args):
     print('tokenizing...')
     encoding = tokenizer.batch_encode_plus(inputs, padding=True, return_tensors="pt")
     input_ids, attention_mask = encoding["input_ids"], encoding["attention_mask"]
-    print(input_ids)
+    print(input_ids.shape)
 
     # load model and update state...
     model = AutoModelForQuestionAnswering.from_pretrained("distilbert-base-uncased")
