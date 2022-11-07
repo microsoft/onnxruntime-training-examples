@@ -122,13 +122,15 @@ def infer(args):
         if args.ort:
             if device == "cuda":
                 sess.run_with_iobinding(binding)
-                output = binding.get_outputs()
             elif device == "cpu":
                 output = sess.run(None, ort_input)
         else:
             output = model(input_ids, attention_mask=attention_mask)
         duration.append(time.time() - start)
     average_inference_time = sum(duration) / n_trials
+
+    if args.ort and device == "cuda":
+        output = binding.copy_outputs_to_cpu()
 
     # postprocess test data
     print("\n--------- RESULTS ---------")
