@@ -58,10 +58,32 @@ def infer(args):
                             output_names=['start_logits', "end_logits"]) 
 
         sess = onnxruntime.InferenceSession('model.onnx', providers=['CUDAExecutionProvider'])
-        ort_input = {
-            'input_ids': np.ascontiguousarray(input_ids.numpy()),
-            'attention_mask' : np.ascontiguousarray(attention_mask.numpy()),
-        }
+        binding = sess.io_binding()
+        input_ids_tensor = input_ids.contiguous()
+        attention_mask_tensor = attention_mask.contiguous()
+
+        binding.bind_input(
+            name='input_ids',
+            device_type='cuda',
+            device_id=0,
+            element_type=np.float32,
+            shape=tuple(input_ids_tensor.shape),
+            buffer_ptr=input_ids_tensor.data_ptr(),
+        )
+
+        binding.bind_input(
+            name='attention_mask',
+            device_type='cuda',
+            device_id=0,
+            element_type=np.float32,
+            shape=tuple(attention_mask_tensor.shape),
+            buffer_ptr=attention_mask_tensor.data_ptr(),
+        )
+
+        # ort_input = {
+        #     'input_ids': np.ascontiguousarray(input_ids.numpy()),
+        #     'attention_mask' : np.ascontiguousarray(attention_mask.numpy()),
+        # }
 
     model.to(device)
     input_ids = input_ids.to(device)
@@ -74,7 +96,8 @@ def infer(args):
     for i in range(n_trials):
         start = time.time()
         if args.ort:
-            output = sess.run(None, ort_input)
+            output = sess.run_with_iobinding(binding)
+            #output = sess.run(None, ort_input)
         else:
             output = model(input_ids, attention_mask=attention_mask)
         duration.append(time.time() - start)
