@@ -66,8 +66,7 @@ def main(raw_args=None):
             "python finetune.py"
             f" {' '.join(run_config_args)}"
         ),
-        # environment="acpt-distilbert-finetune-demo-env@latest",
-        environment="prathikrao-test-env@latest",
+        environment="acpt-finetune-demo@latest",
         distribution={
             "type": "pytorch",
             "process_count_per_instance": 8,

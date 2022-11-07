@@ -57,8 +57,8 @@ def infer(args):
 
         sess = onnxruntime.InferenceSession('model.onnx', providers=['CUDAExecutionProvider'])
         ort_input = {
-            'input_ids': np.ascontiguousarray(input_ids.numpy()),
-            'attention_mask' : np.ascontiguousarray(attention_mask.numpy()),
+            'input_ids': input_ids.contiguous(),
+            'attention_mask' : attention_mask.contiguous(),
         }
 
     # run inference
@@ -97,3 +97,4 @@ def main(raw_args=None):
 
 if __name__ == "__main__":
     main()
+    

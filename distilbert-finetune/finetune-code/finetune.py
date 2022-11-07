@@ -78,7 +78,6 @@ def main(raw_args=None):
     tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
     model = AutoModelForQuestionAnswering.from_pretrained("distilbert-base-uncased")
 
-    # documentation: https://github.com/pytorch/ort#add-onnx-runtime-for-pytorch-to-your-pytorch-training-script
     if args.ort:
         from onnxruntime.training import ORTModule
         model = ORTModule(model)
