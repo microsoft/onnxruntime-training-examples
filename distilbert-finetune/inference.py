@@ -58,44 +58,44 @@ def infer(args):
                             output_names=['start_logits', "end_logits"]) 
 
         sess = onnxruntime.InferenceSession('model.onnx', providers=['CUDAExecutionProvider'])
-        binding = sess.io_binding()
+        # binding = sess.io_binding()
 
-        input_ids_tensor = input_ids.contiguous()
-        attention_mask_tensor = attention_mask.contiguous()
+        # input_ids_tensor = input_ids.contiguous()
+        # attention_mask_tensor = attention_mask.contiguous()
 
-        binding.bind_input(
-            name='input_ids',
-            device_type='cuda',
-            device_id=0,
-            element_type=np.int64,
-            shape=tuple(input_ids_tensor.shape),
-            buffer_ptr=input_ids_tensor.data_ptr(),
-        )
+        # binding.bind_input(
+        #     name='input_ids',
+        #     device_type='cuda',
+        #     device_id=0,
+        #     element_type=np.int64,
+        #     shape=tuple(input_ids_tensor.shape),
+        #     buffer_ptr=input_ids_tensor.data_ptr(),
+        # )
 
-        binding.bind_input(
-            name='attention_mask',
-            device_type='cuda',
-            device_id=0,
-            element_type=np.int64,
-            shape=tuple(attention_mask_tensor.shape),
-            buffer_ptr=attention_mask_tensor.data_ptr(),
-        )
+        # binding.bind_input(
+        #     name='attention_mask',
+        #     device_type='cuda',
+        #     device_id=0,
+        #     element_type=np.int64,
+        #     shape=tuple(attention_mask_tensor.shape),
+        #     buffer_ptr=attention_mask_tensor.data_ptr(),
+        # )
 
-        Y_shape = tuple(input_ids_tensor.shape)
-        Y_tensor = torch.empty(Y_shape, dtype=torch.int64, device='cuda:0').contiguous()
-        binding.bind_output(
-            name='Y',
-            device_type='cuda',
-            device_id=0,
-            element_type=np.int64,
-            shape=tuple(Y_tensor.shape),
-            buffer_ptr=Y_tensor.data_ptr(),
-        )
+        # start_logits_shape = tuple(input_ids_tensor.shape)
+        # start_logits_tensor = torch.empty(start_logits_shape, dtype=torch.int64, device='cuda:0').contiguous()
+        # binding.bind_output(
+        #     name='start_logits',
+        #     device_type='cuda',
+        #     device_id=0,
+        #     element_type=np.int64,
+        #     shape=tuple(start_logits_tensor.shape),
+        #     buffer_ptr=start_logits_tensor.data_ptr(),
+        # )
 
-        # ort_input = {
-        #     'input_ids': np.ascontiguousarray(input_ids.numpy()),
-        #     'attention_mask' : np.ascontiguousarray(attention_mask.numpy()),
-        # }
+        ort_input = {
+            'input_ids': np.ascontiguousarray(input_ids.numpy()),
+            'attention_mask' : np.ascontiguousarray(attention_mask.numpy()),
+        }
 
     model.to(device)
     input_ids = input_ids.to(device)
@@ -108,8 +108,8 @@ def infer(args):
     for i in range(n_trials):
         start = time.time()
         if args.ort:
-            output = sess.run_with_iobinding(binding)
-            #output = sess.run(None, ort_input)
+            #output = sess.run_with_iobinding(binding)
+            output = sess.run(None, ort_input)
         else:
             output = model(input_ids, attention_mask=attention_mask)
         duration.append(time.time() - start)
@@ -120,7 +120,9 @@ def infer(args):
     for i in range(len(questions)):
         if args.ort:
             max_start_logits = output[0][i].argmax()
+            print("start_logits_shape", output[0][i].shape)
             max_end_logits = output[1][i].argmax()
+            print("end_logits_shape", output[1][i].shape)
         else:
             max_start_logits = output.start_logits[i].argmax()
             max_end_logits = output.end_logits[i].argmax()
