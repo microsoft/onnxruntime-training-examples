@@ -80,6 +80,17 @@ def infer(args):
             buffer_ptr=attention_mask_tensor.data_ptr(),
         )
 
+        Y_shape = ... # You need to specify the output PyTorch tensor shape
+        Y_tensor = torch.empty(Y_shape, dtype=torch.float32, device='cuda:0').contiguous()
+        binding.bind_output(
+            name='Y',
+            device_type='cuda',
+            device_id=0,
+            element_type=np.float32,
+            shape=tuple(Y_tensor.shape),
+            buffer_ptr=Y_tensor.data_ptr(),
+        )
+
         # ort_input = {
         #     'input_ids': np.ascontiguousarray(input_ids.numpy()),
         #     'attention_mask' : np.ascontiguousarray(attention_mask.numpy()),
@@ -100,6 +111,7 @@ def infer(args):
             #output = sess.run(None, ort_input)
         else:
             output = model(input_ids, attention_mask=attention_mask)
+            print("SHAPE", output.shape)
         duration.append(time.time() - start)
 
     # postprocess test data
