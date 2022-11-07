@@ -2,7 +2,6 @@ import argparse
 from pathlib import Path
 
 from azure.ai.ml import MLClient, command
-from azure.ai.ml.entities import BuildContext, Environment
 from azure.identity import AzureCliCredential
 
 def run_config_to_args(run_config):
