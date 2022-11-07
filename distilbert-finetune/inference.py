@@ -36,7 +36,7 @@ def infer(args):
         inputs.append((question, context))
 
     # tokenize test data
-    print('tokenizing...')
+    print("tokenizing...")
     encoding = tokenizer.batch_encode_plus(inputs, padding=True, return_tensors="pt")
     input_ids, attention_mask = encoding["input_ids"], encoding["attention_mask"]
 
@@ -54,10 +54,10 @@ def infer(args):
             torch.onnx.export(model, \
                             (input_ids, attention_mask), \
                             "model.onnx", \
-                            input_names=['input_ids', 'attention_mask'], \
-                            output_names=['start_logits', "end_logits"]) 
+                            input_names=["input_ids", "attention_mask"], \
+                            output_names=["start_logits", "end_logits"]) 
 
-        sess = onnxruntime.InferenceSession('model.onnx', providers=['CPUExecutionProvider', 'CUDAExecutionProvider'])
+        sess = onnxruntime.InferenceSession("model.onnx", providers=["CPUExecutionProvider", "CUDAExecutionProvider"])
         if device == "cuda":
             binding = sess.io_binding()
 
@@ -65,8 +65,8 @@ def infer(args):
             attention_mask_tensor = attention_mask.contiguous()
 
             binding.bind_input(
-                name='input_ids',
-                device_type='cuda',
+                name="input_ids",
+                device_type="cuda",
                 device_id=0,
                 element_type=np.int64,
                 shape=tuple(input_ids_tensor.shape),
@@ -74,8 +74,8 @@ def infer(args):
             )
 
             binding.bind_input(
-                name='attention_mask',
-                device_type='cuda',
+                name="attention_mask",
+                device_type="cuda",
                 device_id=0,
                 element_type=np.int64,
                 shape=tuple(attention_mask_tensor.shape),
@@ -83,10 +83,10 @@ def infer(args):
             )
 
             start_logits_shape = tuple(input_ids_tensor.shape)
-            start_logits_tensor = torch.empty(start_logits_shape, dtype=torch.int64, device='cuda:0').contiguous()
+            start_logits_tensor = torch.empty(start_logits_shape, dtype=torch.int64, device="cuda").contiguous()
             binding.bind_output(
-                name='start_logits',
-                device_type='cuda',
+                name="start_logits",
+                device_type="cuda",
                 device_id=0,
                 element_type=np.float32,
                 shape=tuple(start_logits_tensor.shape),
@@ -94,10 +94,10 @@ def infer(args):
             )
 
             end_logits_shape = tuple(input_ids_tensor.shape)
-            end_logits_tensor = torch.empty(end_logits_shape, dtype=torch.int64, device='cuda:0').contiguous()
+            end_logits_tensor = torch.empty(end_logits_shape, dtype=torch.int64, device="cuda").contiguous()
             binding.bind_output(
-                name='end_logits',
-                device_type='cuda',
+                name="end_logits",
+                device_type="cuda",
                 device_id=0,
                 element_type=np.float32,
                 shape=tuple(end_logits_tensor.shape),
@@ -105,8 +105,8 @@ def infer(args):
             )
         elif device == "cpu":
             ort_input = {
-                'input_ids': np.ascontiguousarray(input_ids.numpy()),
-                'attention_mask' : np.ascontiguousarray(attention_mask.numpy()),
+                "input_ids": np.ascontiguousarray(input_ids.numpy()),
+                "attention_mask" : np.ascontiguousarray(attention_mask.numpy()),
             }
 
     model.to(device)
@@ -114,7 +114,7 @@ def infer(args):
     attention_mask = attention_mask.to(device)
 
     # run inference
-    print('running inference...')
+    print("running inference...")
     duration = []
     n_trials = 100
     for i in range(n_trials):
@@ -150,7 +150,7 @@ def infer(args):
 
 def main(raw_args=None):
     parser = argparse.ArgumentParser(description="DistilBERT Fine-Tuning")
-    parser.add_argument("--ort", action='store_true', help="Use ORTModule")
+    parser.add_argument("--ort", action="store_true", help="Use ORTModule")
     args = parser.parse_args()
 
     infer(args)
