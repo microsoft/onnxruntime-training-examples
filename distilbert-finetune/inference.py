@@ -131,6 +131,7 @@ def infer(args):
     for i in range(len(questions)):
         if args.ort:
             max_start_logits = output[0][i].argmax()
+            print(input_ids.shape)
             print("start_logits_shape", output[0][i].shape)
             max_end_logits = output[1][i].argmax()
             print("end_logits_shape", output[1][i].shape)
