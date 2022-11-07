@@ -48,8 +48,8 @@ def infer(args):
     model.eval()
 
     # if using onnnxruntime, convert to onnx format
-    # documentation: https://onnxruntime.ai/docs/api/python/api_summary.html
-    # ...more documentation: https://github.com/microsoft/onnxruntime/blob/main/onnxruntime/python/tools/transformers/notebooks/Inference_GPT2-OneStepSearch_OnnxRuntime_CPU.ipynb
+    # ORT Python API Documentation: https://onnxruntime.ai/docs/api/python/api_summary.html
+    # Example Code for Inference: https://github.com/microsoft/onnxruntime/blob/main/onnxruntime/python/tools/transformers/notebooks/Inference_GPT2-OneStepSearch_OnnxRuntime_CPU.ipynb
 
     if args.ort:
         if not os.path.exists("model.onnx"):
@@ -119,13 +119,14 @@ def infer(args):
     n_trials = 100
     for i in range(n_trials):
         start = time.time()
-        if args.ort:
-            if device == "cuda":
-                sess.run_with_iobinding(binding)
-            elif device == "cpu":
-                output = sess.run(None, ort_input)
-        else:
-            output = model(input_ids, attention_mask=attention_mask)
+        sess.run_with_iobinding(binding)
+        # if args.ort:
+        #     if device == "cuda":
+        #         sess.run_with_iobinding(binding)
+        #     elif device == "cpu":
+        #         output = sess.run(None, ort_input)
+        # else:
+        #     output = model(input_ids, attention_mask=attention_mask)
         duration.append(time.time() - start)
     average_inference_time = sum(duration) / n_trials
 
