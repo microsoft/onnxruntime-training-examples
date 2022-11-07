@@ -57,7 +57,7 @@ def infer(args):
                             input_names=['input_ids', 'attention_mask'], \
                             output_names=['start_logits', "end_logits"]) 
 
-        sess = onnxruntime.InferenceSession('model.onnx', providers=['CUDAExecutionProvider'])
+        sess = onnxruntime.InferenceSession('model.onnx', providers=['CPUExecutionProvider', 'CUDAExecutionProvider'])
         if device == "cuda":
             binding = sess.io_binding()
 
