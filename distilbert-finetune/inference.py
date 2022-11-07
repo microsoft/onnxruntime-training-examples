@@ -96,7 +96,7 @@ def infer(args):
         print("Answer: ", answer_tokens_to_string)
 
     # brag about how fast we are
-    print("Inference time: ", sum(duration)/n_trials, "seconds")
+    print("Average Inference time: ", sum(duration)/n_trials, "seconds")
 
 def main(raw_args=None):
     parser = argparse.ArgumentParser(description="DistilBERT Fine-Tuning")
