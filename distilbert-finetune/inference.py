@@ -119,14 +119,13 @@ def infer(args):
     n_trials = 100
     for i in range(n_trials):
         start = time.time()
-        sess.run_with_iobinding(binding)
-        # if args.ort:
-        #     if device == "cuda":
-        #         sess.run_with_iobinding(binding)
-        #     elif device == "cpu":
-        #         output = sess.run(None, ort_input)
-        # else:
-        #     output = model(input_ids, attention_mask=attention_mask)
+        if args.ort:
+            if device == "cuda":
+                sess.run_with_iobinding(binding)
+            elif device == "cpu":
+                output = sess.run(None, ort_input)
+        else:
+            output = model(input_ids, attention_mask=attention_mask)
         duration.append(time.time() - start)
     average_inference_time = sum(duration) / n_trials
 
