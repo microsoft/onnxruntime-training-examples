@@ -8,10 +8,7 @@ from transformers import AutoModelForQuestionAnswering, AutoTokenizer
 import onnxruntime
 
 def infer(args):
-    if args.cpu:
-        device = "cpu"
-    else:
-        device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     print("device: ", device)
 
     # load tokenizer to preprocess data
@@ -72,19 +69,15 @@ def infer(args):
 
     # run inference
     print("running inference...")
-    duration = []
-    n_trials = 100
-    for i in range(n_trials):
-        start = time.time()
-        if args.ort:
-            # note: this copies data from CPU to GPU every time, yet we are still faster than baseline pytorch
-            # refer to ORT Python API Documentation: https://onnxruntime.ai/docs/api/python/api_summary.html 
-            #    for information on io_binding to explicitly move data to GPU ahead of time
-            output = sess.run(None, ort_input)
-        else:
-            output = model(input_ids, attention_mask=attention_mask)
-        duration.append(time.time() - start)
-    average_inference_time = sum(duration) / n_trials
+    start = time.time()
+    if args.ort:
+        # note: this copies data from CPU to GPU every time, yet we are still faster than baseline pytorch
+        # refer to ORT Python API Documentation: https://onnxruntime.ai/docs/api/python/api_summary.html 
+        #    for information on io_binding to explicitly move data to GPU ahead of time
+        output = sess.run(None, ort_input)
+    else:
+        output = model(input_ids, attention_mask=attention_mask)
+    end = time.time()
 
     # postprocess test data
     print("\n--------- RESULTS ---------")
@@ -103,12 +96,11 @@ def infer(args):
         print("Answer: ", answer_tokens_to_string)
 
     # brag about how fast we are
-    print("Average Inference Time:", average_inference_time, "seconds")
+    print("Average Inference Time:", str(end - start), "seconds")
 
 def main(raw_args=None):
     parser = argparse.ArgumentParser(description="DistilBERT Fine-Tuning")
     parser.add_argument("--ort", action="store_true", help="Use ORTModule")
-    parser.add_argument("--cpu", action="store_true", help="Run on CPU")
     args = parser.parse_args()
 
     infer(args)
