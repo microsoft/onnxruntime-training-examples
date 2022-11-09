@@ -112,8 +112,8 @@ def infer(args):
         #     }
 
         ort_input = {
-            "input_ids": np.ascontiguousarray(input_ids.numpy()),
-            "attention_mask" : np.ascontiguousarray(attention_mask.numpy()),
+            "input_ids": np.ascontiguousarray(input_ids.cpu().numpy()),
+            "attention_mask" : np.ascontiguousarray(attention_mask.cpu().numpy()),
         }
 
     model.to(device)
