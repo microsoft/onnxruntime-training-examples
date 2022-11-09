@@ -135,8 +135,8 @@ def infer(args):
         duration.append(time.time() - start)
     average_inference_time = sum(duration) / n_trials
 
-    if args.ort and device == "cuda":
-        output = binding.copy_outputs_to_cpu()
+    # if args.ort and device == "cuda":
+    #     output = binding.copy_outputs_to_cpu()
 
     # postprocess test data
     print("\n--------- RESULTS ---------")
