@@ -6,7 +6,6 @@ import os
 import torch
 from transformers import AutoModelForQuestionAnswering, AutoTokenizer
 import onnxruntime
-from onnxruntime.capi import _pybind_state as C
 
 def infer(args):
     if args.cpu:
@@ -14,7 +13,7 @@ def infer(args):
     else:
         device = "cuda" if torch.cuda.is_available() else "cpu"
     print("device: ", device)
-    
+
     # load tokenizer to preprocess data
     print("loading tokenizer...")
     tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
@@ -61,7 +60,7 @@ def infer(args):
                             input_names=["input_ids", "attention_mask"], \
                             output_names=["start_logits", "end_logits"]) 
 
-        sess = onnxruntime.InferenceSession("model.onnx", providers=C.get_available_providers())
+        sess = onnxruntime.InferenceSession("model.onnx", providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
         ort_input = {
                 "input_ids": np.ascontiguousarray(input_ids.numpy()),
                 "attention_mask" : np.ascontiguousarray(attention_mask.numpy()),
