@@ -8,10 +8,13 @@ from transformers import AutoModelForQuestionAnswering, AutoTokenizer
 import onnxruntime
 from onnxruntime.capi import _pybind_state as C
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
-print("device: ", device)
-
 def infer(args):
+    if args.cpu:
+        device = "cpu"
+    else:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+    print("device: ", device)
+    
     # load tokenizer to preprocess data
     print("loading tokenizer...")
     tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
@@ -106,6 +109,7 @@ def infer(args):
 def main(raw_args=None):
     parser = argparse.ArgumentParser(description="DistilBERT Fine-Tuning")
     parser.add_argument("--ort", action="store_true", help="Use ORTModule")
+    parser.add_argument("--cpu", action="store_true", help="Run on CPU")
     args = parser.parse_args()
 
     infer(args)
