@@ -31,9 +31,7 @@ def infer(args):
                  "What was the name of Beyonce's debut album?"]
 
     # preprocess test data
-    inputs = []
-    for question in questions:
-        inputs.append((question, context))
+    inputs = [(question, context) for question in questions]
 
     # tokenize test data
     print("tokenizing...")
