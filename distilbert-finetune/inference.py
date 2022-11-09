@@ -6,6 +6,7 @@ import os
 import torch
 from transformers import AutoModelForQuestionAnswering, AutoTokenizer
 import onnxruntime
+from onnxruntime.capi import _pybind_state as C
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print("device: ", device)
@@ -39,8 +40,6 @@ def infer(args):
     print("tokenizing...")
     encoding = tokenizer.batch_encode_plus(inputs, padding=True, return_tensors="pt")
     input_ids, attention_mask = encoding["input_ids"], encoding["attention_mask"]
-    input_ids = input_ids.to(device)
-    attention_mask = attention_mask.to(device)
 
     # load model and update state...
     model = AutoModelForQuestionAnswering.from_pretrained("distilbert-base-uncased")
@@ -59,63 +58,14 @@ def infer(args):
                             input_names=["input_ids", "attention_mask"], \
                             output_names=["start_logits", "end_logits"]) 
 
-        sess = onnxruntime.InferenceSession("model.onnx", providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
-        # if device == "cuda":
-        #     binding = sess.io_binding()
-
-        #     input_ids_tensor = input_ids.contiguous()
-        #     attention_mask_tensor = attention_mask.contiguous()
-
-        #     binding.bind_input(
-        #         name="input_ids",
-        #         device_type="cuda",
-        #         device_id=0,
-        #         element_type=np.int64,
-        #         shape=tuple(input_ids_tensor.shape),
-        #         buffer_ptr=input_ids_tensor.data_ptr(),
-        #     )
-
-        #     binding.bind_input(
-        #         name="attention_mask",
-        #         device_type="cuda",
-        #         device_id=0,
-        #         element_type=np.int64,
-        #         shape=tuple(attention_mask_tensor.shape),
-        #         buffer_ptr=attention_mask_tensor.data_ptr(),
-        #     )
-
-        #     start_logits_shape = tuple(input_ids_tensor.shape)
-        #     start_logits_tensor = torch.empty(start_logits_shape, dtype=torch.int64, device="cuda").contiguous()
-        #     binding.bind_output(
-        #         name="start_logits",
-        #         device_type="cuda",
-        #         device_id=0,
-        #         element_type=np.float32,
-        #         shape=tuple(start_logits_tensor.shape),
-        #         buffer_ptr=start_logits_tensor.data_ptr(),
-        #     )
-
-        #     end_logits_shape = tuple(input_ids_tensor.shape)
-        #     end_logits_tensor = torch.empty(end_logits_shape, dtype=torch.int64, device="cuda").contiguous()
-        #     binding.bind_output(
-        #         name="end_logits",
-        #         device_type="cuda",
-        #         device_id=0,
-        #         element_type=np.float32,
-        #         shape=tuple(end_logits_tensor.shape),
-        #         buffer_ptr=end_logits_tensor.data_ptr(),
-        #     )
-        # elif device == "cpu":
-        #     ort_input = {
-        #         "input_ids": np.ascontiguousarray(input_ids.numpy()),
-        #         "attention_mask" : np.ascontiguousarray(attention_mask.numpy()),
-        #     }
-
+        sess = onnxruntime.InferenceSession("model.onnx", providers=C.get_available_providers())
         ort_input = {
-                "input_ids": np.ascontiguousarray(input_ids.cpu().numpy()),
-                "attention_mask" : np.ascontiguousarray(attention_mask.cpu().numpy()),
+                "input_ids": np.ascontiguousarray(input_ids.numpy()),
+                "attention_mask" : np.ascontiguousarray(attention_mask.numpy()),
             }
 
+    input_ids = input_ids.to(device)
+    attention_mask = attention_mask.to(device)
     model.to(device)
 
     # run inference
@@ -125,18 +75,14 @@ def infer(args):
     for i in range(n_trials):
         start = time.time()
         if args.ort:
-            # if device == "cuda":
-            #     sess.run_with_iobinding(binding)
-            # elif device == "cpu":
-            #     output = sess.run(None, ort_input)
+            # note: this copies data from CPU to GPU every time, yet we are still faster than baseline pytorch
+            # refer to ORT Python API Documentation: https://onnxruntime.ai/docs/api/python/api_summary.html 
+            #    for information on io_binding to explicitly move data to GPU ahead of time
             output = sess.run(None, ort_input)
         else:
             output = model(input_ids, attention_mask=attention_mask)
         duration.append(time.time() - start)
     average_inference_time = sum(duration) / n_trials
-
-    # if args.ort and device == "cuda":
-    #     output = binding.copy_outputs_to_cpu()
 
     # postprocess test data
     print("\n--------- RESULTS ---------")
