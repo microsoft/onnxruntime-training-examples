@@ -47,8 +47,6 @@ def infer(args):
 
     # if using onnnxruntime, convert to onnx format
     # ORT Python API Documentation: https://onnxruntime.ai/docs/api/python/api_summary.html
-    # Example Code for Inference: https://github.com/microsoft/onnxruntime/blob/main/onnxruntime/python/tools/transformers/notebooks/Inference_GPT2-OneStepSearch_OnnxRuntime_CPU.ipynb
-
     if args.ort:
         if not os.path.exists("model.onnx"):
             torch.onnx.export(model, \
@@ -71,9 +69,9 @@ def infer(args):
     print("running inference...")
     start = time.time()
     if args.ort:
-        # note: this copies data from CPU to GPU every time, yet we are still faster than baseline pytorch
-        # refer to ORT Python API Documentation: https://onnxruntime.ai/docs/api/python/api_summary.html 
-        #    for information on io_binding to explicitly move data to GPU ahead of time
+        # NOTE: this copies data from CPU to GPU
+        # since our data is small, we are still faster than baseline pytorch
+        # refer to ORT Python API Documentation for information on io_binding to explicitly move data to GPU ahead of time
         output = sess.run(None, ort_input)
     else:
         output = model(input_ids, attention_mask=attention_mask)
@@ -84,9 +82,11 @@ def infer(args):
     print("Context: ", context)
     for i in range(len(questions)):
         if args.ort:
+            # ORT returns raw tensors
             max_start_logits = output[0][i].argmax()
             max_end_logits = output[1][i].argmax()
         else:
+            # pytorch returns a dictionary of tensors
             max_start_logits = output.start_logits[i].argmax()
             max_end_logits = output.end_logits[i].argmax()
         ans_tokens = input_ids[i][max_start_logits: max_end_logits + 1]
@@ -98,7 +98,7 @@ def infer(args):
     # brag about how fast we are
     print("Average Inference Time:", str(end - start), "seconds")
 
-def main(raw_args=None):
+def main():
     parser = argparse.ArgumentParser(description="DistilBERT Fine-Tuning")
     parser.add_argument("--ort", action="store_true", help="Use ORTModule")
     args = parser.parse_args()
