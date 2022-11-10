@@ -125,7 +125,7 @@ def main(raw_args=None):
 
     rank = os.environ.get("RANK", -1)
     if int(rank) == 0:
-        # save trained config, tokenizer and model
+        # save trained model
         trained_model_folder = "model"
         trained_model_path = Path(trained_model_folder)
         trained_model_path.mkdir(parents=True, exist_ok=True)
