@@ -66,4 +66,4 @@ python inference.py --ort
 ## FAQ
 ### Problem with Azure Authentication
 If there's an Azure authentication issue, install Azure CLI [here](https://docs.microsoft.com/en-us/cli/azure/) and run `az login --use-device-code`
-<br>Additionally, you can try replacing DefaultAzureCredential() in aml_submit.py with AzureCliCredential()
+<br>Additionally, you can try replacing AzureCliCredential() in aml_submit.py with DefaultAzureCredential()
