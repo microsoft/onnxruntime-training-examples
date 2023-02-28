@@ -12,7 +12,8 @@ RUN conda install -y python=3.9
 RUN conda install -n base ipykernel --update-deps --force-reinstall
 
 RUN pip install numpy onnx pillow
-RUN pip install torch==1.13.1+cpu torchvision -f https://download.pytorch.org/whl/torch/
+RUN pip install torch==1.13.1+cpu -f https://download.pytorch.org/whl/torch/
+RUN pip install torchvision==0.14.0+cpu -f https://download.pytorch.org/whl/torchvision/
 RUN pip install onnxruntime-training --pre -f https://download.onnxruntime.ai/onnxruntime_nightly_cpu.html
 
 # [Optional] Uncomment this section to install additional OS packages.
