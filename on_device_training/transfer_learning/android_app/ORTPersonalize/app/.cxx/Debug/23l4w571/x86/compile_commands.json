@@ -1,0 +1,7 @@
+[
+{
+  "directory": "C:/Users/bmeswani/Development/github/onnxruntime-training-examples/on_device_training/ORTPersonalize/app/.cxx/Debug/23l4w571/x86",
+  "command": "C:\\Users\\bmeswani\\AppData\\Local\\Android\\Sdk\\ndk\\23.1.7779620\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=i686-none-linux-android21 --gcc-toolchain=C:/Users/bmeswani/AppData/Local/Android/Sdk/ndk/23.1.7779620/toolchains/llvm/prebuilt/windows-x86_64 --sysroot=C:/Users/bmeswani/AppData/Local/Android/Sdk/ndk/23.1.7779620/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Dortpersonalize_EXPORTS -IC:/Users/bmeswani/Development/github/onnxruntime-training-examples/on_device_training/ORTPersonalize/app/src/main/cpp/include/onnxruntime -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -mstackrealign -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++17 -fno-limit-debug-info  -fPIC -o CMakeFiles\\ortpersonalize.dir\\native-lib.cpp.o -c C:\\Users\\bmeswani\\Development\\github\\onnxruntime-training-examples\\on_device_training\\ORTPersonalize\\app\\src\\main\\cpp\\native-lib.cpp",
+  "file": "C:\\Users\\bmeswani\\Development\\github\\onnxruntime-training-examples\\on_device_training\\ORTPersonalize\\app\\src\\main\\cpp\\native-lib.cpp"
+}
+]
