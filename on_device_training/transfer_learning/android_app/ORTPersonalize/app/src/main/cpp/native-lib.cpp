@@ -9,13 +9,6 @@
 #include "utils.h"
 #include "train.h"
 
-#include <android/log.h>
-
-#define LOG_TAG "ortpersonalize"
-#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
-#define LOGW(...) __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__)
-#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
-
 extern "C" JNIEXPORT jlong JNICALL
 Java_com_example_ortpersonalize_MainActivity_getSession(
         JNIEnv *env, jobject /* this */,
@@ -36,6 +29,7 @@ Java_com_example_ortpersonalize_MainActivity_releaseSession(
         JNIEnv *env, jobject /* this */,
         jlong session) {
     auto *session_cache = reinterpret_cast<SessionCache *>(session);
+    delete session_cache->inference_session;
     delete session_cache;
 }
 
@@ -54,8 +48,8 @@ Java_com_example_ortpersonalize_MainActivity_performInference(
     }
 
     auto* session_cache = reinterpret_cast<SessionCache *>(session);
-    assert(session_cache);
     if (!session_cache->inference_session) {
+        // the inference session does not exist, so create a new one.
         session_cache->training_session.ExportModelForInferencing(
                 session_cache->artifact_paths.inference_model_path.c_str(), {"output"});
         session_cache->inference_session = std::make_unique<Ort::Session>(
@@ -78,11 +72,14 @@ Java_com_example_ortpersonalize_MainActivity_performTraining(
     auto* session_cache = reinterpret_cast<SessionCache *>(session);
 
     if (session_cache->inference_session) {
-        // invalidate the inference session
+        // invalidate the inference session since we will be updating the model parameters
+        // in train_step.
+        // the next call to inference session will need to recreate the inference session.
         delete session_cache->inference_session;
         session_cache->inference_session = nullptr;
     }
 
+    // update the model parameters using this batch of inputs.
     return training::train_step(session_cache, env->GetFloatArrayElements(batches, nullptr),
                                 env->GetIntArrayElements(labels, nullptr), batch_size,
                                 channels, frame_rows, frame_cols);

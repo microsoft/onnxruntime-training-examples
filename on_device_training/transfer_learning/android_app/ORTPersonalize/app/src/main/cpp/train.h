@@ -10,6 +10,8 @@
 
 namespace training {
 
+    // returns the output of the training graph (loss) and updates the parameters
+    // based on the gradients computed.
     float train_step(SessionCache* session_cache, float *batches, int32_t *labels,
                      int64_t batch_size, int64_t image_channels, int64_t image_rows,
                      int64_t image_cols);

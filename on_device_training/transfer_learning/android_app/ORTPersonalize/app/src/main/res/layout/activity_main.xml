@@ -39,7 +39,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:onClick="onInferenceButtonClicked"
                 android:text="@string/inference"
                 android:textAllCaps="false" />
 
@@ -145,7 +144,8 @@
                 android:layout_weight="1"
                 android:checked="false"
                 android:minHeight="48dp"
-                android:text="@string/pick_image_from_camera" />
+                android:text="@string/pick_image_from_camera"
+                tools:ignore="TouchTargetSizeCheck" />
 
             <Space
                 android:id="@+id/camera_setting_after_space"

@@ -15,8 +15,7 @@
         android:id="@+id/train_status"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:text="Training..." />
+        android:gravity="center" />
 
     <ProgressBar
         android:id="@+id/progress_horizontal"
@@ -32,7 +31,7 @@
         android:layout_height="wrap_content">
 
         <TextView
-            android:id="@+id/value123"
+            android:id="@+id/percent_complete"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             />
@@ -40,7 +39,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@id/value123"
+            android:layout_toRightOf="@id/percent_complete"
             android:text="%" />
 
     </RelativeLayout>

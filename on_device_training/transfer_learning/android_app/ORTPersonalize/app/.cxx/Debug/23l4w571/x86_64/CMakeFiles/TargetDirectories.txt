@@ -1,3 +1,0 @@
-C:/Users/bmeswani/Development/github/onnxruntime-training-examples/on_device_training/ORTPersonalize/app/.cxx/Debug/23l4w571/x86_64/CMakeFiles/ortpersonalize.dir
-C:/Users/bmeswani/Development/github/onnxruntime-training-examples/on_device_training/ORTPersonalize/app/.cxx/Debug/23l4w571/x86_64/CMakeFiles/edit_cache.dir
-C:/Users/bmeswani/Development/github/onnxruntime-training-examples/on_device_training/ORTPersonalize/app/.cxx/Debug/23l4w571/x86_64/CMakeFiles/rebuild_cache.dir

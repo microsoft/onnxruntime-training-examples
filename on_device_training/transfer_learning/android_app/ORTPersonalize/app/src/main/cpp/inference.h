@@ -12,6 +12,9 @@
 
 namespace inference {
 
+    // runs the inference graph and returns a pair:
+    //   - prediction string: one of the classes provided
+    //   - probability: associated with the prediction of that class
     std::pair<std::string, float> classify(
             SessionCache* session_cache, float *image_data, int64_t batch_size, int64_t image_channels,
             int64_t image_rows, int64_t image_cols, const std::vector<std::string>& classes);

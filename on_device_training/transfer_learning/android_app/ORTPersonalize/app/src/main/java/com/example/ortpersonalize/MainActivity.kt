@@ -27,30 +27,26 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private var ort_session: Long = -1 // Give a default initial value.
-    private val PICK_IMAGE = 1000
-    private val CAPTURE_IMAGE = 2000
-    private val PICK_CLASS_A_IMAGES_FOR_TRAINING = 4000
-    private val PICK_CLASS_B_IMAGES_FOR_TRAINING = 5000
-    private val PICK_CLASS_X_IMAGES_FOR_TRAINING = 6000
-    private val PICK_CLASS_Y_IMAGES_FOR_TRAINING = 7000
-    private val CAPTURE_IMAGE_FOR_TRAINING = 8000
-    private val CAMERA_PERMISSION_CODE = 8
-    private var images = ArrayList<Pair<Uri, Int>>()
-    private val default_images = ArrayList<Pair<Uri, Int>>()
-    private var classA_samples = 0
-    private var classA_name: String = "A"
-    private var classB_samples = 0
-    private var classB_name: String = "B"
-    private var classX_samples = 0
-    private var classX_name: String = "X"
-    private var classY_samples = 0
-    private var classY_name: String = "Y"
-    private val non_custom_class_default_labels: Array<String> = arrayOf("dog", "cat", "elephant", "cow")
+    private val PICK_IMAGE = 1000 // Pick an image for inferencing from the android gallery
+    private val CAPTURE_IMAGE = 2000 // Capture an image from the camera
+    private val PICK_CLASS_A_IMAGES_FOR_TRAINING = 4000 // Pick class A images for training from the android gallery
+    private val PICK_CLASS_B_IMAGES_FOR_TRAINING = 5000 // Pick class B images for training from the android gallery
+    private val PICK_CLASS_X_IMAGES_FOR_TRAINING = 6000 // Pick class X images for training from the android gallery
+    private val PICK_CLASS_Y_IMAGES_FOR_TRAINING = 7000 // Pick class Y images for training from the android gallery
+    private val CAMERA_PERMISSION_CODE = 8 // Permission to access the camera
+    private var images = ArrayList<Pair<Uri, Int>>() // Array that stores the Uri for all images that need to be trained.
+    private var classA_samples = 0 // Number of samples for class A
+    private var classA_name: String = "A" // Default class A name
+    private var classB_samples = 0 // Number of samples for class B
+    private var classB_name: String = "B" // Default class B name
+    private var classX_samples = 0 // Number of samples for class X
+    private var classX_name: String = "X" // Default class X name
+    private var classY_samples = 0 // Number of samples for class Y
+    private var classY_name: String = "Y" // Default class Y name
+    private val non_custom_class_default_labels: Array<String> = arrayOf("dog", "cat", "elephant", "cow") // Default labels for non custom class
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        Log.i("ortpersonalize", "this got invoked")
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -62,13 +58,8 @@ class MainActivity : AppCompatActivity() {
         ort_session = getSession(checkpointPath, trainingModelPath, evalModelPath, optimizerModelPath,
             "$cacheDir")
 
-//        val inferButton: Button = findViewById(R.id.infer_button)
-//        inferButton.setOnClickListener {
-//            val photoPickerIntent = Intent(Intent.ACTION_GET_CONTENT)
-//            photoPickerIntent.type = "image/*"
-//            startActivityForResult(Intent.createChooser(photoPickerIntent, "Select Picture"), PICK_IMAGE)
-//            binding.statusMessage.text = "Inference clicked"
-//        }
+        val inferButton: Button = findViewById(R.id.infer_button)
+        inferButton.setOnClickListener(onInferenceButtonClickedListener)
 
         val trainButton: Button = findViewById(R.id.train_button)
         trainButton.setOnClickListener(onTrainButtonClickedListener)
@@ -92,25 +83,26 @@ class MainActivity : AppCompatActivity() {
 
         binding.customClassSetting.setOnCheckedChangeListener(onCustomClassSettingChangedListener)
 
-
-        // Example of a call to a native method
+        // Home screen
         binding.statusMessage.text = "ORT Personalize"
     }
 
-    fun onInferenceButtonClicked(view: View) {
-        val cameraSetting: Switch = findViewById(R.id.camera_setting)
-        if (cameraSetting.isChecked()) {
-            if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(arrayOf(Manifest.permission.CAMERA), CAMERA_PERMISSION_CODE)
+    private val onInferenceButtonClickedListener: View.OnClickListener = object : View.OnClickListener {
+        override fun onClick(v: View) {
+            val cameraSetting: Switch = findViewById(R.id.camera_setting)
+            if (cameraSetting.isChecked()) {
+                if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                    requestPermissions(arrayOf(Manifest.permission.CAMERA), CAMERA_PERMISSION_CODE)
+                } else {
+                    val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+                    startActivityForResult(cameraIntent, CAPTURE_IMAGE)
+                }
             } else {
-                val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-                startActivityForResult(cameraIntent, CAPTURE_IMAGE)
+                val intent = Intent()
+                intent.type = "image/*"
+                intent.action = Intent.ACTION_GET_CONTENT
+                startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE)
             }
-        } else {
-            val intent = Intent()
-            intent.type = "image/*"
-            intent.action = Intent.ACTION_GET_CONTENT
-            startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE)
         }
     }
 
@@ -136,12 +128,18 @@ class MainActivity : AppCompatActivity() {
 
     private val onTrainButtonClickedListener: View.OnClickListener = object : View.OnClickListener {
         override fun onClick(v: View) {
+            // Reset the samples
             classA_samples = 0
             classB_samples = 0
             classX_samples = 0
             classY_samples = 0
+
+            // Reset the state message
             binding.statusMessage.text = ""
+            // Reset the image view
             binding.inputImage.setImageResource(0)
+
+            // Update the class names based on whether customClassSetting is checked or not
             if (binding.customClassSetting.isChecked) {
                 binding.classA.text = classA_name
                 binding.classB.text = classB_name
@@ -152,6 +150,8 @@ class MainActivity : AppCompatActivity() {
                 binding.classB.text = non_custom_class_default_labels[1]
                 binding.classX.text = non_custom_class_default_labels[2]
                 binding.classY.text = non_custom_class_default_labels[3]
+
+                // Move asset images to the cache and collect their Uris for training.
                 val cachePath: String = copyFileOrDir("images")
                 for ((index, label) in non_custom_class_default_labels.withIndex()) {
                     for (image_num in 1..20) {
@@ -166,8 +166,6 @@ class MainActivity : AppCompatActivity() {
             disableButtons()
             binding.statusMessage.text = ""
 
-            Collections.shuffle(images);
-
             val dialog = Dialog(v.context)
             dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
             dialog.setTitle("Training...")
@@ -175,7 +173,7 @@ class MainActivity : AppCompatActivity() {
             dialog.setContentView(R.layout.dialog)
 
             val text = dialog.findViewById(R.id.progress_horizontal) as ProgressBar
-            val text2: TextView = dialog.findViewById(R.id.value123)
+            val percentage: TextView = dialog.findViewById(R.id.percent_complete)
             val trainingStatus: TextView = dialog.findViewById(R.id.train_status)
             trainingStatus.text = "Training... (epoch: 0/5)"
 
@@ -194,6 +192,8 @@ class MainActivity : AppCompatActivity() {
                 val numEpochs: Int = 5
 
                 for (epoch in 0 until numEpochs) {
+                    // Shuffle the images so that we don't have a bias during training
+                    Collections.shuffle(images);
                     for (i in 0..images.size - 1 step batchSize) {
                         val imgData = FloatBuffer.allocate(batchSize * channels * width * height)
                         imgData.rewind()
@@ -226,11 +226,11 @@ class MainActivity : AppCompatActivity() {
                         this@MainActivity.runOnUiThread(java.lang.Runnable {
                             val status: Int = (100f * ((epoch*images.size).toFloat() + i.toFloat()) / (images.size * numEpochs)).toInt()
                             text.setProgress(status)
-                            text2.setText(status.toString())
+                            percentage.setText(status.toString())
                         })
                     }
                     this@MainActivity.runOnUiThread(java.lang.Runnable {
-                        trainingStatus.setText(String.format("Training... (epoch: %d/5)", epoch+1))
+                        trainingStatus.setText(String.format("Training... (epoch: %d/%d)", epoch+1, numEpochs))
                     })
                 }
 
@@ -553,15 +553,11 @@ class MainActivity : AppCompatActivity() {
         releaseSession(ort_session)
     }
 
-    /**
-     * Helper utility functions needed to manage assets and data
-     */
     private fun mkCacheDir(cacheFileName: String) {
         val dirs = cacheFileName.split("/")
         var extendedCacheDir = "$cacheDir"
         for (index in 0..dirs.size-2) {
             val myDir = java.io.File(extendedCacheDir, dirs.get(index))
-            Log.i("ortpersonalize", String.format("creating the dir %s", extendedCacheDir))
             myDir.mkdir()
             extendedCacheDir = extendedCacheDir + "/" + dirs.get(index)
         }
@@ -586,7 +582,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        Log.i("ortpersonalize", String.format("%s", f.path))
 
         return f.path
     }
@@ -613,10 +608,6 @@ class MainActivity : AppCompatActivity() {
         return "$cacheDir/$path"
     }
 
-    /**
-     * This function creates a new session cache and initializes the training environment.
-     * This function must be called before training can begin.
-     */
     external fun getSession(checkpointPath:String, trainModelPath: String, evalModelPath: String,
                             optimizerModelPath: String, cacheDirPath: String): Long
 
