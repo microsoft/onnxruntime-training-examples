@@ -8,7 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.14.1" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" Version="1.15.0-dev-20230323-0446-71b67ec1e2" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime.Training" Version="1.15.0-dev-20230323-0446-71b67ec1e2" />
     <PackageReference Include="System.Numerics.Tensors" Version="0.1.0" />
   </ItemGroup>
 
