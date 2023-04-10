@@ -17,18 +17,18 @@ namespace csharp_console_app
         public long[] TokenShape { get; set; }
 
         [JsonPropertyName("token_type_ids")]
-        public Int32[] TokenTypeIds { get; set; }
+        public Int64[] TokenTypeIds { get; set; }
 
         [JsonPropertyName("attention_mask_shape")]
         public long[] AttentionShape { get; set; }
 
         [JsonPropertyName("attention_mask")]
-        public Int32[] AttentionMask { get; set;}
+        public Int64[] AttentionMask { get; set;}
 
-        [JsonPropertyName("special_tokens_mask_shape")]
-        public long[] SpecialShape { get; set; }
+        [JsonPropertyName("labels_shape")]
+        public long[] LabelsShape { get; set; }
 
-        [JsonPropertyName("special_tokens_mask")]
-        public Int32[] SpecialTokensMask { get; set; }
+        [JsonPropertyName("labels")]
+        public Int64[] Labels { get; set; }
     }
 }
