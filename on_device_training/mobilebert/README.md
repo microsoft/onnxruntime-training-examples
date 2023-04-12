@@ -7,3 +7,5 @@ In order to generate the ONNX files and the training data, this directory uses t
 ## Requirements
 
 The C# app requires the Microsoft.ML.OnnxRuntime.Training package, which must be built from source. Instructions on how to build the training package can be found [here](https://github.com/microsoft/onnxruntime/tree/main/csharp). Make sure to use the `--enable_training_apis` flag if building using a build script. 
+
+A Windows development environment is recommended for building and running the C# app, since importing local NuGet packages is difficult in a Linux environment. 
