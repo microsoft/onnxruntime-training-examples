@@ -43,19 +43,20 @@ def main(raw_args=None):
     # tags
     tags = {
         "ort_ds": str(args.ort_ds),
+        "torch_version": args.torch_version
     }
 
     # define the command
     # documentation: https://learn.microsoft.com/en-us/python/api/azure-ai-ml/azure.ai.ml.entities.command?view=azure-python
     command_job = command(
         description="ACPT Whisper Finetune Demo",
-        display_name="whisper-finetune" + ("-ort-ds" if args.ort_ds else ""),
+        display_name="whisper-finetune",
         experiment_name="acpt-whisper-finetune-demo",
         code=code_dir,
         command=(
             "torchrun --nproc_per_node=8 finetune.py " + ("--ort_ds" if args.ort_ds else "")
         ),
-        environment="acpt-whisper-torch113@latest" if args.torch_version == "1.13" else "acpt-whisper-torch20@latest",
+        environment="acpt-whisper-torch{0}@latest".format(args.torch_version.replace(".", "")),
         compute=args.compute,
         instance_count=1,
         tags=tags,
