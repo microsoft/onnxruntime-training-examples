@@ -1,7 +1,9 @@
 import argparse
+from azureml.core.run import Run
 from dataclasses import dataclass
 from datasets import Audio, DatasetDict, load_dataset
 import evaluate
+from pathlib import Path
 import torch
 from transformers import Seq2SeqTrainer, Seq2SeqTrainingArguments, WhisperForConditionalGeneration, WhisperProcessor
 from typing import Any, Dict, List, Union
@@ -104,6 +106,28 @@ def finetune(args):
     )
 
     trainer.train()
+
+    # extract performance metrics
+    train_metrics = train_result.metrics
+    train_metrics["train_samples"] = len(common_voice["train"])
+    trainer.log_metrics("train", train_metrics)
+
+    eval_metrics = trainer.evaluate()
+    eval_metrics["eval_samples"] = len(common_voice["validation"])
+    trainer.log_metrics("eval", eval_metrics)
+
+    rank = os.environ.get("RANK", -1)
+    if int(rank) == 0:
+        # save trained model
+        trained_model_folder = "model"
+        trained_model_path = Path(trained_model_folder)
+        trained_model_path.mkdir(parents=True, exist_ok=True)
+        model.save_pretrained(trained_model_path / "weights")
+
+        # upload saved data to AML
+        # documentation: https://learn.microsoft.com/en-us/python/api/azureml-core/azureml.core.run(class)?view=azure-ml-py
+        run = Run.get_context()
+        run.upload_folder(name="model", path=trained_model_folder)
 
 def main():
     parser = argparse.ArgumentParser(description="Whisper Fine-Tuning")
