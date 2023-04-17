@@ -79,6 +79,9 @@ def finetune(args):
         from onnxruntime.training import ORTModule
         model = ORTModule(model)
 
+    if torch.__version__ >= "2.0.0":
+        model = torch.compile(model)
+
     training_args = Seq2SeqTrainingArguments(
         output_dir="output_dir",
         do_train=True,
