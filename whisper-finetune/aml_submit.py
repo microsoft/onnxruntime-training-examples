@@ -20,6 +20,8 @@ def get_args(raw_args=None):
     # accelerator hyperparameters
     parser.add_argument("--ort_ds", action="store_true", help="Use ORTModule and DeepSpeed to accelerate training")
 
+    parser.add_argument("--torch_version", choices=["1.13", "2.0"], default="1.13", help="Specify PyTorch version")
+
     # parse args, extra_args used for job configuration
     args = parser.parse_args(raw_args)
     print(f"input parameters {vars(args)}")
@@ -51,13 +53,9 @@ def main(raw_args=None):
         experiment_name="acpt-whisper-finetune-demo",
         code=code_dir,
         command=(
-            "python finetune.py " + ("--ort_ds" if args.ort_ds else "")
+            "torchrun --nproc_per_node=8 finetune.py " + ("--ort_ds" if args.ort_ds else "")
         ),
-        distribution={
-            "type": "pytorch",
-            "process_count_per_instance": 8,
-        },
-        environment="acpt-whisper-demo@latest",
+        environment="acpt-whisper-torch113@latest" if args.torch_version == "1.13" else "acpt-whisper-torch20@latest",
         compute=args.compute,
         instance_count=1,
         tags=tags,
