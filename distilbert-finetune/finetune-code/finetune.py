@@ -4,6 +4,7 @@ import os
 
 from azureml.core.run import Run
 from datasets import load_dataset
+import torch
 from transformers import AutoModelForQuestionAnswering, AutoTokenizer, TrainingArguments, Trainer, DefaultDataCollator
 
 def get_args(raw_args=None):
@@ -81,6 +82,8 @@ def main(raw_args=None):
     if args.ort:
         from onnxruntime.training import ORTModule
         model = ORTModule(model)
+    elif torch.__version__ >= "2.0.0":
+        model = torch.compile(model)
 
     # tokenize the data
     tokenized_squad = squad.map(preprocess_function, fn_kwargs={"tokenizer": tokenizer}, batched=True, remove_columns=squad["train"].column_names)

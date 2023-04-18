@@ -31,6 +31,8 @@ def get_args(raw_args=None):
         "--run_config", choices=["no_acc", "ort", "ds", "ds_ort"], default="no_acc", help="Configs to run for model"
     )
 
+    parser.add_argument("--torch_version", choices=["1.13", "2.0"], default="1.13", help="Specify PyTorch version")
+
     # parse args, extra_args used for job configuration
     args = parser.parse_args(raw_args)
     print(f"input parameters {vars(args)}")
@@ -66,7 +68,7 @@ def main(raw_args=None):
             "python finetune.py"
             f" {' '.join(run_config_args)}"
         ),
-        environment="acpt-finetune-demo@latest",
+        environment="acpt-distilbert-torch{0}@latest".format(args.torch_version.replace(".", "")),
         distribution={
             "type": "pytorch",
             "process_count_per_instance": 8,
