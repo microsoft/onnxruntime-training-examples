@@ -9,57 +9,42 @@ import onnxruntime
 
 def infer(args):
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    print("device: ", device)
 
     # load tokenizer to preprocess data
-    print("loading tokenizer...")
     tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
 
     # load test data
     context = """
-        Beyonce Giselle Knowles-Carter (born September 4, 1981) is an American singer, songwriter, record producer and actress.
-        Born and raised in Houston, Texas, she performed in various singing and dancing competitions as a child, and rose to fame
-        in the late 1990s as lead singer of R&B girl-group Destiny's Child. Managed by her father, Mathew Knowles, the group became
-        one of the world's best-selling girl groups of all time. Their hiatus saw the release of Beyoncé's debut album, Dangerously
-        in Love (2003), which established her as a solo artist worldwide, earned five Grammy Awards and featured the Billboard Hot
-        100 number-one singles 'Crazy in Love' and 'Baby Boy'.
+        ONNX Runtime is an open source project that is designed to accelerate machine learning 
+        across a wide range of frameworks, operating systems, and hardware platforms. It enables 
+        acceleration of machine learning inferencing across all of your deployment targets using 
+        a single set of API. ONNX Runtime automatically parses through your model to identify 
+        optimization opportunities and provides access to the best hardware acceleration available.
+        ONNX Runtime also offers training acceleration, which incorporates innovations from Microsoft 
+        Research and is proven across production workloads like Office 365, Bing and Visual Studio.
+        At Microsoft, ONNX Runtime is used as the primary Machine Learning inferencing solution for 
+        products groups. ONNX Runtime serves over 1 trillion daily inferences across over 150 production 
+        models covering all task domains. ONNX Runtime abstracts custom accelerators and runtimes to 
+        maximize their benefits across an ONNX model. To do this, ONNX Runtime partitions the ONNX model 
+        graph into subgraphs that align with available custom accelerators and runtimes. When operators 
+        are not supported by custom accelerators or runtimes, ONNX Runtime provides a default runtime 
+        that is used as the fallback execution — ensuring that any model will run. 
         """
-
-    questions = ["When was Beyonce born?", 
-                    "What areas did Beyonce compete in when she was growing up?", 
-                    "When did Beyonce leave Destiny's Child and become a solo singer?", 
-                    "What was the name of Beyonce's debut album?"]
 
     # load model and update state...
     model = AutoModelForQuestionAnswering.from_pretrained("distilbert-base-uncased")
     model.load_state_dict(torch.load("pytorch_model.bin", map_location=torch.device(device)))
     model.eval()
 
-    user_input = input("Question: ")
-    while (user_input):
-        print("user input:", user_input)
-        # preprocess test data
-        inputs = [(user_input, context)]
+    if args.ort:
+        from onnxruntime.training import ORTModule
+        model = ORTModule(model)
 
+    question = input("Question: ")
+    while (question):
         # tokenize test data
-        encoding = tokenizer.batch_encode_plus(inputs, padding=True, return_tensors="pt")
+        encoding = tokenizer(question, context, return_tensors="pt")
         input_ids, attention_mask = encoding["input_ids"], encoding["attention_mask"]
-
-        # if using onnnxruntime, convert to onnx format
-        # ORT Python API Documentation: https://onnxruntime.ai/docs/api/python/api_summary.html
-        if args.ort:
-            # if not os.path.exists("model.onnx"):
-            torch.onnx.export(model, \
-                            (input_ids, attention_mask), \
-                            "model.onnx", \
-                            input_names=["input_ids", "attention_mask"], \
-                            output_names=["start_logits", "end_logits"]) 
-
-            sess = onnxruntime.InferenceSession("model.onnx", providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
-            ort_input = {
-                    "input_ids": np.ascontiguousarray(input_ids.numpy()),
-                    "attention_mask" : np.ascontiguousarray(attention_mask.numpy()),
-                }
 
         input_ids = input_ids.to(device)
         attention_mask = attention_mask.to(device)
@@ -67,13 +52,7 @@ def infer(args):
 
         # run inference
         start = time.time()
-        if args.ort:
-            # NOTE: this copies data from CPU to GPU
-            # since our data is small, we are still faster than baseline pytorch
-            # refer to ORT Python API Documentation for information on io_binding to explicitly move data to GPU ahead of time
-            output = sess.run(None, ort_input)
-        else:
-            output = model(input_ids, attention_mask=attention_mask)
+        output = model(input_ids, attention_mask=attention_mask)
         end = time.time()
 
         # postprocess test data
@@ -93,7 +72,12 @@ def infer(args):
         # brag about how fast we are
         print("Inference Time:", str(end - start), "seconds")
 
-        user_input = input("Question: ")
+        # reset data location for next question
+        input_ids = input_ids.to("cpu")
+        attention_mask = attention_mask.to("cpu")
+        model.to("cpu")
+
+        question = input("Question: ")
 
 def main():
     parser = argparse.ArgumentParser(description="DistilBERT Fine-Tuning")
