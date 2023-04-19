@@ -40,7 +40,8 @@ def infer(args):
         from onnxruntime.training import ORTModule
         model = ORTModule(model)
 
-    question = input("Question: ")
+    question = "What is ONNX Runtime?"
+    print("Example question:", question)
     while (question):
         # tokenize test data
         encoding = tokenizer(question, context, return_tensors="pt")
@@ -77,7 +78,7 @@ def infer(args):
         attention_mask = attention_mask.to("cpu")
         model.to("cpu")
 
-        question = input("Question: ")
+        question = input("Ask a question: ")
 
 def main():
     parser = argparse.ArgumentParser(description="DistilBERT Fine-Tuning")
