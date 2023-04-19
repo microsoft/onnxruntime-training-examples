@@ -1,12 +1,13 @@
-# DistilBERT Fine-tuning Demo
+# QnA Fine-tuning Demo
 
-This demo will show how to use ACPT (Azure Container for PyTorch) along with accelerators such as onnxruntime training (through ORTModule) and DeepSpeed to fine-tune a DistilBERT model on the SQuAD dataset from the Huggingface Datasets library.
+This demo will show how to use ACPT (Azure Container for PyTorch) along with accelerators such as onnxruntime training (through ORTModule) and DeepSpeed to fine-tune a QnA model on the SQuAD dataset from the Huggingface Datasets library.
 
 ## Background
 
-[DistilBERT](https://huggingface.co/docs/transformers/model_doc/distilbert) is a transformers based language model that has been pre-trained on a large corpus of text data. It can be fine-tuned for task such as question-answer where it reads a context paragraph and given a question it will answer based on the context.
+[DistilBERT](https://huggingface.co/docs/transformers/model_doc/distilbert) is a transformers based language model that has been pre-trained on a large corpus of text data. 
+[DeBERTa](https://huggingface.co/docs/transformers/model_doc/deberta) is a transformer based language model that builds on RoBERTa with disentangled attention and enhanced mask decoder training with half of the data used in RoBERTa.
 
-In this demo, we will fine-tune DistilBERT using the [SQuAD](https://huggingface.co/datasets/squad) dataset from the Huggingface Datasets library. We will use ACPT to create our training environment and leverage some of the training acceleration technologies it offers.
+Both models can be fine-tuned for task such as question-answer where it reads a context paragraph and given a question it will answer based on the context. This repo demonstrates fine-tuning of DistilBERT and DeBERTa models using the [SQuAD](https://huggingface.co/datasets/squad) dataset from the Huggingface Datasets library. We will use ACPT to create our training environment and leverage some of the training acceleration technologies it offers.
 
 ## Set up
 
@@ -54,7 +55,7 @@ python aml_submit.py --ws_config ws_config.json --compute v100-32gb-eus \
     --run_config ds_ort
 ```
 
-#### `inference.py` runs inferencing on your local machine. 
+#### `inference.py` and `inference_chat.py` runs two inferencing scenarios on your local machine (batch inferencing and chat-like inferencing). 
 
 Note: You need to download your trained weights from your training job to run inference. Script assumes pytorch_model.bin is in the same directory as inference.py
 
