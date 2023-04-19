@@ -41,10 +41,7 @@ def main(raw_args=None):
     code_dir = root_dir / "finetune-code"
 
     # tags
-    tags = {
-        "ort_ds": str(args.ort_ds),
-        "torch_version": args.torch_version
-    }
+    tags = vars(args)
 
     # define the command
     # documentation: https://learn.microsoft.com/en-us/python/api/azure-ai-ml/azure.ai.ml.entities.command?view=azure-python
