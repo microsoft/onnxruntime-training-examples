@@ -4,6 +4,7 @@ import os
 
 from azureml.core.run import Run
 from datasets import load_dataset
+import torch
 from transformers import AutoModelForQuestionAnswering, AutoTokenizer, TrainingArguments, Trainer, DefaultDataCollator
 
 def get_args(raw_args=None):
@@ -11,6 +12,7 @@ def get_args(raw_args=None):
 
     parser.add_argument("--ort", action="store_true", help="Use ORTModule")
     parser.add_argument("--deepspeed", action="store_true", help="Use deepspeed")
+    parser.add_argument("--model_name", choices=["microsoft/deberta-v3-base", "distilbert-base-uncased"], default="distilbert-base-uncased", help="Hugging Face Model ID")
 
     args = parser.parse_args(raw_args)
     print(f"input parameters {vars(args)}")
@@ -75,15 +77,17 @@ def main(raw_args=None):
     squad = load_dataset("squad")
 
     # load pretrained model and tokenizer
-    tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
-    model = AutoModelForQuestionAnswering.from_pretrained("distilbert-base-uncased")
+    tokenizer = AutoTokenizer.from_pretrained(args.model_name)
+    model = AutoModelForQuestionAnswering.from_pretrained(args.model_name)
 
     if args.ort:
         from onnxruntime.training import ORTModule
         model = ORTModule(model)
+    elif torch.__version__ >= "2.0.0":
+        model = torch.compile(model)
 
     # tokenize the data
-    tokenized_squad = squad.map(preprocess_function, fn_kwargs={"tokenizer": tokenizer}, batched=True, remove_columns=squad["train"].column_names)
+    tokenized_squad = squad.map(preprocess_function, fn_kwargs={"tokenizer": tokenizer}, batched=True)
 
     # initialize training arguments
     training_args_dict = {
