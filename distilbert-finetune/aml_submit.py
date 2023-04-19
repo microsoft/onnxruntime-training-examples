@@ -14,7 +14,7 @@ def run_config_to_args(run_config):
     return mapping[run_config]
 
 def get_args(raw_args=None):
-    parser = argparse.ArgumentParser(description="DistilBERT Finetune AML job submission")
+    parser = argparse.ArgumentParser(description="QnA Finetune AML job submission")
 
     # workspace
     parser.add_argument(
@@ -30,6 +30,10 @@ def get_args(raw_args=None):
     parser.add_argument(
         "--run_config", choices=["no_acc", "ort", "ds", "ds_ort"], default="no_acc", help="Configs to run for model"
     )
+
+    parser.add_argument("--torch_version", choices=["1.13", "2.0"], default="1.13", help="Specify PyTorch version")
+
+    parser.add_argument("--model_name", choices=["microsoft/deberta-v3-base", "distilbert-base-uncased"], default="distilbert-base-uncased", help="Hugging Face Model ID")
 
     # parse args, extra_args used for job configuration
     args = parser.parse_args(raw_args)
@@ -51,22 +55,20 @@ def main(raw_args=None):
     code_dir = root_dir / "finetune-code"
 
     # tags
-    tags = {
-        "__run_config": args.run_config,
-    }
+    tags = vars(args)
 
     # define the command
     # documentation: https://learn.microsoft.com/en-us/python/api/azure-ai-ml/azure.ai.ml.entities.command?view=azure-python
     command_job = command(
-        description="ACPT DistilBERT Finetune Demo",
-        display_name=f"distilbert-finetune-{args.run_config}",
-        experiment_name="acpt-distilbert-finetune-demo",
+        description="ACPT QnA Finetune Demo",
+        display_name=f"{args.model_name}-finetune-{args.run_config}",
+        experiment_name="acpt-QnA-finetune-demo",
         code=code_dir,
         command=(
             "python finetune.py"
             f" {' '.join(run_config_args)}"
         ),
-        environment="acpt-finetune-demo@latest",
+        environment="acpt-distilbert-torch{0}@latest".format(args.torch_version.replace(".", "")),
         distribution={
             "type": "pytorch",
             "process_count_per_instance": 8,
