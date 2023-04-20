@@ -102,7 +102,7 @@ def finetune(args):
         tokenizer=processor.feature_extractor
     )
 
-    trainer.train()
+    train_result = trainer.train()
 
     # extract performance metrics
     train_metrics = train_result.metrics

@@ -3,6 +3,7 @@ from datasets import Audio, load_dataset
 import time
 import torch
 from transformers import WhisperForConditionalGeneration, WhisperProcessor
+from transformers import GenerationMixin
 
 def infer(args):
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -12,34 +13,27 @@ def infer(args):
     common_voice = common_voice.cast_column("audio", Audio(sampling_rate=16000))
 
     model = WhisperForConditionalGeneration.from_pretrained("output_dir/checkpoint-2000")
+    model.config.forced_decoder_ids = None
+    model.config.suppress_tokens = []
     model.eval()
 
     processor = WhisperProcessor.from_pretrained("openai/whisper-small", language="Hindi", task="transcribe")
 
     inputs = processor(common_voice["audio"][0]["array"], return_tensors="pt")
     input_features = inputs.input_features
+    decoder_input_ids = torch.tensor([[1, 1]]) * model.config.decoder_start_token_id
 
     # if using onnnxruntime, convert to onnx format
     # ORT Python API Documentation: https://onnxruntime.ai/docs/api/python/api_summary.html
     if args.ort:
-        import onnxruntime
-        import os 
-        import numpy as np
-        
-        if not os.path.exists("model.onnx"):
-            torch.onnx.export(model, \
-                            input_features, \
-                            "model.onnx", \
-                            input_names=["input_features"], \
-                            output_names=["generated_ids"]) 
+        from torch_ort import ORTModule
+        model = ORTModule(model)
 
-        sess = onnxruntime.InferenceSession("model.onnx", providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
-        ort_input = {
-                "input_features": np.ascontiguousarray(input_features.numpy()),
-            }
-        
     input_features = input_features.to(device)
+    decoder_input_ids = decoder_input_ids.to(device)
     model.to(device)
+
+    print("input_features", input_features)
 
     # run inference
     print("running inference...")
@@ -48,11 +42,14 @@ def infer(args):
         # NOTE: this copies data from CPU to GPU
         # since our data is small, we are still faster than baseline pytorch
         # refer to ORT Python API Documentation for information on io_binding to explicitly move data to GPU ahead of time
-        generated_ids = sess.run(None, ort_input)
+        output = model(input_features, decoder_input_ids=decoder_input_ids)
+        print(output)
+        generated_ids = GenerationMixin.greedy_search(output)
     else:
         generated_ids = model.generate(inputs=input_features)
     end = time.time()
 
+    print("generated_ids", generated_ids)
     transcription = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
     print(transcription)
 
