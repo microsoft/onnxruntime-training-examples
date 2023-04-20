@@ -2,10 +2,21 @@ import argparse
 from pathlib import Path
 import os
 
-from azureml.core.run import Run
+cloud_run = True
+try:
+    from azureml.core.run import Run
+except ModuleNotFoundError:
+    cloud_run = True
+
+
 from datasets import load_dataset
 import torch
 from transformers import AutoModelForQuestionAnswering, AutoTokenizer, TrainingArguments, Trainer, DefaultDataCollator
+
+import nebulaml as nm
+root_dir = Path(__file__).resolve().parent
+nebula_dir = root_dir / "nebula_checkpoints"
+nm.init(persistent_storage_path=str(nebula_dir)) # initialize Nebula
 
 def get_args(raw_args=None):
     parser = argparse.ArgumentParser(description="DistilBERT Fine-Tuning")
@@ -83,8 +94,6 @@ def main(raw_args=None):
     if args.ort:
         from onnxruntime.training import ORTModule
         model = ORTModule(model)
-    elif torch.__version__ >= "2.0.0":
-        model = torch.compile(model)
 
     # tokenize the data
     tokenized_squad = squad.map(preprocess_function, fn_kwargs={"tokenizer": tokenizer}, batched=True)
@@ -101,6 +110,7 @@ def main(raw_args=None):
         "weight_decay": 0.01,
         "fp16": True,
         "deepspeed": "ds_config_zero_1.json" if args.deepspeed else None,
+        "torch_compile": True if (torch.__version__ >= "2.0.0" and not args.ort) else False
     }
     training_args = TrainingArguments(**training_args_dict)
 
@@ -127,18 +137,19 @@ def main(raw_args=None):
     eval_metrics["eval_samples"] = len(tokenized_squad["validation"])
     trainer.log_metrics("eval", eval_metrics)
 
-    rank = os.environ.get("RANK", -1)
-    if int(rank) == 0:
-        # save trained model
-        trained_model_folder = "model"
-        trained_model_path = Path(trained_model_folder)
-        trained_model_path.mkdir(parents=True, exist_ok=True)
-        model.save_pretrained(trained_model_path / "weights")
+    if cloud_run:
+        rank = os.environ.get("RANK", -1)
+        if int(rank) == 0:
+            # save trained model
+            trained_model_folder = "model"
+            trained_model_path = Path(trained_model_folder)
+            trained_model_path.mkdir(parents=True, exist_ok=True)
+            model.save_pretrained(trained_model_path / "weights")
 
-        # upload saved data to AML
-        # documentation: https://learn.microsoft.com/en-us/python/api/azureml-core/azureml.core.run(class)?view=azure-ml-py
-        run = Run.get_context()
-        run.upload_folder(name="model", path=trained_model_folder)
+            # upload saved data to AML
+            # documentation: https://learn.microsoft.com/en-us/python/api/azureml-core/azureml.core.run(class)?view=azure-ml-py
+            run = Run.get_context()
+            run.upload_folder(name="model", path=trained_model_folder)
 
 if __name__ == "__main__":
     main()
