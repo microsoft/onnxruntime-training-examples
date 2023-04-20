@@ -6,7 +6,7 @@ cloud_run = True
 try:
     from azureml.core.run import Run
 except ModuleNotFoundError:
-    cloud_run = True
+    cloud_run = False
 
 
 from datasets import load_dataset
