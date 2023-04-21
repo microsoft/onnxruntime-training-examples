@@ -22,6 +22,8 @@ def get_args(raw_args=None):
 
     parser.add_argument("--torch_version", choices=["1.13", "2.0"], default="1.13", help="Specify PyTorch version")
 
+    parser.add_argument("--nebula", action="store_true", help="Enable nebula checkpointing")
+
     # parse args, extra_args used for job configuration
     args = parser.parse_args(raw_args)
     print(f"input parameters {vars(args)}")
@@ -51,7 +53,7 @@ def main(raw_args=None):
         experiment_name="acpt-whisper-finetune-demo",
         code=code_dir,
         command=(
-            "torchrun --nproc_per_node=8 finetune.py " + ("--ort_ds" if args.ort_ds else "")
+            "torchrun --nproc_per_node=8 finetune.py " + ("--ort_ds " if args.ort_ds else " ") + (" --nebula " if args.nebula else " ")
         ),
         environment="acpt-whisper-torch{0}@latest".format(args.torch_version.replace(".", "")),
         compute=args.compute,

@@ -8,6 +8,12 @@ import torch
 from transformers import Seq2SeqTrainer, Seq2SeqTrainingArguments, WhisperForConditionalGeneration, WhisperProcessor
 from typing import Any, Dict, List, Union
 
+def init_nebula():
+    import nebulaml as nm
+    root_dir = Path(__file__).resolve().parent
+    nebula_dir = root_dir / "nebula_checkpoints"
+    nm.init(persistent_storage_path=str(nebula_dir)) # initialize Nebula
+
 processor = WhisperProcessor.from_pretrained("openai/whisper-small", language="Hindi", task="transcribe")
 
 @dataclass
@@ -63,6 +69,9 @@ def prepare_dataset(batch):
     return batch
 
 def finetune(args):
+    if args.nebula:
+        init_nebula()
+        
     common_voice = DatasetDict()
 
     common_voice["train"] = load_dataset("mozilla-foundation/common_voice_11_0", "hi", split="train")
@@ -129,6 +138,7 @@ def finetune(args):
 def main():
     parser = argparse.ArgumentParser(description="Whisper Fine-Tuning")
     parser.add_argument("--ort_ds", action="store_true", help="Use ORTModule and DeepSpeed to accelerate training")
+    parser.add_argument("--nebula", action="store_true", help="Enable nebula checkpointing")
     args = parser.parse_args()
 
     finetune(args)
