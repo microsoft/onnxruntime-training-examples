@@ -1,23 +1,24 @@
 {
-   "Registrations": [
-      {
-         "component": {
-            "type": "git",
-            "git": {
-               "commitHash": "4733603577080dbd1bdcd51864f31e45d5196704",
-               "repositoryUrl": "https://github.com/NVIDIA/DeepLearningExamples.git"
-            }
-         }
-      },
-      {
-         "component": {
-            "type": "git",
-            "git": {
-               "commitHash": "9a0a8c1c6f4f2f0c80ff07d36713a3ada785eec5",
-               "repositoryUrl": "https://github.com/huggingface/transformers.git"
-            }
-         }
+  "$schema": "https://json.schemastore.org/component-detection-manifest.json",
+  "Registrations": [
+    {
+      "component": {
+        "type": "git",
+        "git": {
+          "commitHash": "4733603577080dbd1bdcd51864f31e45d5196704",
+          "repositoryUrl": "https://github.com/NVIDIA/DeepLearningExamples.git"
+        }
       }
-   ],
-   "Version": 1
+    },
+    {
+      "component": {
+        "type": "git",
+        "git": {
+          "commitHash": "9a0a8c1c6f4f2f0c80ff07d36713a3ada785eec5",
+          "repositoryUrl": "https://github.com/huggingface/transformers.git"
+        }
+      }
+    }
+  ],
+  "Version": 1
 }
