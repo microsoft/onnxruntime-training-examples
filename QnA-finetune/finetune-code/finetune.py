@@ -13,17 +13,19 @@ from datasets import load_dataset
 import torch
 from transformers import AutoModelForQuestionAnswering, AutoTokenizer, TrainingArguments, Trainer, DefaultDataCollator
 
-import nebulaml as nm
-root_dir = Path(__file__).resolve().parent
-nebula_dir = root_dir / "nebula_checkpoints"
-nm.init(persistent_storage_path=str(nebula_dir)) # initialize Nebula
+def init_nebula():
+    import nebulaml as nm
+    root_dir = Path(__file__).resolve().parent
+    nebula_dir = root_dir / "nebula_checkpoints"
+    nm.init(persistent_storage_path=str(nebula_dir)) # initialize Nebula
 
 def get_args(raw_args=None):
     parser = argparse.ArgumentParser(description="DistilBERT Fine-Tuning")
 
     parser.add_argument("--ort", action="store_true", help="Use ORTModule")
     parser.add_argument("--deepspeed", action="store_true", help="Use deepspeed")
-    parser.add_argument("--model_name", choices=["microsoft/deberta-v3-base", "distilbert-base-uncased"], default="distilbert-base-uncased", help="Hugging Face Model ID")
+    parser.add_argument("--model_name", choices=["microsoft/deberta-base", "distilbert-base-uncased"], default="microsoft/deberta-base", help="Hugging Face Model ID")
+    parser.add_argument("--nebula", action="store_true", help="Enable nebula checkpointing")
 
     args = parser.parse_args(raw_args)
     print(f"input parameters {vars(args)}")
@@ -83,6 +85,9 @@ def preprocess_function(examples, tokenizer=None):
 # NOTE: Training pipeline adapted from https://huggingface.co/docs/transformers/tasks/question_answering
 def main(raw_args=None):
     args = get_args(raw_args)
+
+    if args.nebula:
+        init_nebula()
 
     # load the SQuAD dataset from the Huggingface Datasets library
     squad = load_dataset("squad")

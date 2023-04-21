@@ -33,7 +33,9 @@ def get_args(raw_args=None):
 
     parser.add_argument("--torch_version", choices=["1.13", "2.0"], default="1.13", help="Specify PyTorch version")
 
-    parser.add_argument("--model_name", choices=["microsoft/deberta-v3-base", "distilbert-base-uncased"], default="distilbert-base-uncased", help="Hugging Face Model ID")
+    parser.add_argument("--model_name", choices=["microsoft/deberta-base", "distilbert-base-uncased"], default="microsoft/deberta-base", help="Hugging Face Model ID")
+
+    parser.add_argument("--nebula", action="store_true", help="Enable nebula checkpointing")
 
     # parse args, extra_args used for job configuration
     args = parser.parse_args(raw_args)
@@ -65,8 +67,10 @@ def main(raw_args=None):
         experiment_name="acpt-QnA-finetune-demo",
         code=code_dir,
         command=(
-            "python finetune.py"
-            f" {' '.join(run_config_args)}"
+            "python finetune.py" + 
+            f" {' '.join(run_config_args)}" + 
+            f" --model_name {args.model_name}" +
+            (" --nebula" if args.nebula else "")
         ),
         environment="acpt-distilbert-torch{0}@latest".format(args.torch_version.replace(".", "")),
         distribution={
