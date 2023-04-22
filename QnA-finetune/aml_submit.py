@@ -67,7 +67,7 @@ def main(raw_args=None):
         experiment_name="acpt-QnA-finetune-demo",
         code=code_dir,
         command=(
-            "python finetune.py" + 
+            "torchrun --nproc_per_node=8 finetune.py" + 
             f" {' '.join(run_config_args)}" + 
             f" --model_name {args.model_name}" +
             (" --nebula" if args.nebula else "")
