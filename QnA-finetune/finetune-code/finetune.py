@@ -24,7 +24,7 @@ def get_args(raw_args=None):
 
     parser.add_argument("--ort", action="store_true", help="Use ORTModule")
     parser.add_argument("--deepspeed", action="store_true", help="Use deepspeed")
-    parser.add_argument("--model_name", choices=["microsoft/deberta-base", "distilbert-base-uncased"], default="microsoft/deberta-base", help="Hugging Face Model ID")
+    parser.add_argument("--model_name", choices=["microsoft/deberta-base", "distilbert-base-uncased"], default="distilbert-base-uncased", help="Hugging Face Model ID")
     parser.add_argument("--nebula", action="store_true", help="Enable nebula checkpointing")
 
     args = parser.parse_args(raw_args)
