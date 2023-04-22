@@ -73,10 +73,6 @@ def main(raw_args=None):
             (" --nebula" if args.nebula else "")
         ),
         environment="acpt-distilbert-torch{0}@latest".format(args.torch_version.replace(".", "")),
-        distribution={
-            "type": "pytorch",
-            "process_count_per_instance": 8,
-        },
         compute=args.compute,
         instance_count=1,
         tags=tags,
