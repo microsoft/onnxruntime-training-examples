@@ -33,7 +33,7 @@ def get_args(raw_args=None):
 
     parser.add_argument("--torch_version", choices=["1.13", "2.0"], default="1.13", help="Specify PyTorch version")
 
-    parser.add_argument("--model_name", choices=["microsoft/deberta-base", "distilbert-base-uncased"], default="microsoft/deberta-base", help="Hugging Face Model ID")
+    parser.add_argument("--model_name", choices=["microsoft/deberta-base", "distilbert-base-uncased"], default="distilbert-base-uncased", help="Hugging Face Model ID")
 
     parser.add_argument("--nebula", action="store_true", help="Enable nebula checkpointing")
 
