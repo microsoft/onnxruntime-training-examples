@@ -14,7 +14,7 @@ def init_nebula():
     nebula_dir = root_dir / "nebula_checkpoints"
     nm.init(persistent_storage_path=str(nebula_dir)) # initialize Nebula
 
-processor = WhisperProcessor.from_pretrained("openai/whisper-small", language="Hindi", task="transcribe")
+processor = WhisperProcessor.from_pretrained("openai/whisper-tiny", language="Hindi", task="transcribe")
 
 @dataclass
 class DataCollatorSpeechSeq2SeqWithPadding:
@@ -82,7 +82,7 @@ def finetune(args):
 
     common_voice = common_voice.map(prepare_dataset, remove_columns=common_voice.column_names["train"], num_proc=4)
 
-    model = WhisperForConditionalGeneration.from_pretrained("openai/whisper-small")
+    model = WhisperForConditionalGeneration.from_pretrained("openai/whisper-tiny")
     model.config.forced_decoder_ids = None
     model.config.suppress_tokens = []
 
