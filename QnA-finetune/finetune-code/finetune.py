@@ -115,7 +115,8 @@ def main(raw_args=None):
         "weight_decay": 0.01,
         "fp16": True,
         "deepspeed": "ds_config_zero_1.json" if args.deepspeed else None,
-        "torch_compile": True if (torch.__version__ >= "2.0.0" and not args.ort) else False
+        "torch_compile": True if (torch.__version__ >= "2.0.0" and not args.ort) else False,
+        "label_names": ["start_positions", "end_positions"]
     }
     training_args = TrainingArguments(**training_args_dict)
 
