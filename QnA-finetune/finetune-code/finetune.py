@@ -2,22 +2,11 @@ import argparse
 from pathlib import Path
 import os
 
-cloud_run = True
-try:
-    from azureml.core.run import Run
-except ModuleNotFoundError:
-    cloud_run = False
-
+from azureml.core.run import Run
 
 from datasets import load_dataset
 import torch
 from transformers import AutoModelForQuestionAnswering, AutoTokenizer, TrainingArguments, Trainer, DefaultDataCollator
-
-def init_nebula():
-    import nebulaml as nm
-    root_dir = Path(__file__).resolve().parent
-    nebula_dir = root_dir / "nebula_checkpoints"
-    nm.init(persistent_storage_path=str(nebula_dir)) # initialize Nebula
 
 def get_args(raw_args=None):
     parser = argparse.ArgumentParser(description="DistilBERT Fine-Tuning")
@@ -86,15 +75,28 @@ def preprocess_function(examples, tokenizer=None):
 def main(raw_args=None):
     args = get_args(raw_args)
 
-    if args.nebula:
-        init_nebula()
-
     # load the SQuAD dataset from the Huggingface Datasets library
     squad = load_dataset("squad")
 
     # load pretrained model and tokenizer
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
     model = AutoModelForQuestionAnswering.from_pretrained(args.model_name)
+
+    if args.nebula:
+        import nebulaml as nm
+
+        root_dir = Path(__file__).resolve().parent
+        nebula_dir = root_dir / "nebula_checkpoints"
+
+        # define NebulaCallback
+        config_params = dict()
+        config_params["persistent_storage_path"] = str(nebula_dir)
+        config_params["persistent_time_interval"] = 10
+
+        nebula_checkpoint_callback = nm.NebulaCallback(
+            model.parameters(), # Original ModelCheckpoint params
+            config_params=config_params, # customize the config of init nebula
+        )
 
     if args.ort:
         from onnxruntime.training import ORTModule
@@ -111,13 +113,18 @@ def main(raw_args=None):
         "per_device_train_batch_size": 16,
         "per_device_eval_batch_size": 16,
         "learning_rate": 2e-5,
-        "num_train_epochs": 50,
+        "num_train_epochs": 100,
         "weight_decay": 0.01,
         "fp16": True,
         "deepspeed": "ds_config_zero_1.json" if args.deepspeed else None,
         "torch_compile": True if (torch.__version__ >= "2.0.0" and not args.ort) else False,
         "label_names": ["start_positions", "end_positions"]
     }
+
+    if args.nebula:
+        training_args_dict["plugins"] = [nm.NebulaCheckpointIO()] # add NebulaCheckpointIO as a plugin
+        training_args_dict["callbacks"] = [nebula_checkpoint_callback] # use NebulaCallback as a plugin
+
     training_args = TrainingArguments(**training_args_dict)
 
     # Initialize Trainer
@@ -143,19 +150,18 @@ def main(raw_args=None):
     eval_metrics["eval_samples"] = len(tokenized_squad["validation"])
     trainer.log_metrics("eval", eval_metrics)
 
-    if cloud_run:
-        rank = os.environ.get("RANK", -1)
-        if int(rank) == 0:
-            # save trained model
-            trained_model_folder = "model"
-            trained_model_path = Path(trained_model_folder)
-            trained_model_path.mkdir(parents=True, exist_ok=True)
-            model.save_pretrained(trained_model_path / "weights")
+    rank = os.environ.get("RANK", -1)
+    if int(rank) == 0:
+        # save trained model
+        trained_model_folder = "model"
+        trained_model_path = Path(trained_model_folder)
+        trained_model_path.mkdir(parents=True, exist_ok=True)
+        model.save_pretrained(trained_model_path / "weights")
 
-            # upload saved data to AML
-            # documentation: https://learn.microsoft.com/en-us/python/api/azureml-core/azureml.core.run(class)?view=azure-ml-py
-            run = Run.get_context()
-            run.upload_folder(name="model", path=trained_model_folder)
+        # upload saved data to AML
+        # documentation: https://learn.microsoft.com/en-us/python/api/azureml-core/azureml.core.run(class)?view=azure-ml-py
+        run = Run.get_context()
+        run.upload_folder(name="model", path=trained_model_folder)
 
 if __name__ == "__main__":
     main()
