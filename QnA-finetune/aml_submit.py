@@ -35,8 +35,6 @@ def get_args(raw_args=None):
 
     parser.add_argument("--model_name", choices=["microsoft/deberta-base", "distilbert-base-uncased"], default="distilbert-base-uncased", help="Hugging Face Model ID")
 
-    parser.add_argument("--nebula", action="store_true", help="Enable nebula checkpointing")
-
     # parse args, extra_args used for job configuration
     args = parser.parse_args(raw_args)
     print(f"input parameters {vars(args)}")
@@ -69,13 +67,13 @@ def main(raw_args=None):
         command=(
             "torchrun --nproc_per_node=8 finetune.py" + 
             f" {' '.join(run_config_args)}" + 
-            f" --model_name {args.model_name}" +
-            (" --nebula" if args.nebula else "")
+            f" --model_name {args.model_name}"
         ),
         environment="acpt-distilbert-torch{0}@latest".format(args.torch_version.replace(".", "")),
         compute=args.compute,
         instance_count=1,
         tags=tags,
+        shm_size="16g",
     )
 
     # submit the command
