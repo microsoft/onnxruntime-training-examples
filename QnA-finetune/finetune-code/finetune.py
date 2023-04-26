@@ -14,7 +14,6 @@ def get_args(raw_args=None):
     parser.add_argument("--ort", action="store_true", help="Use ORTModule")
     parser.add_argument("--deepspeed", action="store_true", help="Use deepspeed")
     parser.add_argument("--model_name", choices=["microsoft/deberta-base", "distilbert-base-uncased"], default="distilbert-base-uncased", help="Hugging Face Model ID")
-    parser.add_argument("--nebula", action="store_true", help="Enable nebula checkpointing")
 
     args = parser.parse_args(raw_args)
     print(f"input parameters {vars(args)}")
@@ -82,22 +81,6 @@ def main(raw_args=None):
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
     model = AutoModelForQuestionAnswering.from_pretrained(args.model_name)
 
-    if args.nebula:
-        import nebulaml as nm
-
-        root_dir = Path(__file__).resolve().parent
-        nebula_dir = root_dir / "nebula_checkpoints"
-
-        # define NebulaCallback
-        config_params = dict()
-        config_params["persistent_storage_path"] = str(nebula_dir)
-        config_params["persistent_time_interval"] = 10
-
-        nebula_checkpoint_callback = nm.NebulaCallback(
-            model.parameters(), # Original ModelCheckpoint params
-            config_params=config_params, # customize the config of init nebula
-        )
-
     if args.ort:
         from onnxruntime.training import ORTModule
         model = ORTModule(model)
@@ -120,10 +103,6 @@ def main(raw_args=None):
         "torch_compile": True if (torch.__version__ >= "2.0.0" and not args.ort) else False,
         "label_names": ["start_positions", "end_positions"]
     }
-
-    if args.nebula:
-        training_args_dict["plugins"] = [nm.NebulaCheckpointIO()] # add NebulaCheckpointIO as a plugin
-        training_args_dict["callbacks"] = [nebula_checkpoint_callback] # use NebulaCallback as a plugin
 
     training_args = TrainingArguments(**training_args_dict)
 

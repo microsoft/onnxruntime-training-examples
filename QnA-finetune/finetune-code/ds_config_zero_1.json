@@ -6,7 +6,6 @@
             "hysteresis": 2,
             "min_loss_scale": 1
     },
-
     "zero_optimization": {
             "stage": 1,
             "allgather_partitions": true,
@@ -17,9 +16,7 @@
             "contiguous_gradients": true,
             "cpu_offload": false
     },
-
     "zero_allow_untested_optimizer": true,
-
     "optimizer": {
             "type": "AdamW",
             "params": {
@@ -29,7 +26,6 @@
                     "weight_decay": "auto"
             }
     },
-
     "scheduler": {
             "type": "WarmupLR",
             "params": {
@@ -38,9 +34,15 @@
                     "warmup_num_steps": "auto"
             }
     },
-
     "steps_per_print": 2000,
     "train_batch_size": "auto",
     "train_micro_batch_size_per_gpu": "auto",
-    "wall_clock_breakdown": false
+    "wall_clock_breakdown": false,
+    "nebula": {
+        "enabled": true,
+        "persistent_storage_path": "/tmp/nebula_checkpoint/",
+        "persistent_time_interval": 10,
+        "num_of_version_in_retention": 2,
+        "enable_nebula_load": true
+      }
 }
