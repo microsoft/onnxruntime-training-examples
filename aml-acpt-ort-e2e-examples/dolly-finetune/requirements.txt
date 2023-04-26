@@ -1,0 +1,6 @@
+git+https://github.com/huggingface/accelerate
+datasets
+evaluate
+git+https://github.com/huggingface/transformers
+
+scikit-learn
