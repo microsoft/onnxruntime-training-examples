@@ -45,6 +45,13 @@ def main(raw_args=None):
     # tags
     tags = vars(args)
 
+    if args.ort_ds:
+        finetune_script = "run_clm_ort.py"
+        extra_run_args = "--deepspeed zero_stage_1.json --optim adamw_ort_fused"
+    else:
+        finetune_script = "run_clm_ort.py"
+        extra_run_args = ""
+
     # define the command
     # documentation: https://learn.microsoft.com/en-us/python/api/azure-ai-ml/azure.ai.ml.entities.command?view=azure-python
     command_job = command(
@@ -53,13 +60,13 @@ def main(raw_args=None):
         experiment_name="acpt-dolly-finetune-demo",
         code=code_dir,
         command=(
-            "torchrun --nproc_per_node=8 run_clm.py " + 
-            "--model_name_or_path databricks/dolly-v2-12b " + 
+            f"torchrun --nproc_per_node=8 {finetune_script} " + 
+            "--model_name_or_path databricks/dolly-v2-3b " + 
             "--dataset_name wikitext --dataset_config_name wikitext-2-raw-v1 " + 
             "--do_train --do_eval " +
             "--per_device_train_batch_size 1 --per_device_eval_batch_size 1 " +
-            "--fp16 True --deepspeed zero_stage_1.json " + 
-            "--output_dir /dev/shm"
+            "--fp16 True " + 
+            "--output_dir /dev/shm " + extra_run_args
         ),
         environment="acpt-distilbert-torch{0}@latest".format(args.torch_version.replace(".", "")),
         compute=args.compute,
