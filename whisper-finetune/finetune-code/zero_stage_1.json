@@ -37,5 +37,12 @@
     "steps_per_print": 2000,
     "train_batch_size": "auto",
     "train_micro_batch_size_per_gpu": "auto",
-    "wall_clock_breakdown": false
+    "wall_clock_breakdown": false,
+    "nebula": {
+        "enabled": true,
+        "persistent_storage_path": "/tmp/nebula_checkpoint/",
+        "persistent_time_interval": 10,
+        "num_of_version_in_retention": 2,
+        "enable_nebula_load": true
+      }
 }
