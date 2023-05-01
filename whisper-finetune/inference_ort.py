@@ -26,6 +26,7 @@ def infer():
         subprocess.call(["python", "-m", "onnxruntime.transformers.models.whisper.convert_to_onnx", "-m", "openai/whisper-small", "--output", "whisper-small", "--use_external_data_format", "--state_dict", "pytorch_model.bin"])
 
     sess = InferenceSession("whisper-small/openai/whisper-small_beamsearch.onnx", providers=["CUDAExecutionProvider"])
+    
     beam_size = 1
     NUM_RETURN_SEQUENCES = 1
     input_shape = [1, N_MELS, N_FRAMES]
