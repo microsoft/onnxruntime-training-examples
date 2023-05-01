@@ -1,18 +1,9 @@
-import argparse
-from datasets import Audio, DatasetDict, load_dataset
+import librosa
 import time
 import torch
 from transformers import AutoModelForSpeechSeq2Seq, WhisperProcessor
-from transformers import GenerationMixin
-from transformers import pipeline
 
-from torch.utils.data import DataLoader
-from typing import Any, Dict, List, Union
-from dataclasses import dataclass
-import numpy as np
-import librosa
-
-def infer(args):
+def infer():
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     audio = librosa.load("common_voice_hi_23795238.mp3")[0]
@@ -21,7 +12,6 @@ def infer(args):
     model.load_state_dict(torch.load("pytorch_model.bin", map_location=torch.device(device)), strict=False) # maybe try strict=False??
     model.eval()
 
-    from transformers import WhisperProcessor
     processor = WhisperProcessor.from_pretrained("openai/whisper-small", language="Hindi", task="transcribe")
     inputs = processor(audio, return_tensors="pt")
     input_features = inputs.input_features
@@ -43,10 +33,6 @@ def infer(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Whisper Fine-Tuning")
-    parser.add_argument("--ort", action="store_true", help="Use ORT Inference Session")
-    args = parser.parse_args()
-
-    infer(args)
+    infer()
 
 main()

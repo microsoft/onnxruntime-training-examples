@@ -1,38 +1,32 @@
-# -------------------------------------------------------------------------
-# Copyright (c) Microsoft Corporation.  All rights reserved.
-# Licensed under the MIT License.  See License.txt in the project root for
-# license information.
-# --------------------------------------------------------------------------
-
-from onnxruntime import InferenceSession
-
-import argparse
-import numpy as np
-import time
 import librosa
+import numpy as np
+from onnxruntime import InferenceSession
+import os
+import subprocess
+import time
+from transformers import WhisperProcessor
 
 N_FRAMES = 3000
 HOP_LENGTH = 160
 SAMPLE_RATE = 16000
 N_MELS = 80
 
+def infer():
+    min_length = 0
+    max_length = 20
+    repetition_penalty = 1.0
 
-def run_inference(args):
-    min_length = args.min_length
-    max_length = args.max_length
-    repetition_penalty = args.repetition_penalty
+    audio = librosa.load("common_voice_hi_23795238.mp3")[0]
 
-    audio = librosa.load(args.input)[0]
-    audio = np.expand_dims(audio[:30 * SAMPLE_RATE], axis=0)
-    # expand audio to 30 seconds
-    audio = np.tile(audio, (1, 30 * SAMPLE_RATE // audio.shape[1] + 1))[:, :30 * SAMPLE_RATE]
-
-    from transformers import WhisperProcessor
-    processor = WhisperProcessor.from_pretrained("openai/whisper-small", language="Hindi", task="transcribe")
-    inputs = processor(audio[0], return_tensors="pt")
+    processor = WhisperProcessor.from_pretrained("openai/whisper-small", language="Hindi", task="transcribe", sampling_rate=SAMPLE_RATE)
+    inputs = processor(audio, return_tensors="pt")
     input_features = inputs.input_features
 
-    sess = InferenceSession(args.model, opt, providers=["CUDAExecutionProvider"])
+    if not os.path.exists("whisper-small"):
+        subprocess.call(["python", "-m", "onnxruntime.transformers.models.whisper.convert_to_onnx", "-m", "openai/whisper-small", "--output", "whisper-small", "--use_external_data_format", "--state_dict", "pytorch_model.bin"])
+
+    sess = InferenceSession("whisper-small/openai/whisper-small_beamsearch.onnx", providers=["CUDAExecutionProvider"])
+    
     beam_size = 1
     NUM_RETURN_SEQUENCES = 1
     input_shape = [1, N_MELS, N_FRAMES]
@@ -59,23 +53,7 @@ def run_inference(args):
     diff = time.time() - start
     print(f"time {diff/10} sec")
 
+def main():
+    infer()
 
-def get_args():
-    parent_parser = argparse.ArgumentParser(add_help=False)
-    parent_parser.add_argument("--input", default="./test.wav", help="input")
-    parent_parser.add_argument("--max_length", type=int, default=20, help="default to 20")
-    parent_parser.add_argument("--min_length", type=int, default=0, help="default to 0")
-    parent_parser.add_argument("-b", "--num_beams", type=int, default=5, help="default to 5")
-    parent_parser.add_argument("-bsz", "--batch_size", type=int, default=1, help="default to 1")
-    parent_parser.add_argument("--repetition_penalty", type=float, default=1.0, help="default to 1.0")
-    parent_parser.add_argument("--no_repeat_ngram_size", type=int, default=3, help="default to 3")
-
-    required_args = parent_parser.add_argument_group("required input arguments")
-    required_args.add_argument("--model", default="./whisper-model.onnx", help="model.")
-
-    return parent_parser.parse_args()
-
-
-if __name__ == "__main__":
-    args = get_args()
-    run_inference(args)
+main()
