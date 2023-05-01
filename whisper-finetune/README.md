@@ -1,6 +1,6 @@
 # Whisper Fine-tuning Demo
 
-This demo will show how to use ACPT (Azure Container for PyTorch) along with accelerators such as onnxruntime training (through ORTModule) and DeepSpeed to fine-tune OpenAI's whisper model on a Hindi to English speed recognition and translation task.
+This demo will show how to use ACPT (Azure Container for PyTorch) along with accelerators such as onnxruntime training (through ORTModule) and DeepSpeed to fine-tune OpenAI's whisper model on a Hindi to English speech recognition and translation task.
 
 ## Background
 
