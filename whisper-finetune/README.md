@@ -44,6 +44,12 @@ python aml_submit.py --ws_config ws_config.json --compute v100-32gb-eus --ort_ds
 
 #### `inference.py` and `inference_ort.py` runs two inferencing scenarios on your local machine. 
 
+The inference demo requires ORT nightly which can be installed as follows:
+```bash
+pip install onnxruntime-training --pre -f https://download.onnxruntime.ai/onnxruntime_nightly_cu116.html && \
+python -m onnxruntime.training.ortmodule.torch_cpp_extensions.install
+```
+
 Note: You need to download your trained weights from your training job to run inference. Script assumes pytorch_model.bin is in the same directory as inference.py
 
 ```
