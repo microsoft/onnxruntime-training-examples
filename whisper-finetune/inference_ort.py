@@ -18,8 +18,8 @@ def infer():
 
     audio = librosa.load("common_voice_hi_23795238.mp3")[0]
 
-    processor = WhisperProcessor.from_pretrained("openai/whisper-small", language="Hindi", task="transcribe", sampling_rate=SAMPLE_RATE)
-    inputs = processor(audio, return_tensors="pt")
+    processor = WhisperProcessor.from_pretrained("openai/whisper-small", language="Hindi", task="transcribe")
+    inputs = processor(audio, sampling_rate=SAMPLE_RATE, return_tensors="pt")
     input_features = inputs.input_features
 
     if not os.path.exists("whisper-small"):
