@@ -23,7 +23,7 @@ def infer():
     input_features = inputs.input_features
 
     if not os.path.exists("whisper-small"):
-        subprocess.call(["python", "-m", "onnxruntime.transformers.models.whisper.convert_to_onnx", "-m", "openai/whisper-small", "--output", "whisper-small", "--use_external_data_format", "--state_dict", "pytorch_model.bin"])
+        subprocess.call(["python", "-m", "onnxruntime.transformers.models.whisper.convert_to_onnx", "-m", "openai/whisper-small", "--output", "whisper-small", "--use_external_data_format", "--state_dict_path", "pytorch_model.bin"])
 
     sess = InferenceSession("whisper-small/openai/whisper-small_beamsearch.onnx", providers=["CUDAExecutionProvider"])
     
