@@ -22,6 +22,7 @@ def infer():
     inputs = processor(audio, sampling_rate=SAMPLE_RATE, return_tensors="pt")
     input_features = inputs.input_features
 
+    # Documentation: https://github.com/microsoft/onnxruntime/blob/main/onnxruntime/python/tools/transformers/models/whisper/README.md
     if not os.path.exists("whisper-small"):
         subprocess.call(["python", "-m", "onnxruntime.transformers.models.whisper.convert_to_onnx", "-m", "openai/whisper-small", "--output", "whisper-small", "--use_external_data_format", "--state_dict_path", "pytorch_model.bin"])
 
