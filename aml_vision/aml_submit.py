@@ -1,16 +1,18 @@
 import argparse
 from pathlib import Path
+import json
 
 from azure.ai.ml import MLClient, command
 from azure.ai.ml.entities import Environment, BuildContext 
 from azure.identity import AzureCliCredential
 
 # run test on automode workspace
-subscription_id = "dbd697c3-ef40-488f-83e6-5ad4dfb78f9b"
-resource_group = "rdondera"
-workspace = "automode"
-compute = "gpu-nc24sv3"
-nproc_per_node = 4
+ws_config = json.load(open("ws_config.json"))
+subscription_id = ws_config["subscription_id"]
+resource_group = ws_config["resource_group"]
+workspace_name = ws_config["workspace_name"]
+compute = ws_config["compute"]
+nproc_per_node = ws_config["nproc_per_node"]
 
 model_configs = {
     "google/vit-base-patch16-224": {
@@ -48,7 +50,7 @@ def main(raw_args=None):
     args = get_args(raw_args)
 
     ml_client = MLClient(
-        AzureCliCredential(), subscription_id, resource_group, workspace
+        AzureCliCredential(), subscription_id, resource_group, workspace_name
     )
 
     root_dir = Path(__file__).resolve().parent
