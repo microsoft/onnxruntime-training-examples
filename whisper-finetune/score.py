@@ -11,9 +11,7 @@ from onnxruntime import InferenceSession
 import os
 import subprocess
 import time
-from transformers import WhisperProcessor
-import torch
-  
+from transformers import WhisperProcessor  
   
 # The init() method is called once, when the web service starts up.
 def init():  
