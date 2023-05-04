@@ -17,6 +17,11 @@ import torch
 def init():  
     global sess
 
+    # The AZUREML_MODEL_DIR environment variable indicates  
+    # a directory containing the model file you registered.  
+    model_filename = "whisper-small_beamsearch.onnx" 
+    model_path = os.path.join(os.environ['AZUREML_MODEL_DIR'], model_filename)  
+
     sess = InferenceSession("whisper-small_beamsearch.onnx", providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
   
   
