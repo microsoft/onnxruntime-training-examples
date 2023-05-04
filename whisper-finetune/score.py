@@ -22,7 +22,7 @@ def init():
     model_filename = "whisper-small_beamsearch.onnx" 
     model_path = os.path.join(os.environ['AZUREML_MODEL_DIR'], model_filename)  
 
-    sess = InferenceSession("whisper-small_beamsearch.onnx", providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
+    sess = InferenceSession(model_path, providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
   
   
 # The run() method is called each time a request is made to the scoring API.  
