@@ -358,7 +358,6 @@ def main():
         compute_metrics=compute_metrics,
         tokenizer=image_processor,
         data_collator=collate_fn,
-        feature="image-classification",
     )
 
     _ = Run.get_context()

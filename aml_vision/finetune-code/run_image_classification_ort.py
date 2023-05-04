@@ -370,7 +370,7 @@ def main():
         compute_metrics=compute_metrics,
         tokenizer=image_processor,
         data_collator=collate_fn,
-        feature="image-classification",
+        feature="image-classification", # specific to ORTTrainer
     )
 
     _ = Run.get_context()
