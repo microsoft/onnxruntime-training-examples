@@ -1,6 +1,4 @@
 import joblib  
-import numpy as np  
-import os  
   
 from inference_schema.schema_decorators import input_schema, output_schema  
 from inference_schema.parameter_types.numpy_parameter_type import NumpyParameterType  
@@ -11,7 +9,9 @@ from onnxruntime import InferenceSession
 import os
 import subprocess
 import time
-from transformers import WhisperProcessor  
+from transformers import WhisperProcessor
+import torch
+  
   
 # The init() method is called once, when the web service starts up.
 def init():  
@@ -30,8 +30,8 @@ def init():
 # @input_schema('data', NumpyParameterType(np.array([[0.1, 1.2, 2.3, 3.4, 4.5, 5.6, 6.7, 7.8, 8.9, 9.0]])))  
 # @output_schema(NumpyParameterType(np.array([4429.929236457418])))  
 def run(data):  
-    print(type(data))
-    print(data)
+    audio = data["audio"]
+    audio = np.array(audio)
     # Use the session object loaded by init().  
     N_FRAMES = 3000
     HOP_LENGTH = 160
@@ -43,8 +43,6 @@ def run(data):
     beam_size = 1
     NUM_RETURN_SEQUENCES = 1
     input_shape = [1, N_MELS, N_FRAMES]
-
-    audio = librosa.load(data)[0]
 
     processor = WhisperProcessor.from_pretrained("openai/whisper-small", language="Hindi", task="transcribe")
     inputs = processor(audio, sampling_rate=SAMPLE_RATE, return_tensors="pt")
