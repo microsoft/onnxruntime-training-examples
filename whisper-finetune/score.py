@@ -6,6 +6,9 @@ from transformers import WhisperProcessor
 # The init() method is called once, when the web service starts up.
 def init():  
     global sess
+    global processor
+
+    processor = WhisperProcessor.from_pretrained("openai/whisper-small", language="Hindi", task="transcribe")
 
     # The AZUREML_MODEL_DIR environment variable indicates  
     # a directory containing the model file you registered.  
@@ -19,7 +22,7 @@ def init():
 def run(data):  
     audio = data["audio"]
     audio = np.array(audio)
-    # Use the session object loaded by init().  
+    
     N_FRAMES = 3000
     HOP_LENGTH = 160
     SAMPLE_RATE = 16000
@@ -31,7 +34,6 @@ def run(data):
     NUM_RETURN_SEQUENCES = 1
     input_shape = [1, N_MELS, N_FRAMES]
 
-    processor = WhisperProcessor.from_pretrained("openai/whisper-small", language="Hindi", task="transcribe")
     inputs = processor(audio, sampling_rate=SAMPLE_RATE, return_tensors="pt")
     input_features = inputs.input_features
 
