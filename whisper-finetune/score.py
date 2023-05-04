@@ -1,17 +1,7 @@
-import joblib  
-  
-from inference_schema.schema_decorators import input_schema, output_schema  
-from inference_schema.parameter_types.numpy_parameter_type import NumpyParameterType  
-
-import librosa
 import numpy as np
 from onnxruntime import InferenceSession
 import os
-import subprocess
-import time
-from transformers import WhisperProcessor
-import torch
-  
+from transformers import WhisperProcessor  
   
 # The init() method is called once, when the web service starts up.
 def init():  
@@ -26,14 +16,6 @@ def init():
   
   
 # The run() method is called each time a request is made to the scoring API.  
-#  
-# Shown here are the optional input_schema and output_schema decorators  
-# from the inference-schema pip package. Using these decorators on your  
-# run() method parses and validates the incoming payload against  
-# the example input you provide here. This will also generate a Swagger  
-# API document for your web service.  
-# @input_schema('data', NumpyParameterType(np.array([[0.1, 1.2, 2.3, 3.4, 4.5, 5.6, 6.7, 7.8, 8.9, 9.0]])))  
-# @output_schema(NumpyParameterType(np.array([4429.929236457418])))  
 def run(data):  
     audio = data["audio"]
     audio = np.array(audio)
