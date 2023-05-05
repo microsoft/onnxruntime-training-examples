@@ -6,5 +6,5 @@ python -m onnxruntime.transformers.models.whisper.convert_to_onnx -m openai/whis
 
 #### Alternative to use pretrained weights:
 ```bash
-python -m onnxruntime.transformers.models.whisper.convert_to_onnx -m openai/whisper-small --output whisper-small --use_external_data_format --state_dict_path pytorch_model.bin
+python -m onnxruntime.transformers.models.whisper.convert_to_onnx -m openai/whisper-small --output whisper-small --use_external_data_format --state_dict_path /path/to/pytorch_model.bin
 ```
