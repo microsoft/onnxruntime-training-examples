@@ -1,3 +1,5 @@
+## Instructions to generate files for model registry:
+
 #### Command to generate whisper-small directory containing `.onnx` files (Note: this commad requires ONNX Runtime 1.15 or higher):
 
 ```bash
