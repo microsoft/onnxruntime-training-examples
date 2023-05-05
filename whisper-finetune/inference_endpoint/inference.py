@@ -29,7 +29,7 @@ req = urllib.request.Request(url, body, headers)
 try:
     response = urllib.request.urlopen(req)
 
-    result = response.read()
+    result = response.read().decode("utf8", 'ignore')
     print(result)
 except urllib.error.HTTPError as error:
     print("The request failed with status code: " + str(error.code))
