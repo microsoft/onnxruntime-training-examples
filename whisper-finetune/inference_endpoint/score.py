@@ -2,7 +2,10 @@ import numpy as np
 from onnxruntime import InferenceSession
 import os
 from transformers import WhisperProcessor
-import json  
+import json 
+
+# Documentation: https://learn.microsoft.com/en-us/azure/machine-learning/how-to-deploy-online-endpoints
+# Troubleshooting: https://learn.microsoft.com/en-us/azure/machine-learning/how-to-troubleshoot-online-endpoints
   
 # The init() method is called once, when the web service starts up.
 def init():  
@@ -54,3 +57,4 @@ def run(data):
   
     # You can return any JSON-serializable object.  
     return transcription
+
