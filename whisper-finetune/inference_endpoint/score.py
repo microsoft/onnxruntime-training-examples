@@ -1,7 +1,8 @@
 import numpy as np
 from onnxruntime import InferenceSession
 import os
-from transformers import WhisperProcessor  
+from transformers import WhisperProcessor
+import json  
   
 # The init() method is called once, when the web service starts up.
 def init():  
@@ -19,9 +20,9 @@ def init():
   
   
 # The run() method is called each time a request is made to the scoring API.  
-def run(data):  
-    audio = data["audio"]
-    audio = np.array(audio)
+def run(data):
+    json_data = json.loads(data)
+    audio = np.array(json_data["audio"])
     
     N_FRAMES = 3000
     HOP_LENGTH = 160
