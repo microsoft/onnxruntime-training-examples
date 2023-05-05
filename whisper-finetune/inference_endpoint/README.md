@@ -28,7 +28,7 @@ In your AML Workspace, go to the "Endpoints" tab. Create a new endpoint.
 - Select the model you previously registered
 - Select the environment you previously registered
 - Add [score.py](score.py) when asked to provide scoring file
-- Set your compute target (ACPT required >=64GB of disk storage)
+- Set your compute target (ACPT requires >=64GB of disk storage)
 - Use all other defaults, deploy endpoint
 
 ### Step 4: Test with [inference.py](inference.py)
