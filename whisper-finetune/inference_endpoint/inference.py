@@ -16,7 +16,7 @@ import librosa
 # depending on the format your endpoint expects.
 # More information can be found here:
 # https://docs.microsoft.com/azure/machine-learning/how-to-deploy-advanced-entry-script
-audio = librosa.load("common_voice_hi_23795238.mp3")[0]
+audio = librosa.load("../common_voice_hi_23795238.mp3")[0]
 audio = audio.tolist()
 data = {"audio": audio}
 
