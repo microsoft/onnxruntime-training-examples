@@ -1,7 +1,5 @@
 import urllib.request
 import json
-import os
-import ssl
 import librosa
 
 # Request data goes here
@@ -23,7 +21,7 @@ if not api_key:
 
 # The azureml-model-deployment header will force the request to go to a specific deployment.
 # Remove this header to have the request observe the endpoint traffic rules
-headers = {'Content-Type':'application/json', 'Authorization':('Bearer '+ api_key), 'azureml-model-deployment': 'whisper-onnx-1' }
+headers = {'Content-Type':'application/json', 'Authorization':('Bearer '+ api_key), 'azureml-model-deployment': 'acpt-ort-whisper-1' }
 
 req = urllib.request.Request(url, body, headers)
 
