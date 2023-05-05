@@ -13,9 +13,10 @@ data = {"audio": audio}
 
 body = str.encode(json.dumps(data))
 
-url = 'https://acpt-ort-whisper.eastus.inference.ml.azure.com/score'
-# Replace this with the primary/secondary key or AMLToken for the endpoint
-api_key = 'aLHyiVXY1uv7PgZ3FLutFmYtPiBoBOnh'
+# TODO: Replace this with the your REST endpoint link
+url = 'https://{endpoint_name}.{endpoint_region}.inference.ml.azure.com/score'
+# TODO: Replace this with the primary/secondary key or AMLToken for the endpoint
+api_key = ''
 if not api_key:
     raise Exception("A key should be provided to invoke the endpoint")
 
