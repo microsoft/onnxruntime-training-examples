@@ -4,6 +4,7 @@ import os
 from transformers import WhisperProcessor
 import json 
 import time
+import subprocess
 
 # Documentation: https://learn.microsoft.com/en-us/azure/machine-learning/how-to-deploy-online-endpoints
 # Troubleshooting: https://learn.microsoft.com/en-us/azure/machine-learning/how-to-troubleshoot-online-endpoints
@@ -17,8 +18,11 @@ def init():
 
     # The AZUREML_MODEL_DIR environment variable indicates  
     # a directory containing the model file you registered.  
+    weights_filename = "model/pytorch_model.bin"
+    weights_path = os.path.join(os.environ['AZUREML_MODEL_DIR'], weights_filename)
+    subprocess.call(["python", "-m", "onnxruntime.transformers.models.whisper.convert_to_onnx", "-m", "openai/whisper-small", "--output", "whisper-small", "--use_external_data_format", "--state_dict_path", weights_path])
     model_filename = "whisper-small/openai/whisper-small_beamsearch.onnx" 
-    model_path = os.path.join(os.environ['AZUREML_MODEL_DIR'], model_filename)  
+    model_path = os.path.join(os.getcwd(), model_filename)  
 
     SESS = InferenceSession(model_path, providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
   
