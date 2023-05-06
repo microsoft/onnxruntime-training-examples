@@ -14,8 +14,6 @@ endpoint_config = json.load(open("endpoint_config.json"))
 endpoint_url = endpoint_config["endpoint_url"]
 endpoint_deployment_name = endpoint_config["endpoint_deployment_name"]
 api_key = endpoint_config["api_key"]
-if not api_key:
-    raise Exception("A key should be provided to invoke the endpoint")
 
 # The azureml-model-deployment header will force the request to go to a specific deployment.
 # Remove this header to have the request observe the endpoint traffic rules
