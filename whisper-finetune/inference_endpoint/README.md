@@ -31,10 +31,9 @@ In your AML Workspace, go to the "Endpoints" tab. Create a new endpoint.
 - Set your compute target (ACPT requires >=64GB of disk storage)
 - Use all other defaults, deploy endpoint
 
-*Save endpoint_url, endpoint_deployment_name, and api_key to endpoint_config.json*
+Save endpoint_url, endpoint_deployment_name, and api_key to endpoint_config.json
+![image](https://user-images.githubusercontent.com/31260940/236587489-2e00d7a3-457a-425a-b492-fbb71711bd1b.png)
 
 ### Step 4: Test with [inference.py](inference.py)
 
 Run `python inference.py` to test endpoint on mp3 data.
-- Set url and api_key with relevant values from AML Workspace.
-- For more details, see "Comsume" tab for your endpoint in your AML Workspace
