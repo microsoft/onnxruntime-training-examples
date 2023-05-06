@@ -6,7 +6,7 @@ Command to generate whisper-small directory containing `.onnx` files (Note: this
 ```bash
 python -m onnxruntime.transformers.models.whisper.convert_to_onnx -m openai/whisper-small --output whisper-small --use_external_data_format
 ```
-Alternative to use pretrained weights:
+Alternative to use pretrained weights (see parent directory for instructions on how to fine-tune openai/whisper using AzureML, ACPT, and ORT Training):
 ```bash
 python -m onnxruntime.transformers.models.whisper.convert_to_onnx -m openai/whisper-small --output whisper-small --use_external_data_format --state_dict_path /path/to/pytorch_model.bin
 ```
