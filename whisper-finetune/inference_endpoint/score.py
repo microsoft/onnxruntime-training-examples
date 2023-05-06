@@ -10,17 +10,17 @@ import time
   
 # The init() method is called once, when the web service starts up.
 def init():  
-    global sess
-    global processor
+    global SESS
+    global PROCESSOR
 
-    processor = WhisperProcessor.from_pretrained("openai/whisper-small", language="Hindi", task="transcribe")
+    PROCESSOR = WhisperProcessor.from_pretrained("openai/whisper-small", language="Hindi", task="transcribe")
 
     # The AZUREML_MODEL_DIR environment variable indicates  
     # a directory containing the model file you registered.  
     model_filename = "whisper-small/openai/whisper-small_beamsearch.onnx" 
     model_path = os.path.join(os.environ['AZUREML_MODEL_DIR'], model_filename)  
 
-    sess = InferenceSession(model_path, providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
+    SESS = InferenceSession(model_path, providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
   
   
 # The run() method is called each time a request is made to the scoring API.  
@@ -28,18 +28,17 @@ def run(data):
     json_data = json.loads(data)
     audio = np.array(json_data["audio"])
     
-    N_FRAMES = 3000
-    HOP_LENGTH = 160
-    SAMPLE_RATE = 16000
-    N_MELS = 80    
+    n_frames = 3000
+    sample_rate = 16000
+    n_mels = 80    
     min_length = 0
     max_length = 20
     repetition_penalty = 1.0
     beam_size = 1
-    NUM_RETURN_SEQUENCES = 1
-    input_shape = [1, N_MELS, N_FRAMES]
+    num_return_sequences = 1
+    input_shape = [1, n_mels, n_frames]
 
-    inputs = processor(audio, sampling_rate=SAMPLE_RATE, return_tensors="pt")
+    inputs = PROCESSOR(audio, sampling_rate=sample_rate, return_tensors="pt")
     input_features = inputs.input_features
 
     ort_inputs = {
@@ -47,16 +46,16 @@ def run(data):
         "max_length": np.array([max_length], dtype=np.int32),
         "min_length": np.array([min_length], dtype=np.int32),
         "num_beams": np.array([beam_size], dtype=np.int32),
-        "num_return_sequences": np.array([NUM_RETURN_SEQUENCES], dtype=np.int32),
+        "num_return_sequences": np.array([num_return_sequences], dtype=np.int32),
         "length_penalty": np.array([1.0], dtype=np.float32),
         "repetition_penalty": np.array([repetition_penalty], dtype=np.float32),
         "attention_mask": np.zeros(input_shape).astype(np.int32),
     }
 
     start_time = time.time()
-    out = sess.run(None, ort_inputs)[0]
+    out = SESS.run(None, ort_inputs)[0]
     inference_time = time.time() - start_time
-    transcription = processor.batch_decode(out[0], skip_special_tokens=True)[0]
+    transcription = PROCESSOR.batch_decode(out[0], skip_special_tokens=True)[0]
   
     # You can return any JSON-serializable object.  
     return {"transcription": transcription, "inference_time (seconds)": inference_time}
