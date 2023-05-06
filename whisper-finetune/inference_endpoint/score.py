@@ -3,6 +3,7 @@ from onnxruntime import InferenceSession
 import os
 from transformers import WhisperProcessor
 import json 
+import time
 
 # Documentation: https://learn.microsoft.com/en-us/azure/machine-learning/how-to-deploy-online-endpoints
 # Troubleshooting: https://learn.microsoft.com/en-us/azure/machine-learning/how-to-troubleshoot-online-endpoints
@@ -52,9 +53,11 @@ def run(data):
         "attention_mask": np.zeros(input_shape).astype(np.int32),
     }
 
+    start_time = time.time()
     out = sess.run(None, ort_inputs)[0]
+    inference_time = time.time() - start_time
     transcription = processor.batch_decode(out[0], skip_special_tokens=True)[0]
   
     # You can return any JSON-serializable object.  
-    return transcription
+    return {"transcription": transcription, "inference_time (seconds)": inference_time}
 
