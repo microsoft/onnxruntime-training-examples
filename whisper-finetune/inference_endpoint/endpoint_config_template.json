@@ -1,0 +1,5 @@
+{
+    "endpoint_url": "https://{endpoint_name}.{endpoint_region}.inference.ml.azure.com/score",
+    "endpoint_deployment_name": "",
+    "api_key": ""
+}
