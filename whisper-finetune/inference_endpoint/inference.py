@@ -12,12 +12,11 @@ body = str.encode(json.dumps(data))
 
 endpoint_config = json.load(open("endpoint_config.json"))
 endpoint_url = endpoint_config["endpoint_url"]
-endpoint_deployment_name = endpoint_config["endpoint_deployment_name"]
 api_key = endpoint_config["api_key"]
 
 # The azureml-model-deployment header will force the request to go to a specific deployment.
 # Remove this header to have the request observe the endpoint traffic rules
-headers = {'Content-Type':'application/json', 'Authorization':('Bearer '+ api_key), 'azureml-model-deployment': endpoint_deployment_name }
+headers = {'Content-Type':'application/json', 'Authorization':('Bearer '+ api_key)}
 
 req = urllib.request.Request(endpoint_url, body, headers)
 
