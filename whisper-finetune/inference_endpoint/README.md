@@ -1,6 +1,6 @@
 ## Using ACPT and ONNX Runtime to Speedup AzureML Online Endpoint Deployments
 
-### Step 1: Register your model in your AML workspace
+### Step 1: Register your model
 
 Command to generate whisper-small directory containing `.onnx` files (Note: this commad requires ONNX Runtime 1.15 or higher):
 ```bash
@@ -15,14 +15,14 @@ In your AML Workspace, go to the "Models" tab. Register a new model from local f
 - Select the entire whisper-small directory
 - Use all other defaults, register model
 
-### Step 2: Register your environment in your AML workspace
+### Step 2: Register your environment
 
 In your AML Workspace, go to the "Environments" tab. Create a new environment.
 - For "Select environment souce" select the "Create a new docker context"
 - Add code from [Dockerfile](Dockerfile) to environment context
 - Use all other defaults, deploy environment
 
-### Step 3: Create Online Endpoint
+### Step 3: Deploy online endpoint
 
 In your AML Workspace, go to the "Endpoints" tab. Create a new endpoint.
 - Select the model you previously registered
