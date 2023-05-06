@@ -37,5 +37,3 @@ Save endpoint_url, endpoint_deployment_name, and api_key to endpoint_config.json
 ### Step 4: Test with [inference.py](inference.py)
 
 Run `python inference.py` to test endpoint on mp3 data.
-- Set url and api_key with relevant values from AML Workspace.
-- For more details, see "Comsume" tab for your endpoint in your AML Workspace
