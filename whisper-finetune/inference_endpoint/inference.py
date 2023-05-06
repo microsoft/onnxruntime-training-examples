@@ -12,7 +12,6 @@ body = str.encode(json.dumps(data))
 
 endpoint_config = json.load(open("endpoint_config.json"))
 endpoint_url = endpoint_config["endpoint_url"]
-endpoint_deployment_name = endpoint_config["endpoint_deployment_name"]
 api_key = endpoint_config["api_key"]
 
 headers = {'Content-Type':'application/json', 'Authorization':('Bearer '+ api_key)}
