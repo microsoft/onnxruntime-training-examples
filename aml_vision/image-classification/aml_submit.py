@@ -32,7 +32,7 @@ model_configs = {
         "ort_max_bs": 185
     },
     "microsoft/swinv2-base-patch4-window12-192-22k": {
-        "pytorch_max_bs": 71,
+        "pytorch_max_bs": 69,
         "ort_max_bs": 106
     }
 }
@@ -57,7 +57,7 @@ def main(raw_args=None):
     environment_dir = root_dir / "environment"
     code_dir = root_dir / "finetune-code"
     experiment_name = "vision-ort-experiment"
-    num_train_epochs = 1
+    num_train_epochs = 100
 
     if args.model_name == "all":
         models_to_run = model_configs.keys()
