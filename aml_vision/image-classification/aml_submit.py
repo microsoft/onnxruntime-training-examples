@@ -121,7 +121,7 @@ def main(raw_args=None):
                         --per_device_train_batch_size {bs} --per_device_eval_batch_size {bs} \
                         --remove_unused_columns False --ignore_mismatched_sizes=True \
                         --output_dir output_dir --overwrite_output_dir --dataloader_num_workers {2*dataloader_num_workers} \
-                        --optim adamw_ort_fused --deepspeed zero_stage_1.json ",
+                        --optim adamw_ort_fused --deepspeed zero_stage_1.json",
             environment=Environment(build=BuildContext(path=environment_dir)),
             environment_variables={"ORTMODULE_FALLBACK_POLICY": "FALLBACK_DISABLE"},
             experiment_name=experiment_name,
