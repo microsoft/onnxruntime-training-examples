@@ -32,8 +32,8 @@ model_configs = {
         "ort_max_bs": 185
     },
     "microsoft/swinv2-base-patch4-window12-192-22k": {
-        "pytorch_max_bs": 69,
-        "ort_max_bs": 106
+        "pytorch_max_bs": 71,
+        "ort_max_bs": 107
     }
 }
 
