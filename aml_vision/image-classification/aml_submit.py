@@ -58,6 +58,8 @@ def main(raw_args=None):
     code_dir = root_dir / "finetune-code"
     experiment_name = "vision-ort-experiment"
     num_train_epochs = 100
+    dataset = "DeepFashion_jsonl"
+    dataloader_num_workers = 8
 
     if args.model_name == "all":
         models_to_run = model_configs.keys()
@@ -79,17 +81,18 @@ def main(raw_args=None):
             command=f"torchrun --nproc_per_node={nproc_per_node} run_image_classification.py \
                         --model_name_or_path {model} \
                         --do_train --do_eval \
-                        --train_dir mit_indoors_jsonl/train --validation_dir mit_indoors_jsonl/validation \
+                        --train_dir {dataset}/train --validation_dir {dataset}/validation \
                         --fp16 True --num_train_epochs {num_train_epochs} \
                         --per_device_train_batch_size {bs} --per_device_eval_batch_size {bs} \
                         --remove_unused_columns False --ignore_mismatched_sizes=True \
-                        --output_dir output_dir --dataloader_num_workers {nproc_per_node}",
+                        --output_dir output_dir --overwrite_output_dir --dataloader_num_workers {dataloader_num_workers}",
             environment=Environment(build=BuildContext(path=environment_dir)),
             experiment_name=experiment_name,
             compute=compute,
             display_name="pytorch-" + model,
             description="Train a vision DNN with PyTorch on the MIT Indoor dataset.",
-            tags={"batch_size": str(bs)}
+            tags={"batch_size": str(bs)},
+            shm_size="16g"
         )
 
         print("submitting PyTorch job for " + model)
@@ -113,11 +116,11 @@ def main(raw_args=None):
             command=f"torchrun --nproc_per_node={nproc_per_node} run_image_classification_ort.py \
                         --model_name_or_path {model} \
                         --do_train --do_eval \
-                        --train_dir mit_indoors_jsonl/train --validation_dir mit_indoors_jsonl/validation \
+                        --train_dir {dataset}/train --validation_dir {dataset}/validation \
                         --fp16 True --num_train_epochs {num_train_epochs} \
                         --per_device_train_batch_size {bs} --per_device_eval_batch_size {bs} \
                         --remove_unused_columns False --ignore_mismatched_sizes=True \
-                        --output_dir output_dir --dataloader_num_workers {nproc_per_node} \
+                        --output_dir output_dir --overwrite_output_dir --dataloader_num_workers {2*dataloader_num_workers} \
                         --optim adamw_ort_fused --deepspeed zero_stage_1.json ",
             environment=Environment(build=BuildContext(path=environment_dir)),
             environment_variables={"ORTMODULE_FALLBACK_POLICY": "FALLBACK_DISABLE"},
@@ -125,7 +128,8 @@ def main(raw_args=None):
             compute=compute,
             display_name= "ort_ds-" + model,
             description="Train a vision DNN with ONNX Runtime on the MIT Indoor dataset.",
-            tags={"batch_size": str(bs)}
+            tags={"batch_size": str(bs)},
+            shm_size="16g"
         )
 
         print("submitting ORT job for " + model)
