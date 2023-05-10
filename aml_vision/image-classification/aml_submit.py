@@ -84,13 +84,13 @@ def main(raw_args=None):
                         --train_dir {dataset}/train --validation_dir {dataset}/validation \
                         --fp16 True --num_train_epochs {num_train_epochs} \
                         --per_device_train_batch_size {bs} --per_device_eval_batch_size {bs} \
-                        --remove_unused_columns False --ignore_mismatched_sizes=True \
+                        --remove_unused_columns False --ignore_mismatched_sizes True \
                         --output_dir output_dir --overwrite_output_dir --dataloader_num_workers {dataloader_num_workers}",
             environment=Environment(build=BuildContext(path=environment_dir)),
             experiment_name=experiment_name,
             compute=compute,
             display_name="pytorch-" + model,
-            description="Train a vision DNN with PyTorch on the MIT Indoor dataset.",
+            description=f"Train a vision DNN with PyTorch on the {dataset} dataset.",
             tags={"batch_size": str(bs)},
             shm_size="16g"
         )
@@ -119,7 +119,7 @@ def main(raw_args=None):
                         --train_dir {dataset}/train --validation_dir {dataset}/validation \
                         --fp16 True --num_train_epochs {num_train_epochs} \
                         --per_device_train_batch_size {bs} --per_device_eval_batch_size {bs} \
-                        --remove_unused_columns False --ignore_mismatched_sizes=True \
+                        --remove_unused_columns False --ignore_mismatched_sizes True \
                         --output_dir output_dir --overwrite_output_dir --dataloader_num_workers {2*dataloader_num_workers} \
                         --optim adamw_ort_fused --deepspeed zero_stage_1.json",
             environment=Environment(build=BuildContext(path=environment_dir)),
@@ -127,7 +127,7 @@ def main(raw_args=None):
             experiment_name=experiment_name,
             compute=compute,
             display_name= "ort_ds-" + model,
-            description="Train a vision DNN with ONNX Runtime on the MIT Indoor dataset.",
+            description=f"Train a vision DNN with ONNX Runtime on the {dataset} dataset.",
             tags={"batch_size": str(bs)},
             shm_size="16g"
         )
