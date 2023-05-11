@@ -47,6 +47,7 @@ from transformers.utils.versions import require_version
 
 from pathlib import Path
 from azureml.core.run import Run
+import subprocess
 
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
@@ -552,6 +553,8 @@ def main():
             trained_model_folder = "model"
             trained_model_path = Path(trained_model_folder)
             trainer.save_model(output_dir=str(trained_model_path))
+
+            subprocess.call(["python", "-m", "onnxruntime.transformers.models.whisper.convert_to_onnx", "-m", "openai/whisper-small", "--output", str(trained_model_path / "whisper-small"), "--use_external_data_format", "--state_dict_path", str(trained_model_path / "pytorch_model.bin")])
 
             # upload saved data to AML
             # documentation: https://learn.microsoft.com/en-us/python/api/azureml-core/azureml.core.run(class)?view=azure-ml-py
