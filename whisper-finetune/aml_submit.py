@@ -11,11 +11,11 @@ def get_args(raw_args=None):
     parser.add_argument(
         "--ws_config",
         type=str,
-        required=True,
+        default="ws_config.json",
         help="Workspace configuration json file with subscription id, resource group, and workspace name",
     )
     
-    parser.add_argument("--compute", type=str, required=True, help="Compute target to run job on")
+    parser.add_argument("--compute", type=str, default="v100", help="Compute target to run job on")
 
     # accelerator hyperparameters
     parser.add_argument("--ort_ds", action="store_true", help="Use ORTModule and DeepSpeed to accelerate training")
