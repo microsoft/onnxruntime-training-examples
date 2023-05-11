@@ -42,6 +42,7 @@ def get_args(raw_args=None):
 
     parser.add_argument("--model_name", default="google/vit-base-patch16-224", choices=list(model_configs.keys()).extend("all"), help="Hugging Face Model ID")
     parser.add_argument("--batch_size", default="max", choices=["max", "max+1", "pytorch_max", "8"], help="Per device batch size")
+    parser.add_argument("--experiment_name", default="vision-ort-experiment", help="Experiment name for AML Workspace")
 
     args = parser.parse_args(raw_args)
     return args
@@ -87,7 +88,7 @@ def main(raw_args=None):
                         --remove_unused_columns False --ignore_mismatched_sizes True \
                         --output_dir output_dir --overwrite_output_dir --dataloader_num_workers {dataloader_num_workers}",
             environment=Environment(build=BuildContext(path=environment_dir)),
-            experiment_name=experiment_name,
+            experiment_name=args.experiment_name,
             compute=compute,
             display_name="pytorch-" + model,
             description=f"Train a vision DNN with PyTorch on the {dataset} dataset.",
@@ -124,7 +125,7 @@ def main(raw_args=None):
                         --optim adamw_ort_fused --deepspeed zero_stage_1.json",
             environment=Environment(build=BuildContext(path=environment_dir)),
             environment_variables={"ORTMODULE_FALLBACK_POLICY": "FALLBACK_DISABLE"},
-            experiment_name=experiment_name,
+            experiment_name=args.experiment_name,
             compute=compute,
             display_name= "ort_ds-" + model,
             description=f"Train a vision DNN with ONNX Runtime on the {dataset} dataset.",
