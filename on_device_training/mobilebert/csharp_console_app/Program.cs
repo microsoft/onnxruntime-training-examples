@@ -35,7 +35,7 @@ namespace ConsoleApp
             string parentDir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.Parent.FullName;
             string checkpointPath = Path.Combine(parentDir, "training_artifacts", "mobilebert-uncased.ckpt");
             
-            var state = new CheckpointState(checkpointPath);
+            var state = CheckpointState.LoadCheckpoint (checkpointPath);
             string trainingPath = Path.Combine(parentDir, "training_artifacts", "mobilebert-uncased_training.onnx");
             string optimizerPath = Path.Combine(parentDir, "training_artifacts", "mobilebert-uncased_optimizer.onnx");
             
@@ -48,7 +48,6 @@ namespace ConsoleApp
             var seqLen = ds.InputShape[1];
 
             int steps = (int)(numSamples / batchSize);
-            // int steps = 20;
             Console.WriteLine("steps: " + steps);
             long[] inputShape = { batchSize, seqLen };
 
