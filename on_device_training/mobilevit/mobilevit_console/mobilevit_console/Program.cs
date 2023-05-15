@@ -1,131 +1,164 @@
 ﻿using Microsoft.ML.OnnxRuntime;
+using Microsoft.ML.OnnxRuntime.Tensors;
 
 namespace mobilevit_console
 {
     public class Program
     {
+        static string PARENTDIR = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.Parent.Parent.FullName;
+
+        static string CHECKPOINTPATH = Path.Combine(PARENTDIR, "checkpoint");
+        static string TRAININGMODELPATH = Path.Combine(PARENTDIR, "training_model.onnx");
+        static string EVALMODELPATH = Path.Combine(PARENTDIR, "eval_model.onnx");
+        static string OPTIMIZERMODELPATH = Path.Combine(PARENTDIR, "optimizer_model.onnx");
+
+        static string TRAINEDMODELFILE = "trained_mobilevit.onnx";
+
+        static string DEFAULTINFERENCE1 = Path.Combine(PARENTDIR, "test1.png");
+        static string DEFAULTINFERENCE2 = Path.Combine(PARENTDIR, "test3.png");
+        
         static void Main(string[] args)
         {
-            CreateTrainingSession();
-            Console.WriteLine("Finished.");
+            if (args.Length < 1)
+            {
+                Console.Write("Please supply the file path to the FER dataset as the first command line argument.");
+                System.Environment.Exit(1);
+            }
+
+            string dataPath = args[0];
+            DataLoader dl = loadDataset(dataPath);
+            CreateAndRunTrainingSession(8, 8, dl);
+            Console.WriteLine("Finished training and exporting");
+
+            string inferencePath = Path.Combine(Directory.GetCurrentDirectory(), TRAINEDMODELFILE);
+            var inferenceSession = new InferenceSession(inferencePath);
+
+            if (args.Length > 1)
+            {
+                // assume additional arguments are paths to inference images
+                for (int i = 1; i < args.Length; i++)
+                {
+                    runInferenceSession(inferenceSession, dl, args[i]);
+                }
+            }
+            else
+            {
+                runInferenceSession(inferenceSession, dl, DEFAULTINFERENCE1);
+                runInferenceSession(inferenceSession, dl, DEFAULTINFERENCE2);
+            }
         }
 
-        public static DataSplit loadDataSplit(string dataPath)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pathToFER">Path to the FER directory containing 7 unzipped folders labelled with 
+        /// their corresponding emotion</param>
+        /// <param name="trimDatasetTo">Optional parameter to trim the size of the dataset. If left as -1, 
+        /// no trimming will happen and the full dataset will be used for training.</param>
+        /// <returns></returns>
+        public static DataLoader loadDataset(string pathToFER, int trimDatasetTo = -1)
         {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
             DataLoader dl = new DataLoader();
-            return dl.ReadFile(dataPath);
+            dl.loadFER(pathToFER);
+            if (trimDatasetTo > 0)
+            {
+                dl.trimFER(trimDatasetTo);
+            }
+
+            watch.Stop();
+            Console.WriteLine($"Execution Time for loading images and shuffling: {watch.ElapsedMilliseconds} ms");
+
+            return dl;
         }
 
-        // TODO: rename methods
-        public static void CreateTrainingSession()
+        public static void CreateAndRunTrainingSession(int numEpochs, int batchSize, DataLoader dl)
         {
             string parentDir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.Parent.Parent.FullName;
-            string dataPath = Path.Combine(parentDir, "mini_train.json");
 
-            var watch = System.Diagnostics.Stopwatch.StartNew();
-            DataSplit ds = loadDataSplit(dataPath);
-            watch.Stop();
-            Console.WriteLine($"Execution Time for loading data split: {watch.ElapsedMilliseconds} ms");
+            var state = CheckpointState.LoadCheckpoint(CHECKPOINTPATH);
 
-            string checkpointPath = Path.Combine(parentDir, "checkpoint");
-
-            var state = new CheckpointState(checkpointPath);
-            string trainingPath = Path.Combine(parentDir, "training_model_updated.onnx");
-            string optimizerPath = Path.Combine(parentDir, "optimizer_model.onnx");
-
-            TrainingSession ts = new TrainingSession(state, trainingPath, optimizerPath);
-            trainEpoch(ts, ds, 8);
+            TrainingSession ts = new TrainingSession(state, TRAININGMODELPATH, EVALMODELPATH, OPTIMIZERMODELPATH);
+            train(ts, dl, numEpochs, batchSize);
 
             Console.WriteLine("############################################################### training finished");
 
-            string savedCheckpointPath = Path.Combine(parentDir, "saved_checkpoint.ckpt");
+            var outputNames = new List<string> { "outputs" };
 
-            // TODO: EVALUATE IF YOU NEED TO KEEP THIS BECAUSE YOURE JUST DOUBLE CHECKING THAT SAVEDCHECKPOINTPATH DOES WHAT
-            // YOU WANT IT TO DO 
-            //state.SaveCheckpoint(savedCheckpointPath, true);
-
-            //var loadedState = new CheckpointState(savedCheckpointPath);
-            //var newTrainingSession = new TrainingSession(loadedState, trainingPath);
-            //trainEpoch(newTrainingSession, ds, 8);
+            ts.ExportModelForInferencing(TRAINEDMODELFILE, outputNames);
         }
 
-        public static void trainEpoch(TrainingSession ts, DataSplit ds, int batchSize)
+        public static void runInferenceSession(InferenceSession inferenceSession, DataLoader dl, string pathToInference)
         {
-            var numSamples = ds.ImageShape[0];
-            var imageSizeArr = ds.ImageShape[1..];
+            Console.WriteLine($"Inferencing now for {pathToInference}");
 
-            var imageSizeNum = 1;
+            var input = dl.imageProcessingForInference(pathToInference);
+            var inputs = new List<NamedOnnxValue> { NamedOnnxValue.CreateFromTensor("pixel_values", input) };
 
-            foreach (int dimension in imageSizeArr)
+            foreach (var r in inferenceSession.Run(inputs))
             {
-                imageSizeNum = imageSizeNum * dimension;
+                var resultsTensor = r.AsTensor<float>();
+
+                printPredictedEmotion(resultsTensor);
+
+                Console.WriteLine(string.Join(",     ", DataLoader.EMOTIONSLABELS));
+                Console.WriteLine(resultsTensor.GetArrayString());
+            }
+        }
+
+        public static float train(TrainingSession ts, DataLoader dl, int numEpochs, int batchSize)
+        {
+            float loss = 0;
+            for (int i = 0; i < numEpochs; i++)
+            {
+                loss = trainEpoch(ts, dl, batchSize);
+
+                Console.WriteLine($"Loss after epoch {i}: {loss}");
             }
 
-            int steps = (int)(numSamples / batchSize);
+            return loss;
+        }
+
+        public static float trainEpoch(TrainingSession ts, DataLoader dl, int batchSize)
+        {
+            int steps = dl.getNumSteps(batchSize);
             // int steps = 20;
             Console.WriteLine("steps: " + steps);
-            long[] inputShape = (new long[] { batchSize }).Concat(imageSizeArr).ToArray();
 
-            long startBatch = 0;
-            long endBatch = batchSize * imageSizeNum;
-            long startLabel = 0;
-            long endLabel = batchSize;
-
-            long[] labelShape = new long[] { batchSize };
+            float loss = 0;
 
             for (int step = 0; step < steps; step++)
             {
-                if (endBatch - startBatch < inputShape[0] * imageSizeNum)
-                {
-                    inputShape[0] = (endBatch - startBatch) / imageSizeNum;
-                }
                 var watch = System.Diagnostics.Stopwatch.StartNew();
                 // slices and creates inputs 
-                var inputs = createInputsFromDataSplit(ds, startBatch, endBatch, inputShape, startLabel, endLabel, labelShape);
-
+                var inputs = dl.generateBatchInput(batchSize);
                 ts.LazyResetGrad();
 
                 var outputs = ts.TrainStep(inputs);
-
-                Console.WriteLine("Loss: " + outputs.ElementAtOrDefault(0).AsTensor<float>().GetValue(0));
+                loss = outputs.ElementAtOrDefault(0).AsTensor<float>().GetValue(0);
 
                 ts.OptimizerStep();
-
-                startBatch += batchSize;
-                endBatch = Math.Min(endBatch + batchSize, (numSamples * imageSizeNum) - 1);
                 watch.Stop();
-                Console.WriteLine($"Execution Time for 1 train step: {watch.ElapsedMilliseconds} ms");
+                Console.WriteLine($"Execution Time for train step {step} out of {steps}: {watch.ElapsedMilliseconds} ms");
             }
+
+            return loss;
         }
 
-        public static List<FixedBufferOnnxValue> createInputsFromDataSplit(DataSplit ds, long start, long end, long[] shape, long startLabel, long endLabel, long[] labelShape)
+        public static void printPredictedEmotion(Tensor<float> results)
         {
-            List<FixedBufferOnnxValue> inputs = new List<FixedBufferOnnxValue>();
-            inputs.Add(sliceDoubleArrayToBufferOnnx(ds.Image, start, end, shape));
-            inputs.Add(sliceInt64ArrayToBufferOnnx(ds.Label, startLabel, endLabel, labelShape));
-            return inputs;
-        }
+            var predictedEmotion = -1;
+            float maxSoFar = 0;
+            for (int i = 0; i < results.Length; i++)
+            {
+                if (results.GetValue(i) > maxSoFar)
+                {
+                    predictedEmotion = i;
+                    maxSoFar = results.GetValue(i);
+                }
+            }
 
-        public static FixedBufferOnnxValue sliceInt64ArrayToBufferOnnx(Int64[] array, long start,
-            long end, long[] shape)
-        {
-            var memInfo = OrtMemoryInfo.DefaultInstance;
-            Int64[] arraySlice = array[(int)start..(int)end];
-
-            return FixedBufferOnnxValue.CreateFromMemory<Int64>(memInfo, arraySlice,
-                Microsoft.ML.OnnxRuntime.Tensors.TensorElementType.Int64, shape,
-                arraySlice.Length * sizeof(Int64));
-        }
-
-        public static FixedBufferOnnxValue sliceDoubleArrayToBufferOnnx(double[] array, long start,
-            long end, long[] shape)
-        {
-            var memInfo = OrtMemoryInfo.DefaultInstance;
-            double[] arraySlice = array[(int)start..(int)end];
-
-            return FixedBufferOnnxValue.CreateFromMemory<double>(memInfo, arraySlice,
-                Microsoft.ML.OnnxRuntime.Tensors.TensorElementType.Float, shape,
-                arraySlice.Length * sizeof(double));
+            Console.WriteLine($"Predicted emotion: {DataLoader.EMOTIONSLABELS[predictedEmotion]}");
         }
     }
 }

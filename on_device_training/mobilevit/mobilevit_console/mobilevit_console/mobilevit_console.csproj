@@ -5,11 +5,13 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Configurations>Debug;Release;test1</Configurations>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" Version="1.15.0-dev-20230426-1220-f44f6c5b2e" />
-    <PackageReference Include="Microsoft.ML.OnnxRuntime.Training" Version="1.15.0-dev-20230426-1220-f44f6c5b2e" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" Version="1.15.0-dev-20230503-1222-abdd4f518a" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime.Training" Version="1.15.0-dev-20230503-1222-abdd4f518a" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.0-preview.2.23128.3" />
   </ItemGroup>
 
 </Project>
