@@ -15,7 +15,7 @@ using static System.Net.Mime.MediaTypeNames;
 namespace mobilevit_console
 {
     /// <summary>
-    /// Parses JSON files following the DataSplit format into OnnxValues
+    /// Responsible for processing the FER image dataset in batches into tensors.
     /// </summary>
     public class DataLoader
     {

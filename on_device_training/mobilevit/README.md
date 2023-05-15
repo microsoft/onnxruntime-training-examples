@@ -37,5 +37,11 @@ Check the [instructions for installing the onnxruntime-training Python package](
 git lfs install
 git clone https://huggingface.co/kdhht2334/autotrain-diffusion-emotion-facial-expression-recognition-40429105176
 ```
+    1. After downloading this dataset, you will have to unzip the folders for the different expressions.
 2. Open the C# app in Visual Studio & use the NuGet Package Manager for the project to make sure that the `Microsoft.ML.OnnxRuntime.Managed`, `Microsoft.ML.OnnxRuntime.Training`, and `System.Drawing.Common` NuGet packages are installed. 
     1. If not, check the instructions [here](https://onnxruntime.ai/) and select Optimize Training -> Learning on the Edge -> Windows -> C# -> CPU, then follow the instructions on installation for the ONNX Runtime Training packages. 
+
+## Running
+The C# console app requires one command line argument that is the absolute path to the FER dataset. Optionally, any additional arguments it takes in should be the absolute path to images to be used for the inferencing stage.
+
+The FER dataset path should point to a folder containing the following folders: `angry, disgust, fear, happy, neutral, sad, surprise`, and within each emotion folder should just be the PNG images (there should not be another folder within those folders).
