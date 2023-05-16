@@ -78,14 +78,15 @@ namespace mobilevit_console
 
             var state = CheckpointState.LoadCheckpoint(CHECKPOINTPATH);
 
-            TrainingSession ts = new TrainingSession(state, TRAININGMODELPATH, EVALMODELPATH, OPTIMIZERMODELPATH);
-            train(ts, dl, numEpochs, batchSize);
+            using (TrainingSession ts = new TrainingSession(state, TRAININGMODELPATH, EVALMODELPATH, OPTIMIZERMODELPATH))
+            {
+                train(ts, dl, numEpochs, batchSize);
+                Console.WriteLine("############################################################### Training finished");
 
-            Console.WriteLine("############################################################### training finished");
+                var outputNames = new List<string> { "outputs" };
 
-            var outputNames = new List<string> { "outputs" };
-
-            ts.ExportModelForInferencing(TRAINEDMODELFILE, outputNames);
+                ts.ExportModelForInferencing(TRAINEDMODELFILE, outputNames);
+            }
         }
 
         public static void runInferenceSession(InferenceSession inferenceSession, DataLoader dl, string pathToInference)
@@ -122,24 +123,27 @@ namespace mobilevit_console
         public static float trainEpoch(TrainingSession ts, DataLoader dl, int batchSize)
         {
             int steps = dl.getNumSteps(batchSize);
-            // int steps = 20;
             Console.WriteLine("steps: " + steps);
 
             float loss = 0;
 
             for (int step = 0; step < steps; step++)
             {
-                var watch = System.Diagnostics.Stopwatch.StartNew();
-                // slices and creates inputs 
                 var inputs = dl.generateBatchInput(batchSize);
                 ts.LazyResetGrad();
 
+                var watch = System.Diagnostics.Stopwatch.StartNew();
                 var outputs = ts.TrainStep(inputs);
-                loss = outputs.ElementAtOrDefault(0).AsTensor<float>().GetValue(0);
 
                 ts.OptimizerStep();
                 watch.Stop();
                 Console.WriteLine($"Execution Time for train step {step} out of {steps}: {watch.ElapsedMilliseconds} ms");
+
+                if(step == steps - 1)
+                {
+                    // if at the last step, update the loss
+                    loss = outputs.ElementAtOrDefault(0).AsTensor<float>().GetValue(0);
+                }
             }
 
             return loss;

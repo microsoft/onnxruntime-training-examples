@@ -20,7 +20,7 @@ namespace mobilevit_console
     public class DataLoader
     {
 
-        public static List<string> EMOTIONSLABELS = new List<string>()
+        public static List<string> EMOTIONSLABELS = new List<string>() // reflects structure and labels from training data
         {
             "neutral", "happy", "sad", "surprise", "fear", "disgust", "angry"
         };
@@ -31,7 +31,8 @@ namespace mobilevit_console
         int batchIndex = 0;
 
         static int IMAGEDIM = 256; // represents the width and height that images should be resized to
-        static int MAXCOLORVALUE = 255;
+        // the IMAGEDIM should match the input dimensions representing image width and height that your training model was generated with
+        static int MAXCOLORVALUE = 255; // used for scaling the RGB values
 
         /// <summary>
         /// Pulls the names of all the images and shuffles them into a list. A corresponding list of labels will be simultaneously created.
