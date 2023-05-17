@@ -43,7 +43,7 @@ python aml_submit.py --ws_config ws_config.json --compute v100-32gb-eus --ort_ds
 ```
 
 We observe **~15% speedup** in train runtime for Whisper model trained leveraging ACPT, ONNX Runtime Training, and Nebula Checkpointing!
-![image](https://github.com/microsoft/onnxruntime-training-examples/assets/31260940/c56dac38-6d92-4f6b-b234-514d1e976a3f)
+![image](https://github.com/microsoft/onnxruntime-training-examples/assets/31260940/305dc251-0ece-434c-9ae5-cb409711e300)
 
 #### `inference.py` and `inference_ort.py` runs two inferencing scenarios on your local machine. 
 
