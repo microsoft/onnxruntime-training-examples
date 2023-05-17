@@ -61,7 +61,7 @@ python inference.py # runs baseline pytorch
 python inference_ort.py # runs ORT Inference
 ```
 
-We observe **~200% speedup** for Whisper leveraging ONNX Runtime InferenceSession.
+We observe **~200% speedup** for Whisper leveraging ONNX Runtime Inference!
 
 ## FAQ
 ### Problem with Azure Authentication
