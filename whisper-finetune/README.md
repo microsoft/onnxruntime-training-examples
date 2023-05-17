@@ -16,7 +16,7 @@ Set up your local environment with az-cli and azureml dependency for script subm
 
 ```
 az-cli && az login
-pip install azure-ai-ml
+pip install azure-ai-ml azure-identity
 ```
 
 #### AzureML Workspace
@@ -60,6 +60,8 @@ Note: You need to download your trained weights from your training job to run in
 python inference.py # runs baseline pytorch
 python inference_ort.py # runs ORT Inference
 ```
+
+We observe **~200% speedup** for Whisper leveraging ONNX Runtime InferenceSession.
 
 ## FAQ
 ### Problem with Azure Authentication
