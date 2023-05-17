@@ -42,6 +42,9 @@ An example job submission to a compute target named `v100-32gb-eus` and using OR
 python aml_submit.py --ws_config ws_config.json --compute v100-32gb-eus --ort_ds
 ```
 
+We observe **~15% speedup** in train runtime for Whisper model trained leveraging ACPT, ONNX Runtime Training, and Nebula Checkpointing!
+![image](https://github.com/microsoft/onnxruntime-training-examples/assets/31260940/c56dac38-6d92-4f6b-b234-514d1e976a3f)
+
 #### `inference.py` and `inference_ort.py` runs two inferencing scenarios on your local machine. 
 
 The inference demo requires ORT nightly which can be installed as follows along with Hugging Face Transformers for model archiecture and Librosa for soundfile loading:
