@@ -40,11 +40,11 @@ namespace mobilevit_console
         /// - shuffle the indexes so that the two are shuffled in the same way
         /// </summary>
         /// <param name="dataFilePath">Path to the FER directory containing 7 unzipped folders labelled with their corresponding emotion</param>
-        public void loadFER(string dataFilePath)
+        public void LoadFER(string dataFilePath)
         {
             for (int i = 0; i < EMOTIONSLABELS.Count; i++)
             {
-                loadFileNames(dataFilePath, EMOTIONSLABELS[i], i);
+                LoadFileNames(dataFilePath, EMOTIONSLABELS[i], i);
             }
 
             var indexes = Enumerable.Range(0, images.Count).ToList();
@@ -55,7 +55,7 @@ namespace mobilevit_console
             labels = shuffled.Select(index => labels[index]).ToList();
         }
 
-        public void trimFER(int imagesNum)
+        public void TrimFER(int imagesNum)
         {
             images = images.GetRange(0, imagesNum);
             labels = labels.GetRange(0, imagesNum);
@@ -63,13 +63,13 @@ namespace mobilevit_console
 
         /// <summary>
         /// 
-        /// Processes a single directory for an emotion for the loadFER method.
+        /// Processes a single directory for an emotion for the LoadFER method.
         /// Adds the corresponding image paths and labels to the images and labels fields.
         /// </summary>
         /// <param name="dataFilePath"></param>
         /// <param name="emotion"></param>
         /// <param name="label"></param>
-        public void loadFileNames(string dataFilePath, string emotion, int label)
+        public void LoadFileNames(string dataFilePath, string emotion, int label)
         {
             string emotionDir = Path.Combine(dataFilePath, emotion);
             string[] imagePaths = Directory.GetFiles(emotionDir, "*.png", SearchOption.TopDirectoryOnly);
@@ -77,17 +77,17 @@ namespace mobilevit_console
             labels.AddRange(Enumerable.Repeat(label, imagePaths.Length));
         }
 
-        public Tensor<float> imageProcessingForInference(string filePath)
+        public Tensor<float> ImageProcessingForInference(string filePath)
         {
             using (var image = new Bitmap(System.Drawing.Image.FromFile(filePath)))
             {
                 var pixel = image.GetPixel(0, 0);
                 var resized = ResizeImage(image, 256, 256);
-                return convertImageToTensorForInference(resized);
+                return ConvertImageToTensorForInference(resized);
             }
         }
 
-        public int getNumSteps(int batchSize)
+        public int GetNumSteps(int batchSize)
         {
             return images.Count / batchSize;
         }
@@ -98,14 +98,14 @@ namespace mobilevit_console
         /// </summary>
         /// <param name="batchSize"></param>
         /// <returns></returns>
-        public List<FixedBufferOnnxValue> generateBatchInput(int batchSize)
+        public List<FixedBufferOnnxValue> GenerateBatchInput(int batchSize)
         {
             Tensor<float> batchPixelVals = new DenseTensor<float>(new[] { batchSize, 3, IMAGEDIM, IMAGEDIM });
             Tensor<Int64> batchLabels = new DenseTensor<Int64>(new[] { batchSize });
 
             for (int i = 0; i < batchSize; i++)
             {
-                pngPathToTensor(images[batchIndex], batchPixelVals, i);
+                PngPathToTensor(images[batchIndex], batchPixelVals, i);
                 batchLabels[i] = labels[batchIndex];
                 batchIndex += 1;
 
@@ -121,34 +121,34 @@ namespace mobilevit_console
             };
         }
 
-        private void pngPathToTensor(string path, Tensor<float> tensor, int imageIndex)
+        private void PngPathToTensor(string path, Tensor<float> tensor, int imageIndex)
         {
             using (var image = new Bitmap(System.Drawing.Image.FromFile(path)))
             {
                 var resized = ResizeImage(image, IMAGEDIM, IMAGEDIM);
-                populateTensorWithImage(resized, tensor, imageIndex);
+                PopulateTensorWithImage(resized, tensor, imageIndex);
             }
         }
 
-        public Tensor<float> convertImageToTensorForInference(Bitmap img)
+        public Tensor<float> ConvertImageToTensorForInference(Bitmap img)
         {
             Tensor<float> inferenceTensor = new DenseTensor<float>(new[] { 1, 3, img.Height, img.Width });
 
-            populateTensorWithImage(img, inferenceTensor, 0);
+            PopulateTensorWithImage(img, inferenceTensor, 0);
 
             return inferenceTensor;
         }
 
-        public void populateTensorWithImage(Bitmap img, Tensor<float> tensor, int imageIndex)
+        public void PopulateTensorWithImage(Bitmap img, Tensor<float> tensor, int imageIndex)
         {
             for (int i = 0; i < img.Height; i++)
             {
                 for (int j = 0; j < img.Width; j++)
                 {
                     var pixel = img.GetPixel(i, j);
-                    tensor[imageIndex, 0, i, j] = scaleColorValue(pixel.R);
-                    tensor[imageIndex, 1, i, j] = scaleColorValue(pixel.G);
-                    tensor[imageIndex, 2, i, j] = scaleColorValue(pixel.B);
+                    tensor[imageIndex, 0, i, j] = ScaleColorValue(pixel.R);
+                    tensor[imageIndex, 1, i, j] = ScaleColorValue(pixel.G);
+                    tensor[imageIndex, 2, i, j] = ScaleColorValue(pixel.B);
                 }
             }
         }
@@ -178,7 +178,7 @@ namespace mobilevit_console
             return destImage;
         }
 
-        public float scaleColorValue(byte val)
+        public float ScaleColorValue(byte val)
         {
             return val / MAXCOLORVALUE;
         }

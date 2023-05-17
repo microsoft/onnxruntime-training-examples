@@ -14,21 +14,37 @@ namespace mobilevit_console
 
         static string TRAINEDMODELFILE = "trained_mobilevit.onnx";
 
-        static string DEFAULTINFERENCE1 = Path.Combine(PARENTDIR, "test1.png");
+        static string DEFAULTINFERENCE1 = Path.Combine(PARENTDIR, "test1.png"); 
         static string DEFAULTINFERENCE2 = Path.Combine(PARENTDIR, "test3.png");
-        
+
+        static string HELPDIALOGUE = @"
+    usage:   mobilevit_console [-h | --help] <path_to_FER_dataset> [<path_to_inferencing_images>]
+            
+        path_to_FER_dataset         The absolute file path to the FER dataset. Within this file path should be 7 folders containing emotions.
+
+        path_to_inferencing_images  Optionally, absolute file paths to PNG images to be inferenced on.
+            ";
+
         static void Main(string[] args)
         {
             if (args.Length < 1)
             {
-                Console.Write("Please supply the file path to the FER dataset as the first command line argument.");
-                System.Environment.Exit(1);
+                PrintHelpAndExit();
+            }
+
+            foreach (string arg in args)
+            {
+                if(arg.Equals("-h") || arg.Equals("--help"))
+                {
+                    PrintHelpAndExit();
+                }
             }
 
             string dataPath = args[0];
-            DataLoader dl = loadDataset(dataPath);
-            CreateAndRunTrainingSession(8, 8, dl);
+            DataLoader dl = LoadDataset(dataPath);
+            CreateAndRunTrainingSession(0, 8, dl);
             Console.WriteLine("Finished training and exporting");
+            Console.WriteLine();
 
             string inferencePath = Path.Combine(Directory.GetCurrentDirectory(), TRAINEDMODELFILE);
             var inferenceSession = new InferenceSession(inferencePath);
@@ -38,14 +54,20 @@ namespace mobilevit_console
                 // assume additional arguments are paths to inference images
                 for (int i = 1; i < args.Length; i++)
                 {
-                    runInferenceSession(inferenceSession, dl, args[i]);
+                    RunInferenceSession(inferenceSession, dl, args[i]);
                 }
             }
             else
             {
-                runInferenceSession(inferenceSession, dl, DEFAULTINFERENCE1);
-                runInferenceSession(inferenceSession, dl, DEFAULTINFERENCE2);
+                RunInferenceSession(inferenceSession, dl, DEFAULTINFERENCE1);
+                RunInferenceSession(inferenceSession, dl, DEFAULTINFERENCE2);
             }
+        }
+
+        public static void PrintHelpAndExit()
+        {
+            Console.Write(HELPDIALOGUE);
+            System.Environment.Exit(0);
         }
 
         /// <summary>
@@ -56,14 +78,14 @@ namespace mobilevit_console
         /// <param name="trimDatasetTo">Optional parameter to trim the size of the dataset. If left as -1, 
         /// no trimming will happen and the full dataset will be used for training.</param>
         /// <returns></returns>
-        public static DataLoader loadDataset(string pathToFER, int trimDatasetTo = -1)
+        public static DataLoader LoadDataset(string pathToFER, int trimDatasetTo = -1)
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
             DataLoader dl = new DataLoader();
-            dl.loadFER(pathToFER);
+            dl.LoadFER(pathToFER);
             if (trimDatasetTo > 0)
             {
-                dl.trimFER(trimDatasetTo);
+                dl.TrimFER(trimDatasetTo);
             }
 
             watch.Stop();
@@ -80,7 +102,7 @@ namespace mobilevit_console
 
             using (TrainingSession ts = new TrainingSession(state, TRAININGMODELPATH, EVALMODELPATH, OPTIMIZERMODELPATH))
             {
-                train(ts, dl, numEpochs, batchSize);
+                Train(ts, dl, numEpochs, batchSize);
                 Console.WriteLine("############################################################### Training finished");
 
                 var outputNames = new List<string> { "outputs" };
@@ -89,47 +111,48 @@ namespace mobilevit_console
             }
         }
 
-        public static void runInferenceSession(InferenceSession inferenceSession, DataLoader dl, string pathToInference)
+        public static void RunInferenceSession(InferenceSession inferenceSession, DataLoader dl, string pathToInference)
         {
             Console.WriteLine($"Inferencing now for {pathToInference}");
 
-            var input = dl.imageProcessingForInference(pathToInference);
+            var input = dl.ImageProcessingForInference(pathToInference);
             var inputs = new List<NamedOnnxValue> { NamedOnnxValue.CreateFromTensor("pixel_values", input) };
 
             foreach (var r in inferenceSession.Run(inputs))
             {
                 var resultsTensor = r.AsTensor<float>();
 
-                printPredictedEmotion(resultsTensor);
+                PrintPredictedEmotion(resultsTensor);
 
                 Console.WriteLine(string.Join(",     ", DataLoader.EMOTIONSLABELS));
                 Console.WriteLine(resultsTensor.GetArrayString());
             }
+            Console.WriteLine();
         }
 
-        public static float train(TrainingSession ts, DataLoader dl, int numEpochs, int batchSize)
+        public static float Train(TrainingSession ts, DataLoader dl, int numEpochs, int batchSize)
         {
             float loss = 0;
             for (int i = 0; i < numEpochs; i++)
             {
-                loss = trainEpoch(ts, dl, batchSize);
+                loss = TrainEpoch(ts, dl, batchSize);
 
-                Console.WriteLine($"Loss after epoch {i}: {loss}");
+                Console.WriteLine($"Average loss after epoch {i}: {loss}");
             }
 
             return loss;
         }
 
-        public static float trainEpoch(TrainingSession ts, DataLoader dl, int batchSize)
+        public static float TrainEpoch(TrainingSession ts, DataLoader dl, int batchSize)
         {
-            int steps = dl.getNumSteps(batchSize);
+            int steps = dl.GetNumSteps(batchSize);
             Console.WriteLine("steps: " + steps);
 
-            float loss = 0;
+            float avgLoss = 0;
 
             for (int step = 0; step < steps; step++)
             {
-                var inputs = dl.generateBatchInput(batchSize);
+                var inputs = dl.GenerateBatchInput(batchSize);
                 ts.LazyResetGrad();
 
                 var watch = System.Diagnostics.Stopwatch.StartNew();
@@ -139,20 +162,18 @@ namespace mobilevit_console
                 watch.Stop();
                 Console.WriteLine($"Execution Time for train step {step} out of {steps}: {watch.ElapsedMilliseconds} ms");
 
-                if(step == steps - 1)
-                {
-                    // if at the last step, update the loss
-                    loss = outputs.ElementAtOrDefault(0).AsTensor<float>().GetValue(0);
-                }
+                avgLoss += outputs.ElementAtOrDefault(0).AsTensor<float>().GetValue(0);
             }
 
-            return loss;
+            return avgLoss / steps;
         }
 
-        public static void printPredictedEmotion(Tensor<float> results)
+        public static void PrintPredictedEmotion(Tensor<float> results)
         {
             var predictedEmotion = -1;
-            float maxSoFar = 0;
+            var secondPredictedEmotion = -1;
+            float maxSoFar = float.NegativeInfinity;
+            float secondMaxSoFar = float.NegativeInfinity;
             for (int i = 0; i < results.Length; i++)
             {
                 if (results.GetValue(i) > maxSoFar)
@@ -160,9 +181,15 @@ namespace mobilevit_console
                     predictedEmotion = i;
                     maxSoFar = results.GetValue(i);
                 }
+                else if (results.GetValue(i) > secondMaxSoFar)
+                {
+                    secondPredictedEmotion = i;
+                    secondMaxSoFar = results.GetValue(i);
+                }
             }
 
             Console.WriteLine($"Predicted emotion: {DataLoader.EMOTIONSLABELS[predictedEmotion]}");
+            Console.WriteLine($"Second most likely emotion: {DataLoader.EMOTIONSLABELS[secondPredictedEmotion]}");
         }
     }
 }
