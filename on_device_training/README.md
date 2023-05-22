@@ -24,7 +24,7 @@ The task of performing training on the device is be broken down into two phases.
 
   The onnx models and the checkpoint files can be generated with the help of ONNX Runtime's Python utility, [onnxblock](https://github.com/microsoft/onnxruntime/blob/main/orttraining/orttraining/python/training/onnxblock/README.md).
 
-- Training phase: Once the prerequisite artifacts have been generated, they can be deployed to along with the application to perform training on the device. The training is done using one of [several language bindings](https://onnxruntime.ai/docs/install/#training-phase---on-device-training) currently supported by ONNX Runtime Training.
+- Training phase: Once the prerequisite artifacts have been generated, they can be deployed along with the application to perform training on the device. The training is done using one of [several language bindings](https://onnxruntime.ai/docs/install/#training-phase---on-device-training) currently supported by ONNX Runtime Training.
 
 ## What tutorials does this repo include?
 
