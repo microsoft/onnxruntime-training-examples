@@ -1,47 +1,42 @@
 ## On-Device Training
 
-This directory includes tutorials for on-device training with onnxruntime. README file in each tutorial goes in depth on the task at hand and provides more context on how to setup for that tutorial.
-
-This file answers some common questions around on-device training with onnxruntime.
+This directory includes tutorials for `On-Device Training` with ONNX Runtime. README file in each tutorial goes in depth on the task at hand and provides more context on how to setup for that tutorial.
 
 > **Note**
-> onnxruntime on-device training is under active development. At the moment, we have not released a binary and the library will need to be built from source. Please create an [issue](https://github.com/microsoft/onnxruntime-training-examples/issues/new) with your scenario and requirements if you encounter problems, and we will be sure to respond and follow up on the request.
+> ONNX Runtime On-Device Training is under active development. Please refer to the getting started with [`Optimized Training`](https://onnxruntime.ai/index.html#getStartedTable) page for installation instructions. Please create an [issue](https://github.com/microsoft/onnxruntime-training-examples/issues/new) with your scenario and requirements if you encounter problems.
 
 ## What is On-Device Training?
-On-device training refers to training a model on the device, without the data ever leaving the device. Such a training enables applications to leverage the user data without compromising users privacy.
 
-Learning on the edge (aka on-device training) can be used in scenarios like federated learning and model personalization.
+`On-Device Training` refers to training a model on an edge device, without the data ever leaving the device. Such a form of training enables applications to leverage the user data without compromising their privacy.
 
-## How to build onnxruntime for On-Device Training?
-Build onnxruntime from source with the added flag `--enable_training --enable_training_on_device`. Example build command for windows build:
-```sh
-./build.bat --parallel --cmake_generator "Visual Studio 16 2019" --enable_training --enable_training_on_device --skip_tests
+On-Device Training can be used in scenarios like federated learning and model personalization.
 
-```
-Refer to the README for each tutorial to learn more on how to build onnxruntime from source for that task.
+## How to use ONNX Runtime for performing On-Device Training
 
-## How to use onnxruntime for performing On-Device Training
-The task of performing training on the device should be broken down into two steps.
-- Offline preparation of prerequisite files for the actual training. This task is typically done on either the server or on the users computer as an offline step. Files generated from this step will be needed to perform the on-device training. The files generated include:
+The task of performing training on the device is be broken down into two phases.
+
+- Offline phase: Preparation of prerequisite files for the actual training. This task is typically done on either the server or on the user's computer as an offline step. Files generated from this step will be consumed at training time on the device. The files generated include:
+
   - The training onnx model.
   - The eval onnx model.
   - The optimizer onnx model.
   - The checkpoint file.
-  - The data for the model.
 
-  The onnx models and the checkpoint files can be generated with the help of onnxruntime's python utility, [onnxblock](https://github.com/microsoft/onnxruntime/blob/main/orttraining/orttraining/python/training/onnxblock/README.md).
-  The data for the models is considered part of the user's code and is left upto the user to prepare for their application.
+  The onnx models and the checkpoint files can be generated with the help of ONNX Runtime's Python utility, [onnxblock](https://github.com/microsoft/onnxruntime/blob/main/orttraining/orttraining/python/training/onnxblock/README.md).
 
-- The built onnxruntime library and the offline files generated should be used while writing the training loop that will be executed on the device. User's should copy and include the C/C++ header files and onnxruntime library and invoke them as required for training.
-
-## Where are the C/C++ APIs for On-Device Training?
-- [C APIs](https://github.com/microsoft/onnxruntime/blob/main/orttraining/orttraining/training_api/include/onnxruntime_training_c_api.h)
-- [C++ APIs](https://github.com/microsoft/onnxruntime/blob/main/orttraining/orttraining/training_api/include/onnxruntime_training_cxx_api.h)
-- [C# APIs](https://github.com/microsoft/onnxruntime/tree/main/csharp/src/Microsoft.ML.OnnxRuntime/Training)
-
+- Training phase: Once the prerequisite artifacts have been generated, they can be deployed along with the application to perform training on the device. The training is done using one of [several language bindings](https://onnxruntime.ai/docs/install/#training-phase---on-device-training) currently supported by ONNX Runtime Training.
 
 ## What tutorials does this repo include?
-- [Android application for classification using cifar10](android_demo/README.md).
 
-## How to learn more about onnxruntime On-Device Training?
-Open an issue either on this repo [microsoft/onnxruntime-training-examples](https://github.com/microsoft/onnxruntime-training-examples) or on [microsoft/onnxruntime](https://github.com/microsoft/onnxruntime) with questions on on-device training.
+- [Python notebook](desktop/python/mnist.ipynb): A Python Notebook that introduces `On-Device Training` by showcasing training with the MNIST dataset.
+  Tags: `Python`, `MNIST`, `Getting-Started`, `Classification`
+- [Android application](mobile/android/c-cpp/): Android application that shows how the ONNX Runtime C, C++ API can be used for training a model on an Android device.
+  Tags: `Android`, `C, C++`, `Transfer-Learning`, `Classification`, `MobileNet`
+- [C# console application](desktop/csharp/): C# application using MobileBERT and showcasing the Masked Language Modelling (MLM) task.
+  Tags: `C#`, `MLM`, `MobileBERT`, `Language Models`
+
+## How to learn more about ONNX Runtime On-Device Training?
+
+You can learn more [here](https://onnxruntime.ai/docs/get-started/training-on-device.html).
+
+Open an issue either on this repo [microsoft/onnxruntime-training-examples](https://github.com/microsoft/onnxruntime-training-examples) or on [microsoft/onnxruntime](https://github.com/microsoft/onnxruntime) with questions on `On-Device Training`.
