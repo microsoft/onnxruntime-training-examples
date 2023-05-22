@@ -28,11 +28,11 @@ The task of performing training on the device is be broken down into two phases.
 
 ## What tutorials does this repo include?
 
-- [Python notebook](python/mnist.ipynb): A Python Notebook that introduces `On-Device Training` by showcasing training with the MNIST dataset.
+- [Python notebook](desktop/python/mnist.ipynb): A Python Notebook that introduces `On-Device Training` by showcasing training with the MNIST dataset.
   Tags: `Python`, `MNIST`, `Getting-Started`, `Classification`
-- [Android application](c-cpp/android/): Android application that shows how the ONNX Runtime C, C++ API can be used for training a model on an Android device.
+- [Android application](mobile/android/c-cpp/): Android application that shows how the ONNX Runtime C, C++ API can be used for training a model on an Android device.
   Tags: `Android`, `C, C++`, `Transfer-Learning`, `Classification`, `MobileNet`
-- [C# console application](csharp/): C# application using MobileBERT and showcasing the Masked Language Modelling (MLM) task.
+- [C# console application](desktop/csharp/): C# application using MobileBERT and showcasing the Masked Language Modelling (MLM) task.
   Tags: `C#`, `MLM`, `MobileBERT`, `Language Models`
 
 ## How to learn more about ONNX Runtime On-Device Training?
