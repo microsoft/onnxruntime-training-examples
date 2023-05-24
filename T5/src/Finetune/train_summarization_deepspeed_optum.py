@@ -605,7 +605,7 @@ def main():
             # Documentation for general export: https://pytorch.org/docs/stable/onnx.html#example-alexnet-from-pytorch-to-onnx
             subprocess.call(["python", "-m", "onnxruntime.transformers.models.t5.convert_to_onnx", "-m", "t5-small", "--output", str(trained_model_path / "onnx"), "--use_external_data_format", "--state_dict_path", "pytorch_model.bin"])
             
-            subprocess.call(["python", "-m", "onnxruntime.transformers.convert_generation", "-m", str(trained_model_path), "--model_type", "t5", "--decoder_onnx", str(trained_model_path / "onnx" / "outputs_decoder.onnx"), "--encoder_decoder_init_onnx", str(trained_model_path / "onnx" / "outputs_encoder_decoder_init.onnx"), "--output", str(trained_model_path / "onnx" / "outputs_beam_search.onnx")])
+            subprocess.call(["python", "-m", "onnxruntime.transformers.convert_generation", "-m", "t5-small", "--model_type", "t5", "--decoder_onnx", str(trained_model_path / "onnx" / "outputs_decoder.onnx"), "--encoder_decoder_init_onnx", str(trained_model_path / "onnx" / "outputs_encoder_decoder_init.onnx"), "--output", str(trained_model_path / "onnx" / "outputs_beam_search.onnx")])
             
             conda_env = {
                 'channels': ['conda-forge'],
