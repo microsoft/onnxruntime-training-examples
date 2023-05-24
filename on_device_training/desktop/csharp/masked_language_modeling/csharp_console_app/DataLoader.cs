@@ -18,7 +18,5 @@ namespace csharp_console_app
             string json = File.ReadAllText(filePath);
             return JsonSerializer.Deserialize<DataSplit>(json);
         }
-
-       // public List<FixedBufferOnnxValue> 
     }
 }
