@@ -16,7 +16,7 @@ Set up your local environment with az-cli and azureml dependency for script subm
 
 ```
 az-cli && az login
-pip install azure-ai-ml
+pip install azure-ai-ml azure-identity
 ```
 
 #### AzureML Workspace
@@ -42,6 +42,9 @@ An example job submission to a compute target named `v100-32gb-eus` and using OR
 python aml_submit.py --ws_config ws_config.json --compute v100-32gb-eus --ort_ds
 ```
 
+We observe **~15% speedup** for Whisper trained leveraging ONNX Runtime Training, and Nebula Checkpointing!
+![image](https://github.com/microsoft/onnxruntime-training-examples/assets/31260940/305dc251-0ece-434c-9ae5-cb409711e300)
+
 #### `inference.py` and `inference_ort.py` runs two inferencing scenarios on your local machine. 
 
 The inference demo requires ORT nightly which can be installed as follows along with Hugging Face Transformers for model archiecture and Librosa for soundfile loading:
@@ -57,6 +60,8 @@ Note: You need to download your trained weights from your training job to run in
 python inference.py # runs baseline pytorch
 python inference_ort.py # runs ORT Inference
 ```
+
+We observe **2x speedup** for Whisper leveraging ONNX Runtime Inference!
 
 ## FAQ
 ### Problem with Azure Authentication

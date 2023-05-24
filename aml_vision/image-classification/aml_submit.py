@@ -57,7 +57,6 @@ def main(raw_args=None):
     root_dir = Path(__file__).resolve().parent
     environment_dir = root_dir / "environment"
     code_dir = root_dir / "finetune-code"
-    experiment_name = "vision-ort-experiment"
     num_train_epochs = 100
     dataset = "DeepFashion_jsonl"
     dataloader_num_workers = 4
