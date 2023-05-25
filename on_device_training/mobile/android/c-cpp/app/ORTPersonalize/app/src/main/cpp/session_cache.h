@@ -37,7 +37,7 @@ struct SessionCache {
     artifact_paths(checkpoint_path, training_model_path, eval_model_path, optimizer_model_path, cache_dir_path),
     ort_env(ORT_LOGGING_LEVEL_WARNING, "ort personalize"), session_options(),
     checkpoint_state(Ort::CheckpointState::LoadCheckpoint(artifact_paths.checkpoint_path.c_str())),
-    training_session(session_options, checkpoint_state, artifact_paths.training_model_path.c_str(),
+    training_session(ort_env, session_options, checkpoint_state, artifact_paths.training_model_path.c_str(),
                      artifact_paths.eval_model_path.c_str(), artifact_paths.optimizer_model_path.c_str()),
     inference_session(nullptr) {}
 };
