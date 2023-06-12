@@ -1,4 +1,4 @@
-# AzureML Foundational Vision Models Fine-Tuning Examples
+# Foundational Vision Models Fine-Tuning with ACPT and ONNX Runtime
 
 This codebase shows how to use ACPT (Azure Container for PyTorch) along with accelerators such as ONNX Runtime Training (through Hugging Face Optimum) and DeepSpeed to fine-tune foundational, computer-vision models for an image classification task. Below are benchmarks on the DeepFashion dataset using our various accelerators:
 
@@ -15,40 +15,16 @@ This codebase shows how to use ACPT (Azure Container for PyTorch) along with acc
 | [miceosoft/swinv2-base](https://huggingface.co/microsoft/swinv2-base-patch4-window12-192-22k) | 69             | -            | 2653.239                      | 524.491                       |
 | [miceosoft/swinv2-base](https://huggingface.co/microsoft/swinv2-base-patch4-window12-192-22k) | 106            | ORT+DS       | 1833.086 **(~30.9% speedup)** | 759.157 **(~44.7% speedup)**  |
 
+Note: No accelerator runs use [Hugging Face's Trainer](https://huggingface.co/docs/transformers/main_classes/trainer) while ORT+DS runs use [Optimum's ORTTrainer](https://huggingface.co/docs/optimum/onnxruntime/package_reference/trainer) and pass in a deepspeed config file. For more details, inspect the difference between the `finetune-code/run_image_classification.py` and `finetune-code/run_image_classification_ort.py` files.
+
 ## Run Experiments
 
-### Cloud Run on AzureML
-Set up your local environment with az-cli and azureml dependency for script submission:
-
-```
-az-cli && az login
-pip install azure-ai-ml azure-identity
-```
-
-#### AzureML Workspace
-- An AzureML workspace is required to run this demo. Download the config.json file ([How to get config.json file from Azure Portal](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-configure-environment#workspace)) for your workspace.
-- The workspace should have a gpu cluster. This demo was tested with GPU cluster of SKU [Standard_ND40rs_v2](https://docs.microsoft.com/en-us/azure/virtual-machines/ndv2-series). See this document for [creating gpu cluster](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-create-attach-compute-cluster?tabs=python). We do not recommend running this demo on `NC` series VMs which uses old architecture (K80).
-- The submission script expects the following information in `ws_config.json` (see `ws_config_template.json` for an example):
-```json
-{
-    "subscription_id": "subscription_id",
-    "resource_group": "resource_group",
-    "workspace_name": "workspace_name",
-    "compute": "compute",
-    "nproc_per_node": <num_GPUs>
-}  
-```
-
-#### `aml_submit.py` submits an training job to AML. This job builds the training environment and runs the fine-tuning script in it.
-
-Example to submit training job for google/vit-base using maximum possible batch size:
-```bash
-python aml_submit.py --model_name "google/vit-base-patch16-224" --batch_size "max"
-```
-For more run configurations, see `model_configs` and `get_args()` in aml_submit.py
-
-### Local Testing:
 #### `image-classification/finetune-code` contains all the code that is submitted by `aml_submit.py`
+Relevant Files:
+- finetune-code/run_image_classification_ort.py: fine-tuning script that leverages ONNX Runtime and DeepSpeed
+- finetune-code/run_image_classification.py: fine-tuning script with NO ACCELERATORS for comparison
+- aml_submit.py: NOT USED but contains configuration information for fine-tuning
+
 ```Dockerfile
 FROM ptebic.azurecr.io/public/azureml/aifx/stable-ubuntu2004-cu117-py38-torch1131:ort1.15.0-vision-patch
 RUN pip install accelerate datasets evaluate optimum transformers
@@ -73,6 +49,41 @@ RUN cd `image-classification/finetune-code` && \
              --output_dir output_dir --overwrite_output_dir --dataloader_num_workers {2*dataloader_num_workers} \
              --optim adamw_ort_fused --deepspeed zero_stage_1.json
 ```
+
+### Run on AzureML
+Set up your local environment with az-cli and azureml dependency for script submission:
+
+```
+az-cli && az login
+pip install azure-ai-ml azure-identity
+```
+
+#### AzureML Workspace
+- An AzureML workspace is required to run this demo. Download the config.json file ([How to get config.json file from Azure Portal](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-configure-environment#workspace)) for your workspace.
+- The workspace should have a gpu cluster. This demo was tested with GPU cluster of SKU [Standard_ND40rs_v2](https://docs.microsoft.com/en-us/azure/virtual-machines/ndv2-series). See this document for [creating gpu cluster](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-create-attach-compute-cluster?tabs=python). We do not recommend running this demo on `NC` series VMs which uses old architecture (K80).
+- The submission script expects the following information in `ws_config.json` (see `ws_config_template.json` for an example):
+```json
+{
+    "subscription_id": "subscription_id",
+    "resource_group": "resource_group",
+    "workspace_name": "workspace_name",
+    "compute": "compute",
+    "nproc_per_node": <num_GPUs>
+}  
+```
+
+#### `aml_submit.py` submits an training job to AML. This job builds the training environment and runs the fine-tuning script in it.
+Relevant Files:
+- finetune-code/run_image_classification_ort.py: fine-tuning script that leverages ONNX Runtime and DeepSpeed
+- finetune-code/run_image_classification.py: fine-tuning script with NO ACCELERATORS for comparison
+- finetune-code/zero_stage_1.json: DeepSpeed configuration file
+- aml_submit.py: submission script to submit training workload to AzureML
+
+Example to submit training job for google/vit-base using maximum possible batch size:
+```bash
+python aml_submit.py --model_name "google/vit-base-patch16-224" --batch_size "max"
+```
+For more run configurations, see `model_configs` and `get_args()` in aml_submit.py
 
 ## FAQ
 ### Problem with Azure Authentication
