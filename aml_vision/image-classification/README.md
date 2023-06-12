@@ -4,12 +4,12 @@ This codebase shows how to use ACPT (Azure Container for PyTorch) along with acc
 
 | Model                                                                                         | Max Batch Size | Accelerators | train_runtime (sec)           | train_samples_per_second      |
 |-----------------------------------------------------------------------------------------------|----------------|--------------|-------------------------------|-------------------------------|
-| [apple/mobilevit-small](https://huggingface.co/apple/mobilevit-small)                         | 117            | -            | 1306.508                      | 1065.129                      |
-| [apple/mobilevit-small](https://huggingface.co/apple/mobilevit-small)                         | 221            | ORT+DS       | 1215.846 **(~7.0% speedup)**  | 1144.553 **(~7.5% speedup)**  |
-| [facebook/deit-base](https://huggingface.co/facebook/deit-base-patch16-224)                   | 104            | -            | 1272.333                      | 1093.739                      |
-| [facebook/deit-base](https://huggingface.co/facebook/deit-base-patch16-224)                   | 124            | ORT+DS       | 1210.240 **(~5.0% speedup)**  | 1149.854 **(~5.1% speedup)**  |
-| [google/vit-base](https://huggingface.co/google/vit-base-patch16-224)                         | 117            | -            | 1287.648                      | 1080.73                       |
-| [google/vit-base](https://huggingface.co/google/vit-base-patch16-224)                         | 221            | ORT+DS       | 1235.098 **(~4.0% speedup)**  | 1126.712 **(~4.3% speedup)**  |
+| [google/vit-base](https://huggingface.co/google/vit-base-patch16-224)                         | 117            | -            | 1306.508                      | 1065.129                      |
+| [google/vit-base](https://huggingface.co/google/vit-base-patch16-224)                         | 221            | ORT+DS       | 1215.846 **(~7.0% speedup)**  | 1144.553 **(~7.5% speedup)**  |
+| [apple/mobilevit-small](https://huggingface.co/apple/mobilevit-small)                         | 104            | -            | 1272.333                      | 1093.739                      |
+| [apple/mobilevit-small](https://huggingface.co/apple/mobilevit-small)                         | 124            | ORT+DS       | 1210.240 **(~5.0% speedup)**  | 1149.854 **(~5.1% speedup)**  |
+| [facebook/deit-base](https://huggingface.co/facebook/deit-base-patch16-224)                   | 117            | -            | 1287.648                      | 1080.73                       |
+| [facebook/deit-base](https://huggingface.co/facebook/deit-base-patch16-224)                   | 221            | ORT+DS       | 1235.098 **(~4.0% speedup)**  | 1126.712 **(~4.3% speedup)**  |
 | [microsoft/beit-base](https://huggingface.co/microsoft/beit-base-patch16-224-pt22k-ft22k)     | 110            | -            | 1496.612                      | 929.833                       |
 | [microsoft/beit-base](https://huggingface.co/microsoft/beit-base-patch16-224-pt22k-ft22k)     | 185            | ORT+DS       | 1338.658 **(~10.6% speedup)** | 1039.549 **(~11.8% speedup)** |
 | [miceosoft/swinv2-base](https://huggingface.co/microsoft/swinv2-base-patch4-window12-192-22k) | 69             | -            | 2653.239                      | 524.491                       |
