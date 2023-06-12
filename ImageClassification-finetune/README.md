@@ -19,7 +19,7 @@ Note: No accelerator runs use [Hugging Face's Trainer](https://huggingface.co/do
 
 ## Run Experiments
 
-#### `image-classification/finetune-code` contains all the code that is submitted by `aml_submit.py`
+#### `image-classification/finetune-code` contains all the code that is required for local testing
 Relevant Files:
 - finetune-code/run_image_classification_ort.py: fine-tuning script that leverages ONNX Runtime and DeepSpeed
 - finetune-code/run_image_classification.py: fine-tuning script with NO ACCELERATORS for comparison
