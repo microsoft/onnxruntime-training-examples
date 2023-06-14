@@ -1,4 +1,4 @@
-# Foundational Vision Models Fine-Tuning with ACPT and ONNX Runtime
+# Stable Diffusion Fine-Tuning with ACPT and ONNX Runtime
 
 This codebase shows how to use ACPT (Azure Container for PyTorch) along with accelerators such as ONNX Runtime Training (through Hugging Face Optimum) and DeepSpeed to fine-tune Hugging Face's stable diffusion model for a text to image task.
 
