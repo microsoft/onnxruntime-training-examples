@@ -955,12 +955,8 @@ def main():
         revision=args.revision,
         torch_dtype=torch.float16,
     )
-    pipeline.to("cuda")
-    image = pipeline(prompt="yoda").images[0]
 
     trained_model_path = Path(args.output_dir)
-
-    image.save(str(trained_model_path / "yoda-pokemon.png"))
     pipeline.save_pretrained(str(trained_model_path))
 
     # upload weights to AML

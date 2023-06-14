@@ -965,13 +965,8 @@ def main():
         safety_checker=None,
         feature_extractor=None,
     )
-    pipeline.to("cuda")
-    pipeline.unet.config = pipeline.unet.module.module.config
-    image = pipeline(prompt="yoda")[0][0]
 
     trained_model_path = Path(args.output_dir)
-
-    image.save(str(trained_model_path / "yoda-pokemon.png"))
     pipeline.save_pretrained(str(trained_model_path))
 
     # upload weights to AML
