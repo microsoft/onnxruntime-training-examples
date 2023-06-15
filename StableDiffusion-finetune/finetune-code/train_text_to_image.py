@@ -21,7 +21,6 @@ import random
 from pathlib import Path
 
 import accelerate
-from azureml.core.run import Run
 import datasets
 import numpy as np
 import torch
@@ -955,16 +954,7 @@ def main():
         revision=args.revision,
         torch_dtype=torch.float16,
     )
-
-    trained_model_path = Path(args.output_dir)
-    pipeline.save_pretrained(str(trained_model_path))
-
-    # upload weights to AML
-    rank = os.environ.get("RANK", -1)
-    if int(rank) == 0:
-        # documentation: https://learn.microsoft.com/en-us/python/api/azureml-core/azureml.core.run(class)?view=azure-ml-py
-        run = Run.get_context()
-        run.upload_folder(name=args.output_dir, path=str(trained_model_path))
+    pipeline.save_pretrained(args.output_dir)
 
     if args.push_to_hub:
         upload_folder(

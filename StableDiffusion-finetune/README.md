@@ -1,13 +1,13 @@
 # Stable Diffusion Fine-Tuning with ACPT and ONNX Runtime
 
-This codebase shows how to use ACPT (Azure Container for PyTorch) along with accelerators such as ONNX Runtime Training (through Hugging Face Optimum) and DeepSpeed to fine-tune Hugging Face's stable diffusion model for a text to image task.
+This codebase shows how to use ACPT (Azure Container for PyTorch) along with accelerators such as ONNX Runtime Training (through Hugging Face Diffusers) and DeepSpeed to fine-tune Hugging Face's stable diffusion model for a text to image task.
 
 ## Run Experiments
 
 #### `StableDiffusion-finetune/finetune-code` contains all the code that is required for local testing
 Relevant Files:
 - finetune-code/train_text_to_image_ort.py: fine-tuning script that leverages ONNX Runtime and DeepSpeed
-- finetune-code/train_text_to_image_ort.py: fine-tuning script with only DeepSpeed for comparison
+- finetune-code/train_text_to_image.py: fine-tuning script with only DeepSpeed for comparison
 - accelerate_config.py: configuration file for Hugging Face Accelerate to train on a 8 GPU machine
 
 ```Dockerfile
@@ -65,7 +65,7 @@ pip install azure-ai-ml azure-identity
 #### `aml_submit.py` submits an training job to AML. This job builds the training environment and runs the fine-tuning script in it.
 Relevant Files:
 - finetune-code/train_text_to_image_ort.py: fine-tuning script that leverages ONNX Runtime and DeepSpeed
-- finetune-code/train_text_to_image_ort.py: fine-tuning script with only DeepSpeed for comparison
+- finetune-code/train_text_to_image.py: fine-tuning script with only DeepSpeed for comparison
 - accelerate_config.py: configuration file for Hugging Face Accelerate to train on a 8 GPU machine
 - aml_submit.py: submission script to submit training workload to AzureML
 

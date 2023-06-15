@@ -32,7 +32,7 @@ def main(raw_args=None):
     root_dir = Path(__file__).resolve().parent
     environment_dir = root_dir / "environment"
     code_dir = root_dir / "finetune-code"
-    max_train_steps = 15000
+    max_train_steps = 500
 
     model = "CompVis/stable-diffusion-v1-4"
     dataset = "lambdalabs/pokemon-blip-captions"
@@ -52,7 +52,8 @@ def main(raw_args=None):
                     --learning_rate=1e-05 \
                     --max_grad_norm=1 \
                     --lr_scheduler=constant --lr_warmup_steps=0 \
-                    --output_dir=sd-pokemon-model",
+                    --output_dir=sd-pokemon-model \
+                    && python aml_upload_util.py --output_dir=sd-pokemon-model",
         environment=Environment(build=BuildContext(path=environment_dir)),
         experiment_name=args.experiment_name,
         compute=compute,
@@ -84,7 +85,8 @@ def main(raw_args=None):
                     --learning_rate=1e-05 \
                     --max_grad_norm=1 \
                     --lr_scheduler=constant --lr_warmup_steps=0 \
-                    --output_dir=sd-pokemon-model",
+                    --output_dir=sd-pokemon-model \
+                    && python aml_upload_util.py --output_dir=sd-pokemon-model",
         environment=Environment(build=BuildContext(path=environment_dir)),
         environment_variables={"ORTMODULE_FALLBACK_POLICY": "FALLBACK_DISABLE"},
         experiment_name=args.experiment_name,

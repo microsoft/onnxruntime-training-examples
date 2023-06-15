@@ -21,7 +21,6 @@ import random
 from pathlib import Path
 
 import accelerate
-from azureml.core.run import Run
 import datasets
 import numpy as np
 import torch
@@ -439,6 +438,7 @@ def main():
         mixed_precision=args.mixed_precision,
         log_with=args.report_to,
         project_config=accelerator_project_config,
+        dispatch_batches=False
     )
 
     # Make one log on every process with the configuration for debugging.
@@ -950,7 +950,6 @@ def main():
 
     # Create the pipeline using the trained modules and save it.
     accelerator.wait_for_everyone()
-    # if accelerator.is_main_process:
     unet = accelerator.unwrap_model(unet)
     if args.use_ema:
         ema_unet.copy_to(unet.parameters())
@@ -965,17 +964,8 @@ def main():
         safety_checker=None,
         feature_extractor=None,
     )
-
-    trained_model_path = Path(args.output_dir)
-    pipeline.save_pretrained(str(trained_model_path))
-
-    # upload weights to AML
-    rank = os.environ.get("RANK", -1)
-    if int(rank) == 0:
-        # documentation: https://learn.microsoft.com/en-us/python/api/azureml-core/azureml.core.run(class)?view=azure-ml-py
-        run = Run.get_context()
-        run.upload_folder(name=args.output_dir, path=str(trained_model_path))
-
+    pipeline.save_pretrained(args.output_dir)
+    
     if args.push_to_hub:
         upload_folder(
             repo_id=repo_id,
