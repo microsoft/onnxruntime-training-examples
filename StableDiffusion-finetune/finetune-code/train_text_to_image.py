@@ -941,28 +941,28 @@ def main():
 
     # Create the pipeline using the trained modules and save it.
     accelerator.wait_for_everyone()
-    # if accelerator.is_main_process:
-    unet = accelerator.unwrap_model(unet)
-    if args.use_ema:
-        ema_unet.copy_to(unet.parameters())
+    if accelerator.is_main_process:
+        unet = accelerator.unwrap_model(unet)
+        if args.use_ema:
+            ema_unet.copy_to(unet.parameters())
 
-    pipeline = StableDiffusionPipeline.from_pretrained(
-        args.pretrained_model_name_or_path,
-        text_encoder=text_encoder,
-        vae=vae,
-        unet=unet,
-        revision=args.revision,
-        torch_dtype=torch.float16,
-    )
-    pipeline.save_pretrained(args.output_dir)
-
-    if args.push_to_hub:
-        upload_folder(
-            repo_id=repo_id,
-            folder_path=args.output_dir,
-            commit_message="End of training",
-            ignore_patterns=["step_*", "epoch_*"],
+        pipeline = StableDiffusionPipeline.from_pretrained(
+            args.pretrained_model_name_or_path,
+            text_encoder=text_encoder,
+            vae=vae,
+            unet=unet,
+            revision=args.revision,
+            torch_dtype=torch.float16,
         )
+        pipeline.save_pretrained(args.output_dir)
+
+        if args.push_to_hub:
+            upload_folder(
+                repo_id=repo_id,
+                folder_path=args.output_dir,
+                commit_message="End of training",
+                ignore_patterns=["step_*", "epoch_*"],
+            )
 
     accelerator.end_training()
 

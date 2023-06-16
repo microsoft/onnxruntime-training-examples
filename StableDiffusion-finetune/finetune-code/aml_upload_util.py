@@ -1,5 +1,6 @@
 import argparse
 from azureml.core.run import Run
+from pathlib import Path
 
 def get_args(raw_args=None):
     parser = argparse.ArgumentParser()
@@ -19,7 +20,9 @@ def main():
     # upload weights to AML
     # documentation: https://learn.microsoft.com/en-us/python/api/azureml-core/azureml.core.run(class)?view=azure-ml-py
     run = Run.get_context()
-    run.upload_folder(name=output_dir, path=str(Path(output_dir)))
+    print("Uploading", args.output_dir, "to AzureML...")
+    run.upload_folder(name=args.output_dir, path=str(Path(args.output_dir)))
+    print("...done!")
 
 if __name__ == "__main__":
     main()

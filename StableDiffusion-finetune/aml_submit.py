@@ -32,10 +32,11 @@ def main(raw_args=None):
     root_dir = Path(__file__).resolve().parent
     environment_dir = root_dir / "environment"
     code_dir = root_dir / "finetune-code"
-    max_train_steps = 500
 
     model = "CompVis/stable-diffusion-v1-4"
     dataset = "lambdalabs/pokemon-blip-captions"
+    max_train_steps = 500
+    bs = 1
 
     pytorch_job = command(
         code=code_dir,  # local path where the code is stored
@@ -45,7 +46,7 @@ def main(raw_args=None):
                     --dataset_name={dataset} \
                     --use_ema \
                     --resolution=512 --center_crop --random_flip \
-                    --train_batch_size=1 \
+                    --train_batch_size={bs} \
                     --gradient_accumulation_steps=4 \
                     --gradient_checkpointing \
                     --max_train_steps={max_train_steps} \
@@ -78,7 +79,7 @@ def main(raw_args=None):
                     --dataset_name={dataset} \
                     --use_ema \
                     --resolution=512 --center_crop --random_flip \
-                    --train_batch_size=1 \
+                    --train_batch_size={bs} \
                     --gradient_accumulation_steps=4 \
                     --gradient_checkpointing \
                     --max_train_steps={max_train_steps} \

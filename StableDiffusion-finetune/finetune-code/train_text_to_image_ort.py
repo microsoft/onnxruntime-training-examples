@@ -438,7 +438,6 @@ def main():
         mixed_precision=args.mixed_precision,
         log_with=args.report_to,
         project_config=accelerator_project_config,
-        dispatch_batches=False
     )
 
     # Make one log on every process with the configuration for debugging.
@@ -950,29 +949,10 @@ def main():
 
     # Create the pipeline using the trained modules and save it.
     accelerator.wait_for_everyone()
-    unet = accelerator.unwrap_model(unet)
-    if args.use_ema:
-        ema_unet.copy_to(unet.parameters())
-
-    pipeline = StableDiffusionPipeline(
-        vae=vae,
-        text_encoder=text_encoder,
-        tokenizer=tokenizer,
-        unet=unet,
-        scheduler=noise_scheduler,
-        requires_safety_checker=False,
-        safety_checker=None,
-        feature_extractor=None,
-    )
-    pipeline.save_pretrained(args.output_dir)
-    
-    if args.push_to_hub:
-        upload_folder(
-            repo_id=repo_id,
-            folder_path=args.output_dir,
-            commit_message="End of training",
-            ignore_patterns=["step_*", "epoch_*"],
-        )
+    if accelerator.is_main_process:
+        # TODO: Replace with ORT Inference logic:
+        # https://github.com/microsoft/onnxruntime/tree/188d5f5398936d35649c2a6cdcaa76b3735c1653/onnxruntime/python/tools/transformers/models/stable_diffusion
+        pass
 
     accelerator.end_training()
 
