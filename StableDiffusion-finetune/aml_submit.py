@@ -35,7 +35,7 @@ def main(raw_args=None):
 
     model = "CompVis/stable-diffusion-v1-4"
     dataset = "lambdalabs/pokemon-blip-captions"
-    max_train_steps = 15000
+    max_train_steps = 1000
     bs = 1
 
     pytorch_job = command(
