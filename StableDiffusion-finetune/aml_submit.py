@@ -35,7 +35,7 @@ def main(raw_args=None):
 
     model = "CompVis/stable-diffusion-v1-4"
     dataset = "lambdalabs/pokemon-blip-captions"
-    max_train_steps = 500
+    max_train_steps = 15000
     bs = 1
 
     pytorch_job = command(
@@ -60,7 +60,7 @@ def main(raw_args=None):
         compute=compute,
         display_name="pytorch-stable-diffusion",
         description=f"Train a vision DNN with PyTorch on the {dataset} dataset.",
-        tags={"max_train_steps": str(max_train_steps)},
+        tags={"max_train_steps": str(max_train_steps), "batch_size": str(bs)},
         shm_size="16g"
     )
 
@@ -94,7 +94,7 @@ def main(raw_args=None):
         compute=compute,
         display_name= "ort-stable-diffusion",
         description=f"Train a vision DNN with ONNX Runtime on the {dataset} dataset.",
-        tags={"max_train_steps": str(max_train_steps)},
+        tags={"max_train_steps": str(max_train_steps), "batch_size": str(bs)},
         shm_size="16g"
     )
 
