@@ -4,7 +4,7 @@ This codebase shows how to use ONNX Runtime Training along with Azure Container 
 
 ## Run Experiments
 
-### Local Testing
+### Run Locally
 #### `StableDiffusion-finetune/finetune-code` contains all the code that is required for local testing
 Relevant Files:
 - finetune-code/train_text_to_image.py: fine-tuning script that leverages ONNX Runtime and DeepSpeed
