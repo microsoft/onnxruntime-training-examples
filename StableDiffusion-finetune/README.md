@@ -23,9 +23,10 @@ RUN pip install azureml-core
 WORKDIR workspace
 RUN git clone https://github.com/microsoft/onnxruntime-training-examples.git
 RUN cd onnxruntime-training-examples/StableDiffusion-finetune/finetune-code && \
-        accelerate launch --config_file=accelerate_config.yaml --mixed_precision=fp16 train_text_to_image.py --ort \
-        --pretrained_model_name_or_path={model} \
-        --dataset_name={dataset} \
+        accelerate launch --config_file=accelerate_config.yaml --mixed_precision=fp16 \
+        train_text_to_image.py --ort \
+        --pretrained_model_name_or_path=CompVis/stable-diffusion-v1-4 \
+        --dataset_name=lambdalabs/pokemon-blip-captions \
         --use_ema \
         --resolution=512 --center_crop --random_flip \
         --train_batch_size=1 \
