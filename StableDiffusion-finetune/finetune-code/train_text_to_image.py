@@ -396,6 +396,14 @@ def parse_args():
             " more information see https://huggingface.co/docs/accelerate/v0.17.0/en/package_reference/accelerator#accelerate.Accelerator"
         ),
     )
+    parser.add_argument(
+        "--ort",
+        action="store_true",
+        default=False,
+        help=(
+            "Leverages ONNX Runtime Training to accelerate fine-tuning"
+        ),
+    )
 
     args = parser.parse_args()
     env_local_rank = int(os.environ.get("LOCAL_RANK", -1))
@@ -621,6 +629,10 @@ def main():
         eps=args.adam_epsilon,
     )
 
+    if args.ort:
+        from onnxruntime.training.optim.fp16_optimizer import FP16_Optimizer as ORT_FP16_Optimizer
+        optimizer = ORT_FP16_Optimizer(optimizer)
+
     # Get the datasets: you can either provide your own training and evaluation files (see below)
     # or specify a Dataset from the hub (the dataset will be downloaded automatically from the datasets Hub).
 
@@ -747,6 +759,12 @@ def main():
     if args.use_ema:
         ema_unet.to(accelerator.device)
 
+    if args.ort:
+        from onnxruntime.training.ortmodule import ORTModule
+        vae = ORTModule(vae)
+        text_encoder = ORTModule(text_encoder)
+        unet = ORTModule(unet)
+
     # For mixed precision training we cast the text_encoder and vae weights to half-precision
     # as these models are only used for inference, keeping weights in full precision is not required.
     weight_dtype = torch.float32
@@ -867,7 +885,10 @@ def main():
                     raise ValueError(f"Unknown prediction type {noise_scheduler.config.prediction_type}")
 
                 # Predict the noise residual and compute loss
-                model_pred = unet(noisy_latents, timesteps, encoder_hidden_states).sample
+                if args.ort:
+                    model_pred = unet(noisy_latents, timesteps, encoder_hidden_states, return_dict=False)[0]
+                else:
+                    model_pred = unet(noisy_latents, timesteps, encoder_hidden_states).sample
 
                 if args.snr_gamma is None:
                     loss = F.mse_loss(model_pred.float(), target.float(), reduction="mean")
@@ -942,19 +963,24 @@ def main():
     # Create the pipeline using the trained modules and save it.
     accelerator.wait_for_everyone()
     if accelerator.is_main_process:
-        unet = accelerator.unwrap_model(unet)
-        if args.use_ema:
-            ema_unet.copy_to(unet.parameters())
+        if args.ort:
+            # TODO: Replace with ORT Inference logic:
+            # https://github.com/microsoft/onnxruntime/tree/188d5f5398936d35649c2a6cdcaa76b3735c1653/onnxruntime/python/tools/transformers/models/stable_diffusion
+            pass
+        else:
+            unet = accelerator.unwrap_model(unet)
+            if args.use_ema:
+                ema_unet.copy_to(unet.parameters())
 
-        pipeline = StableDiffusionPipeline.from_pretrained(
-            args.pretrained_model_name_or_path,
-            text_encoder=text_encoder,
-            vae=vae,
-            unet=unet,
-            revision=args.revision,
-            torch_dtype=torch.float16,
-        )
-        pipeline.save_pretrained(args.output_dir)
+            pipeline = StableDiffusionPipeline.from_pretrained(
+                args.pretrained_model_name_or_path,
+                text_encoder=text_encoder,
+                vae=vae,
+                unet=unet,
+                revision=args.revision,
+                torch_dtype=torch.float16,
+            )
+            pipeline.save_pretrained(args.output_dir)
 
         if args.push_to_hub:
             upload_folder(

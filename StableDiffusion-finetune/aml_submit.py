@@ -89,7 +89,7 @@ def main(raw_args=None):
     ort_job = command(
         code=code_dir,  # local path where the code is stored
         command=f"accelerate launch --config_file=accelerate_config.yaml --mixed_precision=fp16  \
-                    train_text_to_image_ort.py \
+                    train_text_to_image.py --ort \
                     --pretrained_model_name_or_path={model}\
                     --dataset_name={dataset} \
                     --use_ema \

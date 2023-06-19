@@ -1,31 +1,29 @@
 # Stable Diffusion Fine-Tuning with ACPT and ONNX Runtime
 
-This codebase shows how to use ACPT (Azure Container for PyTorch) along with accelerators such as ONNX Runtime Training (through Hugging Face Diffusers) and DeepSpeed to fine-tune Hugging Face's stable diffusion model for a text to image task.
+This codebase shows how to use ONNX Runtime Training along with Azure Container for PyTorch (ACPT) to fine-tune a UNet Stable Diffusion Model (from Hugging Face's diffusers library) for a text to image task.
 
 ## Run Experiments
 
 #### `StableDiffusion-finetune/finetune-code` contains all the code that is required for local testing
 Relevant Files:
-- finetune-code/train_text_to_image_ort.py: fine-tuning script that leverages ONNX Runtime and DeepSpeed
-- finetune-code/train_text_to_image.py: fine-tuning script with only DeepSpeed for comparison
-- accelerate_config.py: configuration file for Hugging Face Accelerate to train on a 8 GPU machine
+- finetune-code/train_text_to_image.py: fine-tuning script that leverages ONNX Runtime and DeepSpeed
+- accelerate_config.py: configuration file for Hugging Face Accelerate to train on a 8 GPU machine ([Hugging Face's Accelerate](https://huggingface.co/docs/accelerate/main/en/basic_tutorials/launch) documentation)
 
 ```Dockerfile
 FROM ptebic.azurecr.io/internal/azureml/aifx/nightly-ubuntu2004-cu117-py38-torch210dev:latest
 
 RUN pip install --pre torch torchvision --index-url https://download.pytorch.org/whl/nightly/cu118
-RUN pip install accelerate datasets transformers
-# RUN pip install git+https://github.com/huggingface/diffusers
-RUN git clone https://github.com/prathikr/diffusers.git && \
-        cd diffusers && \
-        git checkout prathikrao/ortmodule-stablediffusionpipeline && \
-        pip install .
+
+# text-to-image dependencies taken from: https://github.com/huggingface/diffusers/blob/main/examples/text_to_image/requirements.txt
+RUN pip install accelerate>=0.16.0 transformers>=4.25.1 datasets ftfy tensorboard Jinja2
+RUN pip install git+https://github.com/huggingface/diffusers
+
 RUN pip install azureml-core
 
 WORKDIR workspace
 RUN git clone https://github.com/microsoft/onnxruntime-training-examples.git
 RUN cd onnxruntime-training-examples/StableDiffusion-finetune/finetune-code && \
-        accelerate launch --config_file=accelerate_config.yaml --mixed_precision=fp16 train_text_to_image.py \
+        accelerate launch --config_file=accelerate_config.yaml --mixed_precision=fp16 train_text_to_image.py --ort \
         --pretrained_model_name_or_path={model} \
         --dataset_name={dataset} \
         --use_ema \
@@ -64,10 +62,10 @@ pip install azure-ai-ml azure-identity
 
 #### `aml_submit.py` submits an training job to AML. This job builds the training environment and runs the fine-tuning script in it.
 Relevant Files:
-- finetune-code/train_text_to_image_ort.py: fine-tuning script that leverages ONNX Runtime and DeepSpeed
-- finetune-code/train_text_to_image.py: fine-tuning script with only DeepSpeed for comparison
-- accelerate_config.py: configuration file for Hugging Face Accelerate to train on a 8 GPU machine
+- finetune-code/train_text_to_image.py: fine-tuning script that leverages ONNX Runtime and DeepSpeed
+- accelerate_config.py: configuration file for Hugging Face Accelerate to train on a 8 GPU machine ([Hugging Face's Accelerate](https://huggingface.co/docs/accelerate/main/en/basic_tutorials/launch) documentation)
 - aml_submit.py: submission script to submit training workload to AzureML
+- aml_upload_util.py: util script to upload results of finetuning script to AzureML training job
 
 Example to submit training job for CompVis/stable-diffusion-v1-4 on the lambdalabs/pokemon-blip-captions dataset:
 ```bash
