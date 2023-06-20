@@ -72,7 +72,7 @@ Relevant Files:
 - aml_submit.py: submission script to submit training workload to AzureML
 - aml_upload_util.py: util script to upload results of finetuning script to AzureML training job
 
-Example to submit training job for CompVis/stable-diffusion-v1-4 on the lambdalabs/pokemon-blip-captions dataset:
+Example to submit training job for `CompVis/stable-diffusion-v1-4` model on the `lambdalabs/pokemon-blip-captions` dataset:
 ```bash
 python aml_submit.py
 ```
