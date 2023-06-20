@@ -761,8 +761,6 @@ def main():
 
     if args.ort:
         from onnxruntime.training.ortmodule import ORTModule
-        vae = ORTModule(vae)
-        text_encoder = ORTModule(text_encoder)
         unet = ORTModule(unet)
 
     # For mixed precision training we cast the text_encoder and vae weights to half-precision
@@ -964,23 +962,33 @@ def main():
     accelerator.wait_for_everyone()
     if accelerator.is_main_process:
         if args.ort:
-            # TODO: Replace with ORT Inference logic:
-            # https://github.com/microsoft/onnxruntime/tree/188d5f5398936d35649c2a6cdcaa76b3735c1653/onnxruntime/python/tools/transformers/models/stable_diffusion
-            pass
+            # Get the most recent checkpoint
+            dirs = os.listdir(args.output_dir)
+            dirs = [d for d in dirs if d.startswith("checkpoint")]
+            dirs = sorted(dirs, key=lambda x: int(x.split("-")[1]))
+            checkpoint_dir = dirs[-1] if len(dirs) > 0 else None
+
+            # reload PyTorch model with weights trained via ORT Training
+            # this is required since ORTModule object cannot be passed into StableDiffusionPipeline
+            root_dir = Path(__file__).resolve().parent
+            checkpoint_dir = root_dir / args.output_dir / checkpoint_dir
+            unet = UNet2DConditionModel.from_pretrained(
+                str(checkpoint_dir), subfolder="unet"
+            )
         else:
             unet = accelerator.unwrap_model(unet)
             if args.use_ema:
                 ema_unet.copy_to(unet.parameters())
 
-            pipeline = StableDiffusionPipeline.from_pretrained(
-                args.pretrained_model_name_or_path,
-                text_encoder=text_encoder,
-                vae=vae,
-                unet=unet,
-                revision=args.revision,
-                torch_dtype=torch.float16,
-            )
-            pipeline.save_pretrained(args.output_dir)
+        pipeline = StableDiffusionPipeline.from_pretrained(
+            args.pretrained_model_name_or_path,
+            text_encoder=text_encoder,
+            vae=vae,
+            unet=unet,
+            revision=args.revision,
+            torch_dtype=torch.float16,
+        )
+        pipeline.save_pretrained(args.output_dir)
 
         if args.push_to_hub:
             upload_folder(
