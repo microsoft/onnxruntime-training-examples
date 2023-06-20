@@ -761,6 +761,8 @@ def main():
 
     if args.ort:
         from onnxruntime.training.ortmodule import ORTModule
+        vae = ORTModule(vae)
+        text_encoder = ORTModule(text_encoder)
         unet = ORTModule(unet)
 
     # For mixed precision training we cast the text_encoder and vae weights to half-precision
@@ -974,6 +976,14 @@ def main():
             checkpoint_dir = root_dir / args.output_dir / checkpoint_dir
             unet = UNet2DConditionModel.from_pretrained(
                 str(checkpoint_dir), subfolder="unet"
+            )
+
+            # reload pre-trained text_encoder and vae
+            text_encoder = CLIPTextModel.from_pretrained(
+                args.pretrained_model_name_or_path, subfolder="text_encoder", revision=args.revision
+            )
+            vae = AutoencoderKL.from_pretrained(
+                args.pretrained_model_name_or_path, subfolder="vae", revision=args.revision
             )
         else:
             unet = accelerator.unwrap_model(unet)
