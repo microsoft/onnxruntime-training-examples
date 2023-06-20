@@ -2,6 +2,9 @@
 
 This codebase shows how to use ONNX Runtime Training along with Azure Container for PyTorch (ACPT) to fine-tune a UNet Stable Diffusion Model (from Hugging Face's diffusers library) for a text to image task.
 
+Our team has tested finetuning `CompVis/stable-diffusion-v1-4` model on the `lambdalabs/pokemon-blip-captions` dataset and achieved the following speedup:
+![image](https://github.com/microsoft/onnxruntime-training-examples/assets/31260940/598faff5-1921-47ab-8de9-9a93a673b844)
+
 ## Run Experiments
 
 ### Run Locally
