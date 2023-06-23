@@ -51,7 +51,7 @@ import mlflow
 import subprocess
 import pickle
 import torch
-import azureml.evaluate.mlflow as azmlflow
+# import azureml.evaluate.mlflow as azmlflow
 import torch.profiler.profiler as profiler
 
 import datasets
@@ -603,44 +603,44 @@ def main():
             # Converting the pytorch model to onnx format
             # Documentation for encoder-decoder export: https://github.com/microsoft/onnxruntime/blob/main/onnxruntime/python/tools/transformers/models/t5/convert_to_onnx.py
             # Documentation for general export: https://pytorch.org/docs/stable/onnx.html#example-alexnet-from-pytorch-to-onnx
-            subprocess.call(["python", "-m", "onnxruntime.transformers.models.t5.convert_to_onnx", "-m", "t5-small", "--output", str(trained_model_path / "onnx"), "--use_external_data_format", "--state_dict_path", "pytorch_model.bin"])
+            subprocess.call(["python", "-m", "onnxruntime.transformers.models.t5.convert_to_onnx", "-m", str(trained_model_path), "--output", str(trained_model_path / "onnx"), "--use_external_data_format"])
             
             subprocess.call(["python", "-m", "onnxruntime.transformers.convert_generation", "-m", "t5-small", "--model_type", "t5", "--decoder_onnx", str(trained_model_path / "onnx" / "outputs_decoder.onnx"), "--encoder_decoder_init_onnx", str(trained_model_path / "onnx" / "outputs_encoder_decoder_init.onnx"), "--output", str(trained_model_path / "onnx" / "outputs_beam_search.onnx")])
             
-            conda_env = {
-                'channels': ['conda-forge'],
-                'dependencies': [
-                    'python=3.8.8',
-                    'pip',
-                    {'pip': [
-                    'mlflow',
-                    'torch==2.0.0',
-                    'transformers',
-                    'azureml-evaluate-mlflow'
-                    ]}
-                ],
-                'name': 'mlflow-env'
-            }
-            misc_conf = {
-                "task_type": "summarization"
-            }
+            # conda_env = {
+            #     'channels': ['conda-forge'],
+            #     'dependencies': [
+            #         'python=3.8.8',
+            #         'pip',
+            #         {'pip': [
+            #         'mlflow',
+            #         'torch==2.0.0',
+            #         'transformers',
+            #         'azureml-evaluate-mlflow'
+            #         ]}
+            #     ],
+            #     'name': 'mlflow-env'
+            # }
+            # misc_conf = {
+            #     "task_type": "summarization"
+            # }
             
-            components = {
-                "model": model,
-                "tokenizer": tokenizer,
-                "config": config,
-            }
+            # components = {
+            #     "model": model,
+            #     "tokenizer": tokenizer,
+            #     "config": config,
+            # }
             
             
             #Saving the Model as MLFlow model
 
-            model_info = azmlflow.hftransformers.save_model(
-                hf_model=model,
-                tokenizer=tokenizer,
-                config=config,
-                path=os.path.join(str(trained_model_path), "mlflow"), conda_env=conda_env,
-                hf_conf=misc_conf
-            )
+            # model_info = azmlflow.hftransformers.save_model(
+            #     hf_model=model,
+            #     tokenizer=tokenizer,
+            #     config=config,
+            #     path=os.path.join(str(trained_model_path), "mlflow"), conda_env=conda_env,
+            #     hf_conf=misc_conf
+            # )
        
 
     # Evaluation
