@@ -44,7 +44,7 @@
     "job_name": "train_t5"
   },
   "nebula": {
-    "enabled": true,
+    "enabled": false,
     "persistent_storage_path": "/tmp/nebula_checkpoint/",
     "persistent_time_interval": 10,
     "num_of_version_in_retention": 2,
