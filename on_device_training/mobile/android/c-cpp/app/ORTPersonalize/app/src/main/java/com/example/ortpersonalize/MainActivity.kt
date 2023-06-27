@@ -35,15 +35,15 @@ class MainActivity : AppCompatActivity() {
     private val PICK_CLASS_Y_IMAGES_FOR_TRAINING = 7000 // Pick class Y images for training from the android gallery
     private val CAMERA_PERMISSION_CODE = 8 // Permission to access the camera
     private var images = ArrayList<Pair<Uri, Int>>() // Array that stores the Uri for all images that need to be trained.
-    private var classA_samples = 0 // Number of samples for class A
-    private var classA_name: String = "A" // Default class A name
-    private var classB_samples = 0 // Number of samples for class B
-    private var classB_name: String = "B" // Default class B name
-    private var classX_samples = 0 // Number of samples for class X
-    private var classX_name: String = "X" // Default class X name
-    private var classY_samples = 0 // Number of samples for class Y
-    private var classY_name: String = "Y" // Default class Y name
-    private val non_custom_class_default_labels: Array<String> = arrayOf("dog", "cat", "elephant", "cow") // Default labels for non custom class
+    private var samplesClassA = 0 // Number of samples for class A
+    private var nameClassA: String = "A" // Default class A name
+    private var samplesClassB = 0 // Number of samples for class B
+    private var nameClassB: String = "B" // Default class B name
+    private var samplesClassX = 0 // Number of samples for class X
+    private var nameClassX: String = "X" // Default class X name
+    private var samplesClassY = 0 // Number of samples for class Y
+    private var nameClassY: String = "Y" // Default class Y name
+    private val prepackedDefaultLabels: Array<String> = arrayOf("dog", "cat", "elephant", "cow") // Default labels for non custom class
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,11 +51,11 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val trainingModelPath = copyAssetToCacheDir("mobilenetv2_training.onnx", "training_model.onnx")
-        val evalModelPath = copyAssetToCacheDir("mobilenetv2_eval.onnx", "eval_model.onnx")
-        val checkpointPath = copyFileOrDir("mobilenetv2.ckpt")
-        val optimizerModelPath = copyAssetToCacheDir("mobilenetv2_optimizer.onnx", "optimizer_model.onnx")
-        ort_session = getSession(checkpointPath, trainingModelPath, evalModelPath, optimizerModelPath,
+        val trainingModelPath = copyAssetToCacheDir("training_model.onnx", "training_model.onnx")
+        val evalModelPath = copyAssetToCacheDir("eval_model.onnx", "eval_model.onnx")
+        val checkpointPath = copyFileOrDir("checkpoint")
+        val optimizerModelPath = copyAssetToCacheDir("optimizer_model.onnx", "optimizer_model.onnx")
+        ort_session = createSession(checkpointPath, trainingModelPath, evalModelPath, optimizerModelPath,
             "$cacheDir")
 
         val inferButton: Button = findViewById(R.id.infer_button)
@@ -129,10 +129,10 @@ class MainActivity : AppCompatActivity() {
     private val onTrainButtonClickedListener: View.OnClickListener = object : View.OnClickListener {
         override fun onClick(v: View) {
             // Reset the samples
-            classA_samples = 0
-            classB_samples = 0
-            classX_samples = 0
-            classY_samples = 0
+            samplesClassA = 0
+            samplesClassB = 0
+            samplesClassX = 0
+            samplesClassY = 0
 
             // Reset the state message
             binding.statusMessage.text = ""
@@ -141,19 +141,19 @@ class MainActivity : AppCompatActivity() {
 
             // Update the class names based on whether customClassSetting is checked or not
             if (binding.customClassSetting.isChecked) {
-                binding.classA.text = classA_name
-                binding.classB.text = classB_name
-                binding.classX.text = classX_name
-                binding.classY.text = classY_name
+                binding.classA.text = nameClassA
+                binding.classB.text = nameClassB
+                binding.classX.text = nameClassX
+                binding.classY.text = nameClassY
             } else {
-                binding.classA.text = non_custom_class_default_labels[0]
-                binding.classB.text = non_custom_class_default_labels[1]
-                binding.classX.text = non_custom_class_default_labels[2]
-                binding.classY.text = non_custom_class_default_labels[3]
+                binding.classA.text = prepackedDefaultLabels[0]
+                binding.classB.text = prepackedDefaultLabels[1]
+                binding.classX.text = prepackedDefaultLabels[2]
+                binding.classY.text = prepackedDefaultLabels[3]
 
                 // Move asset images to the cache and collect their Uris for training.
                 val cachePath: String = copyFileOrDir("images")
-                for ((index, label) in non_custom_class_default_labels.withIndex()) {
+                for ((index, label) in prepackedDefaultLabels.withIndex()) {
                     for (image_num in 1..20) {
                         val imagePath: String = String.format("%s/%s/%s%02d.jpeg", cachePath, label, label, image_num)
                         val f = java.io.File(imagePath)
@@ -250,29 +250,29 @@ class MainActivity : AppCompatActivity() {
             binding.statusMessage.text = ""
             binding.inputImage.setImageResource(0)
             if (isChecked) {
-                binding.classA.text = classA_name
-                binding.classB.text = classB_name
-                binding.classX.text = classX_name
-                binding.classY.text = classY_name
+                binding.classA.text = nameClassA
+                binding.classB.text = nameClassB
+                binding.classX.text = nameClassX
+                binding.classY.text = nameClassY
                 releaseSession(ort_session)
                 val trainingModelPath = copyAssetToCacheDir("mobilenetv2_training.onnx", "training_model.onnx")
                 val evalModelPath = copyAssetToCacheDir("mobilenetv2_eval.onnx", "eval_model.onnx")
                 val checkpointPath = copyFileOrDir("mobilenetv2.ckpt")
                 val optimizerModelPath = copyAssetToCacheDir("mobilenetv2_optimizer.onnx", "optimizer_model.onnx")
-                ort_session = getSession(checkpointPath, trainingModelPath, evalModelPath, optimizerModelPath,
+                ort_session = createSession(checkpointPath, trainingModelPath, evalModelPath, optimizerModelPath,
                     "$cacheDir")
                 enableButtons()
             } else {
-                binding.classA.text = String.format("%s (20)", non_custom_class_default_labels[0])
-                binding.classB.text = String.format("%s (20)", non_custom_class_default_labels[1])
-                binding.classX.text = String.format("%s (20)", non_custom_class_default_labels[2])
-                binding.classY.text = String.format("%s (20)", non_custom_class_default_labels[3])
+                binding.classA.text = String.format("%s (20)", prepackedDefaultLabels[0])
+                binding.classB.text = String.format("%s (20)", prepackedDefaultLabels[1])
+                binding.classX.text = String.format("%s (20)", prepackedDefaultLabels[2])
+                binding.classY.text = String.format("%s (20)", prepackedDefaultLabels[3])
                 releaseSession(ort_session)
                 val trainingModelPath = copyAssetToCacheDir("mobilenetv2_training.onnx", "training_model.onnx")
                 val evalModelPath = copyAssetToCacheDir("mobilenetv2_eval.onnx", "eval_model.onnx")
                 val checkpointPath = copyFileOrDir("mobilenetv2.ckpt")
                 val optimizerModelPath = copyAssetToCacheDir("mobilenetv2_optimizer.onnx", "optimizer_model.onnx")
-                ort_session = getSession(checkpointPath, trainingModelPath, evalModelPath, optimizerModelPath,
+                ort_session = createSession(checkpointPath, trainingModelPath, evalModelPath, optimizerModelPath,
                     "$cacheDir")
                 binding.trainButton.isEnabled = true
                 binding.inferButton.isEnabled = true
@@ -302,8 +302,8 @@ class MainActivity : AppCompatActivity() {
             builder.setPositiveButton("OK",
                 DialogInterface.OnClickListener { dialog, which ->
                     val classA: Button = findViewById(R.id.classA)
-                    classA_name = input.text.toString()
-                    classA.text = classA_name
+                    nameClassA = input.text.toString()
+                    classA.text = nameClassA
                 })
             builder.setNegativeButton("Cancel",
                 DialogInterface.OnClickListener { dialog, which -> dialog.cancel() })
@@ -336,8 +336,8 @@ class MainActivity : AppCompatActivity() {
             builder.setPositiveButton("OK",
                 DialogInterface.OnClickListener { dialog, which ->
                     val classB: Button = findViewById(R.id.classB)
-                    classB_name = input.text.toString()
-                    classB.text = classB_name
+                    nameClassB = input.text.toString()
+                    classB.text = nameClassB
                 })
             builder.setNegativeButton("Cancel",
                 DialogInterface.OnClickListener { dialog, which -> dialog.cancel() })
@@ -370,8 +370,8 @@ class MainActivity : AppCompatActivity() {
             builder.setPositiveButton("OK",
                 DialogInterface.OnClickListener { dialog, which ->
                     val classX: Button = findViewById(R.id.classX)
-                    classX_name = input.text.toString()
-                    classX.text = classX_name
+                    nameClassX = input.text.toString()
+                    classX.text = nameClassX
                 })
             builder.setNegativeButton("Cancel",
                 DialogInterface.OnClickListener { dialog, which -> dialog.cancel() })
@@ -404,8 +404,8 @@ class MainActivity : AppCompatActivity() {
             builder.setPositiveButton("OK",
                 DialogInterface.OnClickListener { dialog, which ->
                     val classY: Button = findViewById(R.id.classY)
-                    classY_name = input.text.toString()
-                    classY.text = classY_name
+                    nameClassY = input.text.toString()
+                    classY.text = nameClassY
                 })
             builder.setNegativeButton("Cancel",
                 DialogInterface.OnClickListener { dialog, which -> dialog.cancel() })
@@ -449,16 +449,16 @@ class MainActivity : AppCompatActivity() {
             if (data?.getClipData() != null) {
                 val count: Int = data?.getClipData()!!.getItemCount()
                 for (i in 0 until count) {
-                    classA_samples += 1
+                    samplesClassA += 1
                     val pair = Pair(data?.getClipData()!!.getItemAt(i).getUri(), 0)
                     images.add(pair)
                 }
             } else if (data?.getData() != null) {
-                classA_samples += 1
+                samplesClassA += 1
                 val pair = Pair(data?.getData()!!, 0);
                 images.add(pair)
             }
-            binding.classA.text = String.format("%s (%d)", classA_name, classA_samples)
+            binding.classA.text = String.format("%s (%d)", nameClassA, samplesClassA)
             binding.trainButton.isEnabled = true
             binding.statusMessage.text = ""
             binding.inputImage.setImageResource(0)
@@ -467,16 +467,16 @@ class MainActivity : AppCompatActivity() {
             if (data?.getClipData() != null) {
                 val count: Int = data?.getClipData()!!.getItemCount()
                 for (i in 0 until count) {
-                    classB_samples += 1
+                    samplesClassB += 1
                     val pair = Pair(data?.getClipData()!!.getItemAt(i).getUri(), 1)
                     images.add(pair)
                 }
             } else if (data?.getData() != null) {
-                classB_samples += 1
+                samplesClassB += 1
                 val pair = Pair(data.getData()!!, 1);
                 images.add(pair)
             }
-            binding.classB.text = String.format("%s (%d)", classB_name, classB_samples)
+            binding.classB.text = String.format("%s (%d)", nameClassB, samplesClassB)
             binding.trainButton.isEnabled = true
             binding.statusMessage.text = ""
             binding.inputImage.setImageResource(0)
@@ -485,16 +485,16 @@ class MainActivity : AppCompatActivity() {
             if (data?.getClipData() != null) {
                 val count: Int = data?.getClipData()!!.getItemCount()
                 for (i in 0 until count) {
-                    classX_samples += 1
+                    samplesClassX += 1
                     val pair = Pair(data?.getClipData()!!.getItemAt(i).getUri(), 2)
                     images.add(pair)
                 }
             } else if (data?.getData() != null) {
-                classX_samples += 1
+                samplesClassX += 1
                 val pair = Pair(data?.getData()!!, 2);
                 images.add(pair)
             }
-            binding.classX.text = String.format("%s (%d)", classX_name, classX_samples)
+            binding.classX.text = String.format("%s (%d)", nameClassX, samplesClassX)
             binding.trainButton.isEnabled = true
             binding.statusMessage.text = ""
             binding.inputImage.setImageResource(0)
@@ -503,16 +503,16 @@ class MainActivity : AppCompatActivity() {
             if (data?.getClipData() != null) {
                 val count: Int = data?.getClipData()!!.getItemCount()
                 for (i in 0 until count) {
-                    classY_samples += 1
+                    samplesClassY += 1
                     val pair = Pair(data?.getClipData()!!.getItemAt(i).getUri(), 3)
                     images.add(pair)
                 }
             } else if (data?.getData() != null) {
-                classY_samples += 1
+                samplesClassY += 1
                 val pair = Pair(data?.getData()!!, 3);
                 images.add(pair)
             }
-            binding.classY.text = String.format("%s (%d)", classY_name, classY_samples)
+            binding.classY.text = String.format("%s (%d)", nameClassY, samplesClassY)
             binding.trainButton.isEnabled = true
             binding.statusMessage.text = ""
             binding.inputImage.setImageResource(0)
@@ -535,9 +535,9 @@ class MainActivity : AppCompatActivity() {
             imgData.rewind()
             var classes: Array<String>
             if (binding.customClassSetting.isChecked) {
-                classes = arrayOf(classA_name, classB_name, classX_name, classY_name)
+                classes = arrayOf(nameClassA, nameClassB, nameClassX, nameClassY)
             } else {
-                classes = non_custom_class_default_labels
+                classes = prepackedDefaultLabels
             }
             binding.statusMessage.text = String.format("Prediction: %s", performInference(ort_session, imgData.array(), batchSize, channels, width, height, classes))
 
@@ -608,8 +608,8 @@ class MainActivity : AppCompatActivity() {
         return "$cacheDir/$path"
     }
 
-    external fun getSession(checkpointPath:String, trainModelPath: String, evalModelPath: String,
-                            optimizerModelPath: String, cacheDirPath: String): Long
+    external fun createSession(checkpointPath:String, trainModelPath: String, evalModelPath: String,
+                               optimizerModelPath: String, cacheDirPath: String): Long
 
     external fun releaseSession(session:Long)
 

@@ -1,16 +1,13 @@
 #include <jni.h>
 #include <string>
-#include <cassert>
-#include <memory>
 
-#include "onnxruntime_training_cxx_api.h"
-#include "inference.h"
 #include "session_cache.h"
 #include "utils.h"
 #include "train.h"
+#include "inference.h"
 
 extern "C" JNIEXPORT jlong JNICALL
-Java_com_example_ortpersonalize_MainActivity_getSession(
+Java_com_example_ortpersonalize_MainActivity_createSession(
         JNIEnv *env, jobject /* this */,
         jstring checkpoint_path, jstring train_model_path, jstring eval_model_path,
         jstring optimizer_model_path, jstring cache_dir_path)
@@ -34,6 +31,28 @@ Java_com_example_ortpersonalize_MainActivity_releaseSession(
 }
 
 extern "C"
+JNIEXPORT float JNICALL
+Java_com_example_ortpersonalize_MainActivity_performTraining(
+        JNIEnv *env, jobject /* this */,
+        jlong session, jfloatArray batch, jintArray labels, jint batch_size,
+        jint channels, jint frame_rows, jint frame_cols) {
+    auto* session_cache = reinterpret_cast<SessionCache *>(session);
+
+    if (session_cache->inference_session) {
+        // Invalidate the inference session since we will be updating the model parameters
+        // in train_step.
+        // The next call to inference session will need to recreate the inference session.
+        delete session_cache->inference_session;
+        session_cache->inference_session = nullptr;
+    }
+
+    // Update the model parameters using this batch of inputs.
+    return training::train_step(session_cache, env->GetFloatArrayElements(batch, nullptr),
+                                env->GetIntArrayElements(labels, nullptr), batch_size,
+                                channels, frame_rows, frame_cols);
+}
+
+extern "C"
 JNIEXPORT jstring JNICALL
 Java_com_example_ortpersonalize_MainActivity_performInference(
         JNIEnv *env, jobject  /* this */,
@@ -42,14 +61,14 @@ Java_com_example_ortpersonalize_MainActivity_performInference(
 
     std::vector<std::string> classes_str;
     for (int i = 0; i < env->GetArrayLength(classes); ++i) {
-        // access the current string element
+        // Access the current string element
         jstring elem = static_cast<jstring>(env->GetObjectArrayElement(classes, i));
         classes_str.push_back(utils::JString2String(env, elem));
     }
 
     auto* session_cache = reinterpret_cast<SessionCache *>(session);
     if (!session_cache->inference_session) {
-        // the inference session does not exist, so create a new one.
+        // The inference session does not exist, so create a new one.
         session_cache->training_session.ExportModelForInferencing(
                 session_cache->artifact_paths.inference_model_path.c_str(), {"output"});
         session_cache->inference_session = std::make_unique<Ort::Session>(
@@ -62,25 +81,4 @@ Java_com_example_ortpersonalize_MainActivity_performInference(
             batch_size, image_channels, image_rows, image_cols, classes_str);
 
     return env->NewStringUTF(prediction.first.c_str());
-}
-extern "C"
-JNIEXPORT float JNICALL
-Java_com_example_ortpersonalize_MainActivity_performTraining(
-        JNIEnv *env, jobject /* this */,
-        jlong session, jfloatArray batches, jintArray labels, jint batch_size,
-        jint channels, jint frame_rows, jint frame_cols) {
-    auto* session_cache = reinterpret_cast<SessionCache *>(session);
-
-    if (session_cache->inference_session) {
-        // invalidate the inference session since we will be updating the model parameters
-        // in train_step.
-        // the next call to inference session will need to recreate the inference session.
-        delete session_cache->inference_session;
-        session_cache->inference_session = nullptr;
-    }
-
-    // update the model parameters using this batch of inputs.
-    return training::train_step(session_cache, env->GetFloatArrayElements(batches, nullptr),
-                                env->GetIntArrayElements(labels, nullptr), batch_size,
-                                channels, frame_rows, frame_cols);
 }

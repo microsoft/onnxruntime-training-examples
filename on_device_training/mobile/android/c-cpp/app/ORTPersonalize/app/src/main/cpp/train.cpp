@@ -4,7 +4,6 @@
 
 #include "train.h"
 
-
 namespace training {
 
     float train_step(SessionCache* session_cache, float *batches, int32_t *labels,
@@ -15,26 +14,26 @@ namespace training {
 
         Ort::MemoryInfo memory_info = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
         std::vector<Ort::Value> user_inputs; // {inputs, labels}
-        // inputs batched
+        // Inputs batched
         user_inputs.emplace_back(Ort::Value::CreateTensor(memory_info, batches,
                                                           batch_size * image_channels * image_rows * image_cols * sizeof(float),
                                                           input_shape.data(), input_shape.size(),
                                                           ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT));
 
-        // labels batched
+        // Labels batched
         user_inputs.emplace_back(Ort::Value::CreateTensor(memory_info, labels,
                                                           batch_size * sizeof(int32_t),
                                                           labels_shape.data(), labels_shape.size(),
                                                           ONNX_TENSOR_ELEMENT_DATA_TYPE_INT32));
 
-        // run the train step and execute the forward + loss + backward.
+        // Run the train step and execute the forward + loss + backward.
         float loss = *(session_cache->training_session.TrainStep(user_inputs).front().GetTensorMutableData<float>());
 
-        // update the model parameters by taking a step in the direction of the gradients computed above.
+        // Update the model parameters by taking a step in the direction of the gradients computed above.
         session_cache->training_session.OptimizerStep();
 
-        // reset the gradients now that the parameters have been updated.
-        // new set of gradients can then be computed for the next round of inputs.
+        // Reset the gradients now that the parameters have been updated.
+        // New set of gradients can then be computed for the next round of inputs.
         session_cache->training_session.LazyResetGrad();
 
         return loss;
