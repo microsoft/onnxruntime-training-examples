@@ -57,7 +57,7 @@ namespace inference {
 
         // get the logits
         session_cache->inference_session->Run(Ort::RunOptions(), input_names.data(), input_values.data(),
-                                             input_count, output_names.data(), output_values.data(), output_count);
+                                              input_count, output_names.data(), output_values.data(), output_count);
 
         float *output = output_values.front().GetTensorMutableData<float>();
 
