@@ -51,6 +51,10 @@ To follow this tutorial, you should have a basic understanding of Android app de
 
 ## Offline Phase - Building the training artifacts
 
+Relevant files in the directory for this section:
+
+- [`prepare_for_training.ipynb`](prepare_for_training.ipynb)
+
 1. <a name="op1"></a>Export the model to ONNX.
 
     We start with a pre-trained PyTorch model and export it to ONNX. The `MobileNetV2` model has been pretrained on the imagenet dataset that has data in 1000 categories. For our task of image classification, we want to only classify images in 4 classes. So, we change the last layer of the model to output 4 logits instead of 1,000.
@@ -117,6 +121,19 @@ To follow this tutorial, you should have a basic understanding of Android app de
    That's all! The training artifacts have been generated in the `training_artifacts` folder. This marks the end of the offline phase. These artifacts are ready to be deployed to the Android device for training.
 
 ## Training Phase - Android application development
+
+Relevant files in the directory for this section:
+
+- [`train.ipynb`](train.ipynb)
+- [`build.gradle (Module)`](app/ORTPersonalize/app/build.gradle)
+- [`native-lib.cpp`](app/ORTPersonalize/app/src/main/cpp/native-lib.cpp)
+- [`CMakeLists.txt`](app/ORTPersonalize/app/src/main/cpp/CMakeLists.txt)
+- [`images.zip`](data/images.zip)
+- [`C++ header and source files`](app/ORTPersonalize/app/src/main/cpp)
+- [`ImageProcessingUtil.kt`](app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/ImageProcessingUtil.kt)
+- [`MainActivity.kt`](app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt)
+- [`Layouts`](app/ORTPersonalize/app/src/main/res/layout/)
+- [`AndroidManifest.xml`](app/ORTPersonalize/app/src/main/AndroidManifest.xml)
 
 1. <a name="tp1"></a>Setting up the project in Android Studio
 
