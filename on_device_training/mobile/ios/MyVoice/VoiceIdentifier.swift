@@ -13,7 +13,12 @@ class VoiceIdentifier {
     
     init() throws {
         ortEnv = try ORTEnv(loggingLevel: ORTLoggingLevel.warning)
-        let modelPath = Bundle.main.bundleURL.appendingPathComponent("inference_model.onnx").path
+
+        guard let libraryDirectory = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first else {
+            throw VoiceIdentifierError.Error("Failed to find library directory ")
+        }
+        let modelPath = libraryDirectory.appendingPathComponent("inference_model.onnx").path
+
         if !FileManager.default.fileExists(atPath: modelPath) {
             throw VoiceIdentifierError.Error("Failed to find inference model file.")
         }
