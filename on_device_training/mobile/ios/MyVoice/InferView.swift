@@ -78,7 +78,7 @@ struct InferView: View {
                     
                 }
                 
-                Text("Probability of User :  \(String(format: "%.2f", probUser))%")
+                Text("Probability of User : \(String(format: "%.2f", probUser*100.0))%")
                     .multilineTextAlignment(.center)
                     .fontDesign(.monospaced)
             }
