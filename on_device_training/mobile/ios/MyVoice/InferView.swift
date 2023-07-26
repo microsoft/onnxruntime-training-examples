@@ -7,15 +7,17 @@ struct InferView: View {
     }
     
     private let audioRecorder = AudioRecorder()
-    private let voiceIdentifier = try! VoiceIdentifier()
+    @State private var voiceIdentifier: VoiceIdentifier? = nil
     @State private var readyToRecord: Bool = true
     @State private var inferResult: InferResult = InferResult.notSet
     @State private var probUser: Float = 0.0
+    @State private var showAlert = false
+    @State private var alertMessage = ""
     
     private func recordVoice() {
         audioRecorder.record { recordResult in
             let recognizeResult = recordResult.flatMap { recordingBufferAndData in
-                return voiceIdentifier.evaluate(inputData: recordingBufferAndData.data)
+                return voiceIdentifier!.evaluate(inputData: recordingBufferAndData.data)
             }
             endRecord(recognizeResult)
         }
@@ -85,6 +87,19 @@ struct InferView: View {
         }
         .padding()
         .navigationTitle("Infer")
+        .onAppear {
+            do {
+                voiceIdentifier = try  VoiceIdentifier()
+                
+            } catch {
+                alertMessage = "Error initializing inference session, make sure that training is completed: \(error)"
+                showAlert = true
+            }
+            
+        }
+        .alert(isPresented: $showAlert) {
+            Alert(title: Text("Error"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
+        }
     }
 }
 
