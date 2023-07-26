@@ -43,10 +43,7 @@ class Trainer {
     }
     
     func exportModelForInference() throws {
-        guard let modelsDirUrl = Bundle.main.url(forResource: "models", withExtension: nil) else {
-            throw TrainerError.Error("Failed to find models directory.")
-        }
-        let modelPath = modelsDirUrl.appendingPathComponent("inference_model.onnx").path
+        let modelPath = Bundle.main.bundleURL.appendingPathComponent("inference_model.onnx").path
         try trainingSession.exportModelForInference(withOutputPath: modelPath, graphOutputNames: ["output"])
     }
     
@@ -122,4 +119,3 @@ class Trainer {
         return (buffer, data)
     }
 }
-

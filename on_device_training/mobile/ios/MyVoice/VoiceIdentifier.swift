@@ -13,7 +13,8 @@ class VoiceIdentifier {
     
     init() throws {
         ortEnv = try ORTEnv(loggingLevel: ORTLoggingLevel.warning)
-        guard let modelPath = Bundle.main.path(forResource: "inference_model", ofType: "onnx") else {
+        let modelPath = Bundle.main.bundleURL.appendingPathComponent("inference_model.onnx").path
+        if !FileManager.default.fileExists(atPath: modelPath) {
             throw VoiceIdentifierError.Error("Failed to find inference model file.")
         }
         ortSession = try ORTSession(env: ortEnv, modelPath: modelPath, sessionOptions: nil)
@@ -59,4 +60,3 @@ class VoiceIdentifier {
         }
     }
 }
-

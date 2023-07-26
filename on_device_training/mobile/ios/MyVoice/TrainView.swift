@@ -20,7 +20,7 @@ struct TrainView: View {
         "Even in the darkest times, a glimmer of hope can ignite a flame that illuminates the path ahead."
     ]
     
-    private let knumRecording = 6
+    private let knumRecording = 7
     private let audioRecorder = AudioRecorder()
     private let trainer = try! Trainer(sampleAudioRecordings: sentences.count)
     
@@ -47,12 +47,12 @@ struct TrainView: View {
             }
             readyToRecord = true
             
-            if currentSentenceIndex < knumRecording {
+            if currentSentenceIndex < knumRecording - 1 {
                 currentSentenceIndex += 1
                 
             } else {
                 isTrainingComplete = true
-                try? trainer.exportModelForInference()
+                try! trainer.exportModelForInference()
             }
         }
     }
@@ -125,4 +125,3 @@ struct TrainView_Previews: PreviewProvider {
         TrainView()
     }
 }
-
