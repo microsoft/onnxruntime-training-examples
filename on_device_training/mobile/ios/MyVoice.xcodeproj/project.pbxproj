@@ -34,7 +34,6 @@
 		21FA20E02A6EEC790028C95B /* other_9.wav in Resources */ = {isa = PBXBuildFile; fileRef = 21FA20CC2A6EEC790028C95B /* other_9.wav */; };
 		21FA20E12A6EEC790028C95B /* other_10.wav in Resources */ = {isa = PBXBuildFile; fileRef = 21FA20CD2A6EEC790028C95B /* other_10.wav */; };
 		21FA20E22A6EEC790028C95B /* other_12.wav in Resources */ = {isa = PBXBuildFile; fileRef = 21FA20CE2A6EEC790028C95B /* other_12.wav */; };
-		21FA20E82A6EECEA0028C95B /* inference_model.onnx in Resources */ = {isa = PBXBuildFile; fileRef = 21FA20E32A6EECDD0028C95B /* inference_model.onnx */; };
 		21FA20E92A6EECEA0028C95B /* optimizer_model.onnx in Resources */ = {isa = PBXBuildFile; fileRef = 21FA20E42A6EECDD0028C95B /* optimizer_model.onnx */; };
 		21FA20EA2A6EECEA0028C95B /* training_model.onnx in Resources */ = {isa = PBXBuildFile; fileRef = 21FA20E52A6EECDD0028C95B /* training_model.onnx */; };
 		21FA20EB2A6EECEA0028C95B /* checkpoint in Resources */ = {isa = PBXBuildFile; fileRef = 21FA20E62A6EECEA0028C95B /* checkpoint */; };
@@ -97,10 +96,9 @@
 		21FA20CC2A6EEC790028C95B /* other_9.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = other_9.wav; sourceTree = "<group>"; };
 		21FA20CD2A6EEC790028C95B /* other_10.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = other_10.wav; sourceTree = "<group>"; };
 		21FA20CE2A6EEC790028C95B /* other_12.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = other_12.wav; sourceTree = "<group>"; };
-		21FA20E32A6EECDD0028C95B /* inference_model.onnx */ = {isa = PBXFileReference; lastKnownFileType = file; path = inference_model.onnx; sourceTree = "<group>"; };
 		21FA20E42A6EECDD0028C95B /* optimizer_model.onnx */ = {isa = PBXFileReference; lastKnownFileType = file; path = optimizer_model.onnx; sourceTree = "<group>"; };
 		21FA20E52A6EECDD0028C95B /* training_model.onnx */ = {isa = PBXFileReference; lastKnownFileType = file; path = training_model.onnx; sourceTree = "<group>"; };
-		21FA20E62A6EECEA0028C95B /* checkpoint */ = {isa = PBXFileReference; lastKnownFileType = file; path = checkpoint; sourceTree = "<group>"; };
+		21FA20E62A6EECEA0028C95B /* checkpoint */ = {isa = PBXFileReference; lastKnownFileType = text; path = checkpoint; sourceTree = "<group>"; };
 		21FA20E72A6EECEA0028C95B /* eval_model.onnx */ = {isa = PBXFileReference; lastKnownFileType = file; path = eval_model.onnx; sourceTree = "<group>"; };
 		21FA20ED2A6EED750028C95B /* Trainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Trainer.swift; sourceTree = "<group>"; };
 		21FA20EF2A6EED8D0028C95B /* VoiceIdentifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceIdentifier.swift; sourceTree = "<group>"; };
@@ -231,7 +229,6 @@
 			children = (
 				21FA20E62A6EECEA0028C95B /* checkpoint */,
 				21FA20E72A6EECEA0028C95B /* eval_model.onnx */,
-				21FA20E32A6EECDD0028C95B /* inference_model.onnx */,
 				21FA20E42A6EECDD0028C95B /* optimizer_model.onnx */,
 				21FA20E52A6EECDD0028C95B /* training_model.onnx */,
 			);
@@ -384,7 +381,6 @@
 			files = (
 				21FA20EC2A6EECEA0028C95B /* eval_model.onnx in Resources */,
 				21FA20DA2A6EEC790028C95B /* other_14.wav in Resources */,
-				21FA20E82A6EECEA0028C95B /* inference_model.onnx in Resources */,
 				21FA20DB2A6EEC790028C95B /* other_2.wav in Resources */,
 				21FA20E12A6EEC790028C95B /* other_10.wav in Resources */,
 				21FA20D02A6EEC790028C95B /* other_4.wav in Resources */,
