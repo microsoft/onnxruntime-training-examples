@@ -1,5 +1,5 @@
 # MyVoice
-MyVoice uses onnxruntime iOS on device training APIs to perform voice verification on client without transmitting any user voice data.
+MyVoice uses ONNX Runtime's iOS On-Device Training APIs to perform voice verification on client without transmitting any user voice data.
 
 The application uses the user audio recordings and sample audio recordings from [librispeech](https://huggingface.co/datasets/librispeech_asr) dataset to train the model to identify user voice. 
 
