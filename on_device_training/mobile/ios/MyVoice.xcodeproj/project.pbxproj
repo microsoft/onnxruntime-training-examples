@@ -700,7 +700,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = MyVoice/Info.plist;
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "MyVoice nedds access to microphone to record and identify voice";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "MyVoice needs access to microphone to record and identify voice";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
