@@ -10,7 +10,7 @@ dataset = load_dataset("librispeech_asr", "clean", split="test", streaming=True)
 # process the audio data from the dataset so that it is the same length (10 seconds)
 max_len = 160000
 def preprocess(audio_array):
-    # trim the audio to 320000 samples if it is longer than that
+    # trim the audio to max_len samples if it is longer than that
     if len(audio_array) > max_len:
         return audio_array[:max_len].astype(np.float32)
 
