@@ -9,7 +9,7 @@ The application uses the user audio recordings and sample audio recordings from 
 
 2. In the training session, you will be presented with a sample sentence along with a "Record" button. Simply press the "Record" button and speak the displayed sentence, or you may choose to record any other sentence of your choice.
 
-3. The app will continue to present new sentences for to record until the training process is complete. 
+3. The app will continue to present new sentences for you to record until the training process is complete. 
 
 Once the training is finished, the app will display an "Infer" button, which will lead you to the infer screen.
 
