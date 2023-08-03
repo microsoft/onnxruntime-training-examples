@@ -33,19 +33,21 @@ From this directory, run:
 ```bash
 pod install
 ```
+### Install Python dependencies
+From this directory, run:
+
+```bash
+pip install -r requirements.txt
+```
 
 ### Generate Artifacts
-[Artifacts generation](./artifacts_gen.py) script downloads the model from huggingface and creates the folder named `artifacts` containing training artifacts. 
+[Artifacts generation](./artifacts_gen.py) script downloads the model from huggingface and creates the training artifacts in `MyVoice/artifacts`. 
 
 From this directory, run:
 
 ```bash
 python artifacts_gen.py
 ```
-
-The script should generates the required training artifacts. Put this artifacts inside the `MyVoice/artifacts` directory.
-
-
 
 ### Download Sample Recordings
 To download sample recordings from dataset, run [Recording generation](./recording_gen.py) script. The script downloads recordings sample in `MyVoice/recordings` directory. 

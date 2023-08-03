@@ -44,7 +44,7 @@ artifacts.generate_artifacts(
     frozen_params=frozen_params,
     loss=CustomCELoss(),
     optimizer=artifacts.OptimType.AdamW,
-    artifacts_dir="artifacts",
+    artifact_directory="MyVoice/artifacts",
 )
 
 

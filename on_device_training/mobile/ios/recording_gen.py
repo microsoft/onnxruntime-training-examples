@@ -24,8 +24,7 @@ audio_data = [preprocess(example["audio"]["array"]) for example in dataset]
 
 def export_to_wav_folder(audio_list, output_folder):
     # Check if the output folder exists, if not, create it
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
+    os.makedirs(output_folder, exist_ok=True)
 
     for i, audio_data in enumerate(audio_list):
         # Normalize the audio data to the appropriate range for 16-bit WAV files (-32768 to 32767)

@@ -10,6 +10,9 @@ class Trainer {
     private let sampleAudioRecordings: Int
     private let kEpoch: Int = 3
     
+    let kUserIndex: Int64 = 1
+    let kOtherIndex: Int64 = 0
+    
     enum TrainerError: Error {
         case Error(_ message: String)
     }
@@ -55,7 +58,7 @@ class Trainer {
         return Result<Void, Error> { ()  in
             for _ in 0..<kEpoch {
                 let (buffer, wavFileData) = try getDataFromWavFile(fileName: "other_\(recordingCounter)")
-                try trainStep(inputData: [audio, wavFileData], label: [1, 0])
+                try trainStep(inputData: [audio, wavFileData], label: [kUserIndex, kOtherIndex])
             }
             
             recordingCounter = min(recordingCounter + 1, sampleAudioRecordings - 1)

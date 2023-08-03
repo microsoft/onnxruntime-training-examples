@@ -30,10 +30,10 @@ struct TrainView: View {
     
     private func recordVoice() {
         audioRecorder.record { recordResult in
-            let recognizeResult = recordResult.flatMap { recordingBufferAndData in
+            let trainResult = recordResult.flatMap { recordingBufferAndData in
                 return trainer.train(audio: recordingBufferAndData.data)
             }
-            endRecord(recognizeResult)
+            endRecord(trainResult)
         }
     }
     
