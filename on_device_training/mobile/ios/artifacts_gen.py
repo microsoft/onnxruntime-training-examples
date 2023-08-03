@@ -5,7 +5,7 @@ import torch
 config = AutoConfig.from_pretrained("superb/wav2vec2-base-superb-sid")
 model = Wav2Vec2ForSequenceClassification.from_pretrained("superb/wav2vec2-base-superb-sid")
 
-# modifier last layer to output 2 classes
+# modify last layer to output 2 classes
 model.classifier = torch.nn.Linear(256, 2)
 
 
