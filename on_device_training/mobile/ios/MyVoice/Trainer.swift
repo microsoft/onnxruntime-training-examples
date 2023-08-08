@@ -69,7 +69,7 @@ class Trainer {
     
     func trainStep(inputData: [Data], label: [Int64]) throws  {
         
-        let inputs = [try getORTValue(dataList: inputData), try getORTValue(lables: label)]
+        let inputs = [try getORTValue(dataList: inputData), try getORTValue(labels: label)]
         try trainingSession.trainStep(withInputValues: inputs)
         
         // update the model params
@@ -89,9 +89,9 @@ class Trainer {
         )
     }
     
-    private func getORTValue(lables: [Int64]) throws -> ORTValue {
-        let tensorData = NSMutableData(bytes: lables, length: lables.count * MemoryLayout<Int64>.stride)
-        let inputShape: [NSNumber] = [lables.count as NSNumber]
+    private func getORTValue(labels: [Int64]) throws -> ORTValue {
+        let tensorData = NSMutableData(bytes: labels, length: labels.count * MemoryLayout<Int64>.stride)
+        let inputShape: [NSNumber] = [labels.count as NSNumber]
         
         return try ORTValue (
             tensorData: tensorData, elementType: ORTTensorElementDataType.int64, shape: inputShape

@@ -7,13 +7,15 @@ struct InferView: View {
     }
     
     private let audioRecorder = AudioRecorder()
+    
     @State private var voiceIdentifier: VoiceIdentifier? = nil
     @State private var readyToRecord: Bool = true
+    
     @State private var inferResult: InferResult = InferResult.notSet
     @State private var probUser: Float = 0.0
+    
     @State private var showAlert = false
     @State private var alertMessage = ""
-    @State private var isErrorOccurred = false
 
     private func recordVoice() {
         audioRecorder.record { recordResult in
@@ -65,8 +67,8 @@ struct InferView: View {
                     .foregroundColor(.white)
                     .cornerRadius(10)
                 
-            }.disabled(isErrorOccurred || !readyToRecord)
-                .opacity(isErrorOccurred ? 0.5: 1.0)
+            }.disabled(voiceIdentifier == nil || !readyToRecord)
+                .opacity(voiceIdentifier == nil ? 0.5: 1.0)
             
             if  inferResult != .notSet {
                 Spacer()
@@ -96,7 +98,6 @@ struct InferView: View {
             } catch {
                 alertMessage = "Error initializing inference session, make sure that training is completed: \(error)"
                 showAlert = true
-                isErrorOccurred = true
             }
             
         }
