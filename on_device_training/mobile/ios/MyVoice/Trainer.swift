@@ -6,7 +6,7 @@ class Trainer {
     private let ortEnv: ORTEnv
     private let trainingSession: ORTTrainingSession
     private let checkpoint: ORTCheckpoint
-    private let kOtherRecordings: Int = 20
+    private let kNumOtherRecordings: Int = 20
     private let kEpoch: Int = 3
     
     let kUserIndex: Int64 = 1
@@ -16,7 +16,7 @@ class Trainer {
         case Error(_ message: String)
     }
     
-    init(sampleAudioRecordings : Int) throws {
+    init() throws {
         ortEnv = try ORTEnv(loggingLevel: ORTLoggingLevel.warning)
         
         // get path for artifacts
@@ -50,9 +50,9 @@ class Trainer {
         try trainingSession.exportModelForInference(withOutputPath: modelPath, graphOutputNames: ["output"])
     }
     
-    func train(_ trainingData: [Data]) throws {
+    func train(_ trainingData: [Data], progressCallback: @escaping (Double) -> Void) throws {
         let numRecordings = trainingData.count
-        var otherRecordings = Array(0..<kOtherRecordings)
+        var otherRecordings = Array(0..<kNumOtherRecordings)
         for e in 0..<kEpoch {
             print("Epoch: \(e)")
             otherRecordings.shuffle()
@@ -60,16 +60,19 @@ class Trainer {
             
             for i in 0..<numRecordings {
                 let (buffer, wavFileData) = try getDataFromWavFile(fileName: "other_\(otherData[i])")
-                try trainStep(inputData: [trainingData[i], wavFileData], label: [kUserIndex, kOtherIndex])
+                try trainStep(inputData: [trainingData[i], wavFileData], labels: [kUserIndex, kOtherIndex])
                 print("finished training on recording \(i)")
+                
+                let progress = Double((e * numRecordings) + i + 1) / Double(kEpoch * numRecordings)
+                progressCallback(progress)
             }
         }
         
     }
     
-    func trainStep(inputData: [Data], label: [Int64]) throws  {
+    func trainStep(inputData: [Data], labels: [Int64]) throws  {
         
-        let inputs = [try getORTValue(dataList: inputData), try getORTValue(labels: label)]
+        let inputs = [try getORTValue(dataList: inputData), try getORTValue(labels: labels)]
         try trainingSession.trainStep(withInputValues: inputs)
         
         // update the model params

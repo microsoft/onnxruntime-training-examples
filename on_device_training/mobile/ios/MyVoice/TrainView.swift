@@ -2,6 +2,10 @@ import SwiftUI
 
 struct TrainView: View {
     
+    enum ViewState {
+        case recording, trainingInProgress, trainingComplete
+    }
+    
     private static let sentences = [
         "In the embrace of nature's beauty, I find peace and tranquility. The gentle rustling of leaves soothes my soul, and the soft sunlight kisses my skin. As I breathe in the fresh air, I am reminded of the interconnectedness of all living things, and I feel a sense of oneness with the world around me.",
         "Under the starlit sky, I gaze in wonder at the vastness of the universe. Each twinkle represents a story yet untold, a dream yet to be realized. With every new dawn, I am filled with hope and excitement for the opportunities that lie ahead. I embrace each day as a chance to grow, to learn, and to create beautiful memories.",
@@ -16,15 +20,15 @@ struct TrainView: View {
     ]
 
     
-    private let knumRecording = 5
+    private let knumRecordings = 5
     private let audioRecorder = AudioRecorder()
-    private let trainer = try! Trainer(sampleAudioRecordings: sentences.count)
+    private let trainer = try! Trainer()
     
     @State private var trainingData: [Data] = []
-    @State private var currentSentenceIndex = 0
+    
+    @State private var viewState: ViewState = .recording
     @State private var readyToRecord: Bool = true
-    @State private var isRecordingComplete = false
-    @State private var isTrainingInProgress = false
+    @State private var trainingProgress: Double = 0.0
     
     private func recordVoice() {
         audioRecorder.record { recordResult in
@@ -38,41 +42,45 @@ struct TrainView: View {
             
             readyToRecord = true
             
-            if currentSentenceIndex < knumRecording - 1 {
-                currentSentenceIndex += 1
-                
-            } else {
-                isRecordingComplete = true
+            if trainingData.count == knumRecordings  {
+                viewState = .trainingInProgress
                 trainAndExportModel()
             }
         }
     }
     
+    private func updateProgressBar(progress: Double) {
+        DispatchQueue.main.async {
+            trainingProgress = progress
+        }
+    }
+    
     private func trainAndExportModel() {
-        isTrainingInProgress = true
         Task {
             do {
-                try trainer.train(trainingData)
+                try trainer.train(trainingData, progressCallback: updateProgressBar)
                 try trainer.exportModelForInference()
                    
                 DispatchQueue.main.async {
-                    isTrainingInProgress = false
+                    viewState = .trainingComplete
                     print("Training is complete")
                 }
             } catch {
                 DispatchQueue.main.async {
-                    isTrainingInProgress = false
+                    viewState = .trainingComplete
                     print("Training Failed: \(error)")
                 }
             }
         }
     }
     
+    
     var body: some View {
         VStack {
-            if !isRecordingComplete {
-                Spacer()
-                Text(TrainView.sentences[currentSentenceIndex])
+            Spacer()
+            switch viewState {
+            case .recording:
+                Text(TrainView.sentences[trainingData.count % TrainView.sentences.count])
                     .font(.body)
                     .padding()
                     .multilineTextAlignment(.center)
@@ -103,18 +111,19 @@ struct TrainView: View {
                         .foregroundColor(.white)
                         .cornerRadius(10)
                 }.disabled(!readyToRecord)
-                
-            } else if isTrainingInProgress {
+                    
+            case .trainingInProgress:
                 VStack {
                     Spacer()
-                    ProgressView("Training in Progress")
-                        .padding()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .purple))
+                    ProgressView(value: trainingProgress,
+                                 total: 1.0,
+                                 label: {Text("Training")},
+                                 currentValueLabel: {Text(String(format: "%.0f%%", trainingProgress * 100))})
+                    .padding()
                     Spacer()
                 }
-                
-            } else {
-                Spacer()
+                    
+            case .trainingComplete:
                 Text("Training successfully finished!")
                     .font(.title)
                     .padding()
@@ -132,6 +141,7 @@ struct TrainView: View {
                 }
                 .padding(.leading, 20)
             }
+            
             Spacer()
         }
         .padding()
