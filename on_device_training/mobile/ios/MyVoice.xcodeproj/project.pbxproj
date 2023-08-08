@@ -11,9 +11,6 @@
 		21FA20912A6EE38A0028C95B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21FA20902A6EE38A0028C95B /* ContentView.swift */; };
 		21FA20932A6EE38D0028C95B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 21FA20922A6EE38D0028C95B /* Assets.xcassets */; };
 		21FA20962A6EE38D0028C95B /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 21FA20952A6EE38D0028C95B /* Preview Assets.xcassets */; };
-		21FA20A02A6EE38D0028C95B /* MyVoiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21FA209F2A6EE38D0028C95B /* MyVoiceTests.swift */; };
-		21FA20AA2A6EE38E0028C95B /* MyVoiceUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21FA20A92A6EE38E0028C95B /* MyVoiceUITests.swift */; };
-		21FA20AC2A6EE38E0028C95B /* MyVoiceUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21FA20AB2A6EE38E0028C95B /* MyVoiceUITestsLaunchTests.swift */; };
 		21FA20CF2A6EEC790028C95B /* other_13.wav in Resources */ = {isa = PBXBuildFile; fileRef = 21FA20BB2A6EEC780028C95B /* other_13.wav */; };
 		21FA20D02A6EEC790028C95B /* other_4.wav in Resources */ = {isa = PBXBuildFile; fileRef = 21FA20BC2A6EEC780028C95B /* other_4.wav */; };
 		21FA20D12A6EEC790028C95B /* other_6.wav in Resources */ = {isa = PBXBuildFile; fileRef = 21FA20BD2A6EEC780028C95B /* other_6.wav */; };
@@ -72,10 +69,7 @@
 		21FA20922A6EE38D0028C95B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		21FA20952A6EE38D0028C95B /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		21FA209B2A6EE38D0028C95B /* MyVoiceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MyVoiceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		21FA209F2A6EE38D0028C95B /* MyVoiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyVoiceTests.swift; sourceTree = "<group>"; };
 		21FA20A52A6EE38D0028C95B /* MyVoiceUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MyVoiceUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		21FA20A92A6EE38E0028C95B /* MyVoiceUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyVoiceUITests.swift; sourceTree = "<group>"; };
-		21FA20AB2A6EE38E0028C95B /* MyVoiceUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyVoiceUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		21FA20BB2A6EEC780028C95B /* other_13.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = other_13.wav; sourceTree = "<group>"; };
 		21FA20BC2A6EEC780028C95B /* other_4.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = other_4.wav; sourceTree = "<group>"; };
 		21FA20BD2A6EEC780028C95B /* other_6.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = other_6.wav; sourceTree = "<group>"; };
@@ -162,8 +156,6 @@
 			isa = PBXGroup;
 			children = (
 				21FA208D2A6EE38A0028C95B /* MyVoice */,
-				21FA209E2A6EE38D0028C95B /* MyVoiceTests */,
-				21FA20A82A6EE38D0028C95B /* MyVoiceUITests */,
 				21FA208C2A6EE38A0028C95B /* Products */,
 				0AF94001C085BD310811C7B9 /* Pods */,
 				DDF1B810C690CF21CC64302D /* Frameworks */,
@@ -205,23 +197,6 @@
 				21FA20952A6EE38D0028C95B /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
-			sourceTree = "<group>";
-		};
-		21FA209E2A6EE38D0028C95B /* MyVoiceTests */ = {
-			isa = PBXGroup;
-			children = (
-				21FA209F2A6EE38D0028C95B /* MyVoiceTests.swift */,
-			);
-			path = MyVoiceTests;
-			sourceTree = "<group>";
-		};
-		21FA20A82A6EE38D0028C95B /* MyVoiceUITests */ = {
-			isa = PBXGroup;
-			children = (
-				21FA20A92A6EE38E0028C95B /* MyVoiceUITests.swift */,
-				21FA20AB2A6EE38E0028C95B /* MyVoiceUITestsLaunchTests.swift */,
-			);
-			path = MyVoiceUITests;
 			sourceTree = "<group>";
 		};
 		21FA20B92A6EEC510028C95B /* artifacts */ = {
@@ -512,7 +487,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				21FA20A02A6EE38D0028C95B /* MyVoiceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -520,8 +494,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				21FA20AA2A6EE38E0028C95B /* MyVoiceUITests.swift in Sources */,
-				21FA20AC2A6EE38E0028C95B /* MyVoiceUITestsLaunchTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
