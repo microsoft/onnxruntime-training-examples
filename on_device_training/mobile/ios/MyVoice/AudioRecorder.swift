@@ -5,8 +5,7 @@ private let kSampleRate: Int = 16000
 private let kRecordingDuration: TimeInterval = 10
 
 class AudioRecorder {
-    typealias RecordingBufferAndData = (buffer: AVAudioBuffer, data: Data)
-    typealias RecordResult = Result<RecordingBufferAndData, Error>
+    typealias RecordResult = Result<Data, Error>
     typealias RecordingDoneCallback = (RecordResult) -> Void
     
     enum AudioRecorderError: Error {
@@ -70,7 +69,7 @@ class AudioRecorder {
             _ recorder: AVAudioRecorder,
             successfully flag: Bool
         ) {
-            let recordResult = RecordResult { () -> RecordingBufferAndData in
+            let recordResult = RecordResult { () -> Data in
                 guard flag else {
                     throw AudioRecorderError.Error(message: "Recording was unsuccessful.")
                 }
@@ -102,12 +101,8 @@ class AudioRecorder {
                     throw AudioRecorderError.Error(message: "Failed to get float channel data.")
                 }
                 
-                let recordingData = Data(
-                    bytesNoCopy: recordingFloatChannelData[0],
-                    count: Int(recordingBuffer.frameLength) * MemoryLayout<Float>.size,
-                    deallocator: .none)
-                
-                return (recordingBuffer, recordingData)
+                return Data(bytes: recordingFloatChannelData[0], count: Int(recordingBuffer.frameLength) * MemoryLayout<Float>.size)
+               
             }
             
             callback(recordResult)

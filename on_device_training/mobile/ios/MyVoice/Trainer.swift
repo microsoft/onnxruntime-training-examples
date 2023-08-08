@@ -6,8 +6,7 @@ class Trainer {
     private let ortEnv: ORTEnv
     private let trainingSession: ORTTrainingSession
     private let checkpoint: ORTCheckpoint
-    private var recordingCounter: Int
-    private let sampleAudioRecordings: Int
+    private let kOtherRecordings: Int = 20
     private let kEpoch: Int = 3
     
     let kUserIndex: Int64 = 1
@@ -40,9 +39,6 @@ class Trainer {
         checkpoint = try ORTCheckpoint(path: checkpointPath)
         
         trainingSession = try ORTTrainingSession(env: ortEnv, sessionOptions: ORTSessionOptions(), checkpoint: checkpoint, trainModelPath: trainingModelPath, evalModelPath: evalModelPath, optimizerModelPath: optimizerPath)
-        
-        self.sampleAudioRecordings = sampleAudioRecordings
-        recordingCounter = 0
     }
     
     func exportModelForInference() throws {
@@ -54,15 +50,21 @@ class Trainer {
         try trainingSession.exportModelForInference(withOutputPath: modelPath, graphOutputNames: ["output"])
     }
     
-    func train(audio: Data)  -> Result<Void, Error> {
-        return Result<Void, Error> { ()  in
-            for _ in 0..<kEpoch {
-                let (buffer, wavFileData) = try getDataFromWavFile(fileName: "other_\(recordingCounter)")
-                try trainStep(inputData: [audio, wavFileData], label: [kUserIndex, kOtherIndex])
-            }
+    func train(_ trainingData: [Data]) throws {
+        let numRecordings = trainingData.count
+        var otherRecordings = Array(0..<kOtherRecordings)
+        for e in 0..<kEpoch {
+            print("Epoch: \(e)")
+            otherRecordings.shuffle()
+            let otherData = otherRecordings.prefix(numRecordings)
             
-            recordingCounter = min(recordingCounter + 1, sampleAudioRecordings - 1)
+            for i in 0..<numRecordings {
+                let (buffer, wavFileData) = try getDataFromWavFile(fileName: "other_\(otherData[i])")
+                try trainStep(inputData: [trainingData[i], wavFileData], label: [kUserIndex, kOtherIndex])
+                print("finished training on recording \(i)")
+            }
         }
+        
     }
     
     func trainStep(inputData: [Data], label: [Int64]) throws  {

@@ -17,8 +17,8 @@ struct InferView: View {
 
     private func recordVoice() {
         audioRecorder.record { recordResult in
-            let recognizeResult = recordResult.flatMap { recordingBufferAndData in
-                return voiceIdentifier!.evaluate(inputData: recordingBufferAndData.data)
+            let recognizeResult = recordResult.flatMap { recordingData in
+                return voiceIdentifier!.evaluate(inputData: recordingData)
             }
             endRecord(recognizeResult)
         }

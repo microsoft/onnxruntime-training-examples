@@ -3,66 +3,77 @@ import SwiftUI
 struct TrainView: View {
     
     private static let sentences = [
-        "The gentle rustling of leaves in the breeze creates a soothing melody in the tranquil forest.",
-        "With courage in their hearts and determination in their eyes, the brave explorers set forth on an epic quest.",
-        "In the warmth of each other's embrace, they found solace and a love that transcended all boundaries.",
-        "The rapid advancement of technology continues to reshape our world and the way we interact with it.",
-        "Amidst the eerie darkness, whispers of an enigmatic presence sent shivers down their spines.",
-        "Echoes of the past resonate through ancient ruins, telling tales of civilizations long gone.",
-        "Among the stars and galaxies, the vastness of the cosmos reminds us of our place in the universe.",
-        "Through laughter and tears, their unbreakable bond of friendship grew stronger with each passing day.",
-        "With skilled brushstrokes and vivid colors, the artist brought life to a canvas, telling a thousand stories.",
-        "In the face of adversity, they stood firm, displaying unwavering courage to overcome life's challenges.",
-        "The tantalizing aroma of freshly baked bread wafted through the air, enticing all nearby.",
-        "In the realm of dreams, possibilities are limitless, and the ordinary becomes extraordinary.",
-        "The harmonious symphony of instruments blended together, evoking emotions that words cannot express.",
-        "Through meticulous research and experimentation, scientists unravel the mysteries of the natural world.",
-        "Even in the darkest times, a glimmer of hope can ignite a flame that illuminates the path ahead."
+        "In the embrace of nature's beauty, I find peace and tranquility. The gentle rustling of leaves soothes my soul, and the soft sunlight kisses my skin. As I breathe in the fresh air, I am reminded of the interconnectedness of all living things, and I feel a sense of oneness with the world around me.",
+        "Under the starlit sky, I gaze in wonder at the vastness of the universe. Each twinkle represents a story yet untold, a dream yet to be realized. With every new dawn, I am filled with hope and excitement for the opportunities that lie ahead. I embrace each day as a chance to grow, to learn, and to create beautiful memories.",
+        "A warm hug from a loved one is a precious gift that warms my heart. In that tender embrace, I feel a sense of belonging and security. Laughter and tears shared with dear friends create a bond that withstands the test of time. These connections enrich my life and remind me of the power of human relationships.",
+        "Life's journey is like a beautiful melody, with each note representing a unique experience. As I take each step, I harmonize with the rhythm of existence. Challenges may come my way, but I face them with resilience and determination, knowing they are opportunities for growth and self-discovery.",
+        "With every page turned in a book, I open the door to new worlds and ideas. The written words carry the wisdom of countless souls, and I am humbled by the knowledge they offer. In stories, I find a mirror to my own experiences and a beacon of hope for a better tomorrow.",
+        "Life's trials may bend me, but they will not break me. Through adversity, I discover the strength within my heart. Each obstacle is a chance to learn, to evolve, and to emerge as a better version of myself. I am grateful for every lesson, for they shape me into the person I am meant to be.",
+        "The sky above is an ever-changing canvas of colors and clouds. In its vastness, I realize how small I am in the grand scheme of things, and yet, I know my actions can ripple through the universe. As I walk this Earth, I seek to leave behind a positive impact and a legacy of love and compassion.",
+        "In the stillness of meditation, I connect with the depth of my soul. The external noise fades away, and I hear the whispers of my inner wisdom. With each breath, I release tension and embrace serenity. Meditation is my sanctuary, a place where I can find clarity and renewed energy.",
+        "Kindness is a chain reaction that spreads like wildfire. A simple act of compassion can brighten someone's day and inspire them to pay it forward. Together, we can create a wave of goodness that knows no boundaries, reaching even the farthest corners of the world.",
+        "As the sun rises on a new day, I am filled with gratitude for the gift of life. Every moment is a chance to make a difference, to love deeply, and to embrace joy. I welcome the adventures that await me and eagerly embrace the mysteries yet to be uncovered."
     ]
+
     
-    private let knumRecording = 7
+    private let knumRecording = 5
     private let audioRecorder = AudioRecorder()
     private let trainer = try! Trainer(sampleAudioRecordings: sentences.count)
     
+    @State private var trainingData: [Data] = []
     @State private var currentSentenceIndex = 0
     @State private var readyToRecord: Bool = true
-    @State private var isTrainingComplete = false
+    @State private var isRecordingComplete = false
+    @State private var isTrainingInProgress = false
     
     private func recordVoice() {
         audioRecorder.record { recordResult in
-            let trainResult = recordResult.flatMap { recordingBufferAndData in
-                return trainer.train(audio: recordingBufferAndData.data)
+           switch recordResult {
+           case .success(let recordingData):
+               trainingData.append(recordingData)
+               print("Successfully completed Recording")
+           case .failure(let error):
+               print("Error: \(error)")
             }
-            endRecord(trainResult)
-        }
-    }
-    
-    private func endRecord(_ result: Result<Void, Error>) {
-        DispatchQueue.main.async {
-            switch result {
-            case .success:
-                print("Successfully completed Train Step ")
-            case .failure(let error):
-                print("Error: \(error)")
-            }
+            
             readyToRecord = true
             
             if currentSentenceIndex < knumRecording - 1 {
                 currentSentenceIndex += 1
                 
             } else {
-                isTrainingComplete = true
-                try! trainer.exportModelForInference()
+                isRecordingComplete = true
+                trainAndExportModel()
+            }
+        }
+    }
+    
+    private func trainAndExportModel() {
+        isTrainingInProgress = true
+        Task {
+            do {
+                try trainer.train(trainingData)
+                try trainer.exportModelForInference()
+                   
+                DispatchQueue.main.async {
+                    isTrainingInProgress = false
+                    print("Training is complete")
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    isTrainingInProgress = false
+                    print("Training Failed: \(error)")
+                }
             }
         }
     }
     
     var body: some View {
         VStack {
-            if !isTrainingComplete {
+            if !isRecordingComplete {
                 Spacer()
                 Text(TrainView.sentences[currentSentenceIndex])
-                    .font(.title)
+                    .font(.body)
                     .padding()
                     .multilineTextAlignment(.center)
                     .fontDesign(.monospaced)
@@ -93,6 +104,15 @@ struct TrainView: View {
                         .cornerRadius(10)
                 }.disabled(!readyToRecord)
                 
+            } else if isTrainingInProgress {
+                VStack {
+                    Spacer()
+                    ProgressView("Training in Progress")
+                        .padding()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .purple))
+                    Spacer()
+                }
+                
             } else {
                 Spacer()
                 Text("Training successfully finished!")
@@ -112,7 +132,6 @@ struct TrainView: View {
                 }
                 .padding(.leading, 20)
             }
-            
             Spacer()
         }
         .padding()
