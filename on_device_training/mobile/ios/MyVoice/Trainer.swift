@@ -7,7 +7,7 @@ class Trainer {
     private let trainingSession: ORTTrainingSession
     private let checkpoint: ORTCheckpoint
     private let kNumOtherRecordings: Int = 20
-    private let kEpoch: Int = 3
+    private let kNumEpochs: Int = 3
     
     let kUserIndex: Int64 = 1
     let kOtherIndex: Int64 = 0
@@ -53,7 +53,7 @@ class Trainer {
     func train(_ trainingData: [Data], progressCallback: @escaping (Double) -> Void) throws {
         let numRecordings = trainingData.count
         var otherRecordings = Array(0..<kNumOtherRecordings)
-        for e in 0..<kEpoch {
+        for e in 0..<kNumEpochs {
             print("Epoch: \(e)")
             otherRecordings.shuffle()
             let otherData = otherRecordings.prefix(numRecordings)
@@ -63,7 +63,7 @@ class Trainer {
                 try trainStep(inputData: [trainingData[i], wavFileData], labels: [kUserIndex, kOtherIndex])
                 print("finished training on recording \(i)")
                 
-                let progress = Double((e * numRecordings) + i + 1) / Double(kEpoch * numRecordings)
+                let progress = Double((e * numRecordings) + i + 1) / Double(kNumEpochs * numRecordings)
                 progressCallback(progress)
             }
         }

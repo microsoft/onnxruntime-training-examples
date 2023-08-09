@@ -3,7 +3,7 @@ import SwiftUI
 struct TrainView: View {
     
     enum ViewState {
-        case recording, trainingInProgress, trainingComplete
+        case recordingTrainingData, trainingInProgress, trainingComplete
     }
     
     private static let sentences = [
@@ -20,13 +20,13 @@ struct TrainView: View {
     ]
 
     
-    private let knumRecordings = 5
+    private let kNumRecordings = 5
     private let audioRecorder = AudioRecorder()
     private let trainer = try! Trainer()
     
     @State private var trainingData: [Data] = []
     
-    @State private var viewState: ViewState = .recording
+    @State private var viewState: ViewState = .recordingTrainingData
     @State private var readyToRecord: Bool = true
     @State private var trainingProgress: Double = 0.0
     
@@ -42,7 +42,7 @@ struct TrainView: View {
             
             readyToRecord = true
             
-            if trainingData.count == knumRecordings  {
+            if trainingData.count == kNumRecordings  {
                 viewState = .trainingInProgress
                 trainAndExportModel()
             }
@@ -79,7 +79,7 @@ struct TrainView: View {
         VStack {
             Spacer()
             switch viewState {
-            case .recording:
+            case .recordingTrainingData:
                 Text(TrainView.sentences[trainingData.count % TrainView.sentences.count])
                     .font(.body)
                     .padding()
