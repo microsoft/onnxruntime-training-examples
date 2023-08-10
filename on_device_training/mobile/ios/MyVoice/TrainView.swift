@@ -77,9 +77,22 @@ struct TrainView: View {
     
     var body: some View {
         VStack {
-            Spacer()
+           
             switch viewState {
             case .recordingTrainingData:
+                Text("\(trainingData.count + 1)  of \(kNumRecordings)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding()
+                
+                ProgressView(value: Double(trainingData.count),
+                             total: Double(kNumRecordings))
+                .progressViewStyle(LinearProgressViewStyle(tint: .purple))
+                .frame(height: 10)
+                .cornerRadius(5)
+                
+                Spacer()
+                
                 Text(TrainView.sentences[trainingData.count % TrainView.sentences.count])
                     .font(.body)
                     .padding()
@@ -124,6 +137,7 @@ struct TrainView: View {
                 }
                     
             case .trainingComplete:
+                Spacer()
                 Text("Training successfully finished!")
                     .font(.title)
                     .padding()
