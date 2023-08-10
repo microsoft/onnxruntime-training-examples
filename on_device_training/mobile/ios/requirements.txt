@@ -1,0 +1,9 @@
+datasets==2.14.0
+numpy==1.23.5
+onnx==1.14.0
+onnxruntime-training==1.16.0
+scipy==1.11.1
+torch==2.0.1
+transformers==4.31.0
+librosa==0.10.0.post2
+soundfile==0.12.1
