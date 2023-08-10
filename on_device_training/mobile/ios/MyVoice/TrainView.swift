@@ -80,7 +80,7 @@ struct TrainView: View {
            
             switch viewState {
             case .recordingTrainingData:
-                Text("\(trainingData.count + 1)  of \(kNumRecordings)")
+                Text("\(trainingData.count + 1) of \(kNumRecordings)")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .padding()
