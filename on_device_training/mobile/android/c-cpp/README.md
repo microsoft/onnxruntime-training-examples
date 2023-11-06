@@ -101,7 +101,7 @@ Relevant files in the directory for this section:
 
 3. <a name="op3"></a>Generate the training artifacts.
 
-   We will use the `CrossEntropyLoss` loss and the `AdamW` optimizer for this tutorial. More details around artifact generation can be found [here](../../docs/api/python/on_device_training/training_artifacts.html).
+   We will use the `CrossEntropyLoss` loss and the `AdamW` optimizer for this tutorial. More details around artifact generation can be found [On Device Training / Prepare for training](https://onnxruntime.ai/docs/api/python/on_device_training/training_artifacts.html).
 
     ```python
    from onnxruntime.training import artifacts
