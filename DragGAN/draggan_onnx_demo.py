@@ -334,9 +334,6 @@ def main():
 
     ffmpeg_create_video(output_path)
 
-    print("done")
-
-
 
 if __name__ == "__main__":
     main()

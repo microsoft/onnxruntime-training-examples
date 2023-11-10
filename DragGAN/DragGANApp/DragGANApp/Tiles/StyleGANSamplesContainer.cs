@@ -147,49 +147,11 @@ namespace DragGANApp.Tiles
         public void onItemClick(StyleGANSample c)
         {
             OnItemClick?.Invoke(c);
-            ////this.OnTileClick?.Invoke(this, tile);
-
-            //// prepare the image to view
-            //var item = c.Item;
-            //var image = (Image)item.Capture.Screen.Clone();
-
-            //// draw rectangle around the image
-            //Pen skyBluePen = new Pen(Brushes.DeepSkyBlue);
-            //skyBluePen.Width = 20.0F;
-            //skyBluePen.Color = Color.FromArgb(128, skyBluePen.Color); // make the color transparent
-            //skyBluePen.LineJoin = System.Drawing.Drawing2D.LineJoin.Bevel;
-
-            //if (item.Type == DBItem.Types.AllScreen)
-            //{
-            //    imageBoxScreen.Image = image;
-            //    imageBoxScreen.ZoomToFit();
-            //    return;
-            //}
-
-            //using (Graphics g = Graphics.FromImage(image))
-            //{
-            //    Pen pen = new Pen(Color.Yellow, 20);
-            //    g.DrawRectangle(skyBluePen, item.Region.Rect);
-            //}
-
-
-            //imageBoxScreen.Image = image;
-            //imageBoxScreen.ZoomToFit();
-
-            //var r = item.Region.Rect;
-            //imageBoxScreen.ZoomToRegion(r.X, r.Y, r.Width, r.Height);
-
-            //imageBoxScreen.ZoomOut();
-            //imageBoxScreen.ZoomOut();
-            //imageBoxScreen.ZoomOut();
         }
 
         public void onItemDoubleClick(StyleGANSample c)
         {
             OnItemDoubleClick?.Invoke(c);
-            ////this.OnTileDoubleClick?.Invoke(this, tile);
-            //Console.WriteLine("DD " + c.Title);
-            //FilterItem(c.Item);
         }
 
         private void buttonNext_Click(object sender, EventArgs e)
@@ -241,7 +203,6 @@ namespace DragGANApp.Tiles
 
         private void SetNewHeight()
         {
-            //this.flowLayoutPanel.Visible = false;
             try
             {
                 // Lock Window...
@@ -254,8 +215,6 @@ namespace DragGANApp.Tiles
                 foreach (StyleGANSample c in flowLayoutPanelItems.Controls)
                 {
                     c.Size = new Size(size, size);
-
-                    //c.SetNewHeight(this.AllowedHeights[this.GroupHeightIndex]);
                 }
                 this.flowLayoutPanelItems.ResumeLayout();
                 this.ResumeLayout(true);
@@ -265,18 +224,6 @@ namespace DragGANApp.Tiles
                 // Release the lock...
                 LockWindowUpdate(IntPtr.Zero);
             }
-
-            //this.SuspendLayout();
-            //this.flowLayoutPanelItems.SuspendLayout();
-            //int size = this.AllowedHeights[this.GroupHeightIndex];
-            //foreach (StyleGANSample c in flowLayoutPanelItems.Controls)
-            //{
-            //    c.Size = new Size(size, size);
-
-            //    //c.SetNewHeight(this.AllowedHeights[this.GroupHeightIndex]);
-            //}
-            //this.flowLayoutPanelItems.ResumeLayout();
-            //this.ResumeLayout(true);
         }
 
         private void form_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
@@ -289,18 +236,11 @@ namespace DragGANApp.Tiles
                 if (scale > 0)
                 {
                     this.ZoomIn();
-                    //this.GroupHeightIndex += 1;
-                    //if (this.GroupHeightIndex >= this.AllowedHeights.Length)
-                    //    this.GroupHeightIndex = this.AllowedHeights.Length - 1;
                 }
                 else
                 {
                     this.ZoomOut();
-                    //this.GroupHeightIndex -= 1;
-                    //if (this.GroupHeightIndex < 0)
-                    //    this.GroupHeightIndex = 0;
                 }
-                //this.SetNewHeight();
             }
         }
 

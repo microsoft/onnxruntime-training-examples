@@ -236,52 +236,6 @@ namespace DragGANApp
                 //bmp.Save("StyleGAN.png");
                 return bmp;
             }
-
-
-            //unsafe
-            //{
-
-            //    var data = new DenseTensor<UInt16>(image_data.Dimensions);
-            //    for (int a = 0; a < image_data.Dimensions[0]; a++)
-            //        for (int b = 0; b < image_data.Dimensions[1]; b++)
-            //            for (int c = 0; c < image_data.Dimensions[2]; c++)
-            //                for (int d = 0; d < image_data.Dimensions[3]; d++)
-            //                    data[a, b, c, d] = (UInt16)MathUtils.Clamp<float>((image_data[a, b, c, d] * 127.5f + 127.5f), 0f, 255f);
-
-            //    int w = 1024;
-            //    int h = 1024;
-            //    Bitmap bmp = new Bitmap(w, h, PixelFormat.Format24bppRgb);
-            //    BitmapData bitmapData = bmp.LockBits(new Rectangle(0, 0, w, h), ImageLockMode.WriteOnly, bmp.PixelFormat);
-            //    int bytesPerPixel = System.Drawing.Bitmap.GetPixelFormatSize(bmp.PixelFormat) / 8;
-            //    int heightInPixels = bitmapData.Height;
-            //    int widthInBytes = bitmapData.Width * bytesPerPixel;
-            //    byte* ptrFirstPixel = (byte*)bitmapData.Scan0;
-            //    byte[] res = new byte[bytesPerPixel * bitmapData.Width * bitmapData.Height];
-
-            //    //int res_index = 0;
-            //    for (int y = 0; y < heightInPixels; y++)
-            //    {
-            //        byte* currentLine = ptrFirstPixel + (y * bitmapData.Stride);
-            //        for (int x = 0; x < widthInBytes; x = x + bytesPerPixel)
-            //        {
-            //            int xx = x / bytesPerPixel;
-            //            //int r = (int)MathUtils.Clamp<float>((image_data[0, 2, y, xx] * 127.5f + 127.5f), 0f, 255f);
-            //            //int g = (int)MathUtils.Clamp<float>((image_data[0, 1, y, xx] * 127.5f + 127.5f), 0f, 255f);
-            //            //int b = (int)MathUtils.Clamp<float>((image_data[0, 0, y, xx] * 127.5f + 127.5f), 0f, 255f);
-            //            var r = data[0, 2, y, xx];
-            //            var g = data[0, 1, y, xx];
-            //            var b = data[0, 0, y, xx];
-
-            //            currentLine[x + 0] = (byte)r;
-            //            currentLine[x + 1] = (byte)g;
-            //            currentLine[x + 2] = (byte)b;
-            //        }
-            //    }
-            //    bmp.UnlockBits(bitmapData);
-
-            //    //bmp.Save("StyleGAN.png");
-            //    return bmp;
-            //}
         }
 
         public static Bitmap ResizeImage(Bitmap imgToResize, Size size)

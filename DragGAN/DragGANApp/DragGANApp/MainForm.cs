@@ -19,8 +19,6 @@ namespace DragGANApp
 {
     public partial class MainForm : Form
     {
-        //public String m_original_image_filename = @"C:\T\StyleGAN\OriginalImage.png";
-
         public DragGAN.Info m_current;
         public Stack<DragGAN.Info> m_history = new Stack<DragGAN.Info>();
         public Stack<DragGAN.Info> m_redo_buffer = new Stack<DragGAN.Info>();
@@ -28,9 +26,6 @@ namespace DragGANApp
         public Bitmap m_original_image;
         public Bitmap m_edit_image;
         public Tensor<float> m_edit_latent;
-        //StyleGANSample m_sample;
-
-
 
         public enum MouseSelectModes { NoPoins, FirstPoint, SecondPoint }
         public MouseSelectModes SelectMode = MouseSelectModes.NoPoins;
@@ -110,21 +105,9 @@ namespace DragGANApp
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            //m_original_image = (Bitmap)Bitmap.FromFile(m_original_image_filename);
-
-            //m_edit_image = (Bitmap)m_original_image.Clone();
-            //imageBoxEdit.Image = m_edit_image;
-            //imageBoxEdit.ZoomToFit();
-
-            //System.Windows.Forms.Application.DoEvents();
-
             var splash_form = new SplashForm();
             splash_form.Show();
             System.Windows.Forms.Application.DoEvents();
-
-            //m_sg = new StyleGAN();
-            //m_sg.Init();
-
 
             m_dg = new DragGAN();
             m_dg.Init(m_options.Model, m_options.Iterations);
@@ -132,9 +115,6 @@ namespace DragGANApp
             styleGANSamplesContainer1.OnItemClick += onItemClick;
             styleGANSamplesContainer1.OnItemDoubleClick += onItemDoubleClick;
             styleGANSamplesContainer1.Init(m_dg, m_options.InitialSeed);
-
-            Console.WriteLine("Done Loading");
-
         }
 
         private void MainForm_Shown(object sender, EventArgs e)
@@ -154,8 +134,6 @@ namespace DragGANApp
                     MaybeStopOptimization();
                     // add a new landmark
                     var p = imageBoxEdit.PointToImage(e.Location);
-
-                    //Console.WriteLine(p);
 
                     ProcessClick(p);
                 }
@@ -218,12 +196,6 @@ namespace DragGANApp
 
         private void runToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //var handles = new List<ImageCoord>() { new ImageCoord(490, 647) };
-            //var targets = new List<ImageCoord>() { new ImageCoord(600, 647) };
-
-            //var handles = new List<ImageCoord>() { new ImageCoord(600, 746) };
-            //var targets = new List<ImageCoord>() { new ImageCoord(617, 690) };
-
             RunOptimization();
         }
 
@@ -270,15 +242,10 @@ namespace DragGANApp
 
         public void onItemClick(StyleGANSample sample)
         {
-            Console.WriteLine("CLK Item" + sample.Info.Seed);
         }
 
         public void onItemDoubleClick(StyleGANSample sample)
         {
-            Console.WriteLine("DBL CLK Item" + sample.Info.Seed);
-
-            //m_sample = sample;
-            //m_current = sample.Info;
             MaybeStopOptimization();
             UpdateNewCurrent(sample.Info);
             LoadImage();
@@ -290,15 +257,11 @@ namespace DragGANApp
 
             m_edit_image = (Bitmap)m_original_image.Clone();
 
-            //imageBoxEdit.Image = m_edit_image;
             UpdateImage(m_edit_image);
 
             if (zoom_to_fit)
                 imageBoxEdit.ZoomToFit();
             imageBoxView.ZoomToFit();
-
-            //System.Windows.Forms.Application.DoEvents();
-
         }
 
         private void imageBoxView_SizeChanged(object sender, EventArgs e)
@@ -392,24 +355,12 @@ namespace DragGANApp
                     OptimizationEndedAction = this.OptimizationEnded,
                 };
 
-
-                //var new_info = m_dg.Run(handles, targets, m_current.Latent, img =>
-                //{
-                //    UpdateImage(img);
-                //    //imageBoxEdit.Image = img;
-                //    System.Windows.Forms.Application.DoEvents();
-                //});
-
                 imageBoxEdit.GridColor = Color.Moccasin; // Color.RosyBrown;
                 imageBoxView.GridColor = Color.Moccasin; //Color.RosyBrown;
 
 
                 m_optimization_thread = new Thread(new ParameterizedThreadStart(m_dg.RunInThread));
                 m_optimization_thread.Start(opt_params);
-
-                ////m_current = new_info;
-                //UpdateNewCurrent(new_info);
-                //LoadImage(false);
             }
             catch(Exception ex) 
             {
