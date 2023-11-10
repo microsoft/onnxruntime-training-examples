@@ -66,13 +66,10 @@ Here are some examples of generated images and videos:
     </tr>
     <tr>
         <td>
-            <img src="./images/metfaces_stylegan_seed_71.png" alt="drawing" width="200"/>
+            <img src="./images/metfaces_stylegan_seed_71.png" alt="StylGAN Result" width="200"/>
         </td>
         <td>
-            <!-- <img src="./images/draggan_seed_71_pt_training.mp4" alt="drawing" width="200"/> -->
-            <video width="200" height="200" controls autoplay loop>
-                <source src="./images/metfaces_draggan_seed_71_pt_training.mp4" type="video/mp4">
-            </video>
+            <img src="./images/metfaces_draggan_seed_71_pt_training.gif" alt="DragGAN Result" width="200"/>
         </td>
     </tr>
     <tr>
@@ -90,13 +87,10 @@ Here are some examples of generated images and videos:
     </tr>
     <tr>
         <td>
-            <img src="./images/ffhq_stylegan_seed_71.png" alt="drawing" width="200"/>
+            <img src="./images/ffhq_stylegan_seed_71.png" alt="StylGAN Result" width="200"/>
         </td>
         <td>
-            <!-- <img src="./images/draggan_seed_71_pt_training.mp4" alt="drawing" width="200"/> -->
-            <video width="200" height="200" controls autoplay loop>
-                <source src="./images/ffhq_draggan_seed_71_pt_training.mp4" type="video/mp4">
-            </video>
+            <img src="./images/ffhq_draggan_seed_71_pt_training.gif" alt="DragGAN Result" width="200"/>
         </td>
     </tr>
     <tr>
