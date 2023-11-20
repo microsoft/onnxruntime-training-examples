@@ -57,7 +57,10 @@ def main():
 
     img, F = gen(ws)
 
-    image_filename = f'out/stylegan_seed_{seed}.png'
+    output_folder = os.path.join(current_script_folder, "out")
+    if (not os.path.isdir(output_folder)):
+        os.makedirs(output_folder)
+    image_filename = os.path.join(output_folder, f'stylegan_seed_{seed}.png')
     print(f'saving image to [{image_filename}]')
     save_image(image_filename, img)
 
