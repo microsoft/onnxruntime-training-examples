@@ -105,31 +105,6 @@ Here are some examples of generated images and videos:
     </tr>
 </table>
 
-<h1>C# Application</h1>
-
-The C# solution is located in the DragGANApp folder. The solution contains 3 projects:
-* Cyotek.Windows.Forms.ImageBox
-* Cyotek.Windows.Forms.ImageBox.Demo
-* DragGANApp
-
-The first two projects are part of the [component](https://github.com/cyotek/Cyotek.Windows.Forms.ImageBox) by [Richard Moss](https://github.com/cyotek) that provides image viewing, zooming, panning and scrolling. The DragGANApp project contains the DragGAN class which show how to load and use the ONNX models, and a window that allow a user to select an image, mark a pair of points on it and run the optimization.
-
-Note that the application rely on an Options.json file (see example bellow)  that contains the dataset to load in addition to other global paameters. The “$” in the Model path will be replaced by the executable folder. 
-
-```shell
-{
-  "BGColor": {
-    "R": 255,
-    "G": 255,
-    "B": 222
-  },
-  "InitialSeed": 50,
-  "Iterations": 100,
-  "Model": "$/../../../../onnx/metfaces"
-}
-```
-To mark the points, use the mouse right-click button.
-
 
 <h1>C# Application Overview</h1>
 
@@ -159,4 +134,4 @@ It's worth noting that the application relies on an Options.json file (see the e
 To mark points on the image, simply use the right-click button on your mouse.
 
 ![Example1](./images/Dog2.gif)
-![Example1](./images/Cat2.gif)
+![Example2](./images/Cat2.gif)
