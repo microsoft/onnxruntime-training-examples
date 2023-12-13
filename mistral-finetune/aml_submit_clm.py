@@ -52,7 +52,7 @@ def main(raw_args=None):
     model = "mistralai/Mistral-7B-v0.1"
     num_train_epochs = 5
     bsz = 1
-    max_steps = 10000
+    max_steps = 500
 
     # https://huggingface.co/datasets/dair-ai/emotion
     dataset_name = "databricks/databricks-dolly-15k"
