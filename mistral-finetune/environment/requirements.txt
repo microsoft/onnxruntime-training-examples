@@ -7,7 +7,7 @@ azureml-core
 datasets==2.14.5
 mpi4py==3.1.4
 sentencepiece==0.1.99
-transformers==4.35.2
+transformers==4.36.0
 optimum==1.14.1
 accelerate==0.23.0
 diffusers==0.18.0
