@@ -4,7 +4,7 @@ This repository contains the source code and examples for implementing [DragGAN]
 
 StyleGAN is a Generative Adversarial Network (GAN) architecture that generates high-quality and high-resolution images. DragGAN is a new AI technique that allows users to manipulate images in seconds with just a click and drag. It uses a pre-trained StyleGAN to synthesize realistic images that follow user input. DragGAN can rotate, resize, deform, and change the direction of objects in an image.
 
-For more details, please refer to our [blog post](https://onnxruntime.ai/blogs.html).
+For more details, please refer to our [blog post](https://cloudblogs.microsoft.com/opensource/2023/11/29/exploring-draggan-implementation-using-onnx-runtime/).
 
 ## Source Code
 
