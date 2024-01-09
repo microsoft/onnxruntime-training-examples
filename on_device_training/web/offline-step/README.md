@@ -7,7 +7,7 @@ This step is the same regardless of the method used to import the ONNXRuntime-we
 Install dependencies
 ```
 pip install -r requirements.txt
-pip install -i https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/ORT/pypi/simple/ onnxruntime-training-cpu>=1.16.0
+pip install -i https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/ORT/pypi/simple/ onnxruntime-training-cpu
 ```
 
 ## Generate artifacts

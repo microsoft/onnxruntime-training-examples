@@ -2,7 +2,6 @@ torch
 torchvision
 torchaudio
 onnx
-io
 cerberus
 flatbuffers
 h5py
