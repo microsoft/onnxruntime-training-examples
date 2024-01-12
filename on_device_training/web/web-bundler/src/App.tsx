@@ -6,23 +6,25 @@ import * as ort from 'onnxruntime-web/training';
 import { MnistData } from './mnist';
 import { Digit } from './Digit';
 
-// TODO: change the copy
 function App() {
+    // constants
     const numRows = 28;
     const numCols = 28;
 
+    const lossNodeName = "onnx::loss::8";
+
     const logIntervalMs = 1000;
     const waitAfterLoggingMs = 500;
+    let lastLogTime = 0;
 
-	// const [maxNumTrainSamples, setMaxNumTrainSamples] = React.useState<number>(MnistData.MAX_NUM_TRAIN_SAMPLES);
-	// const [maxNumTestSamples, setMaxNumTestSamples] = React.useState<number>(MnistData.MAX_NUM_TEST_SAMPLES);
+    let messagesQueue = [];
 
+    // React components
 	const [maxNumTrainSamples, setMaxNumTrainSamples] = React.useState<number>(6400);
 	const [maxNumTestSamples, setMaxNumTestSamples] = React.useState<number>(1280);
 
 	const [batchSize, setBatchSize] = React.useState<number>(MnistData.BATCH_SIZE);
-    // TODO: change default number of epochs back to 5
-	const [numEpochs, setNumEpochs] = React.useState<number>(2);
+	const [numEpochs, setNumEpochs] = React.useState<number>(5);
 
     const [trainingLosses, setTrainingLosses] = React.useState<number[]>([]);
 	const [testAccuracies, setTestAccuracies] = React.useState<number[]>([]);
@@ -30,16 +32,14 @@ function App() {
     const [digits, setDigits] = React.useState<{ pixels: Float32Array, label: number }[]>([])
 	const [digitPredictions, setDigitPredictions] = React.useState<number[]>([])
 
+    // logging React components
     const [enableLiveLogging, setEnableLiveLogging] = React.useState<boolean>(false);
 
     const [statusMessage, setStatusMessage] = React.useState("");
     const [errorMessage, setErrorMessage] = React.useState("");
 	const [messages, setMessages] = React.useState<string[]>([]);
 
-    let messagesQueue = [];
-
-    let lastLogTime = 0;
-
+    // logging helper functions
     function showStatusMessage(message: string) {
         console.log(message);
         setStatusMessage(message);
@@ -81,6 +81,7 @@ function App() {
         }
     }
 
+    // training & testing helper functions
     function indexOfMax(arr: Float32Array): number {
         if (arr.length === 0) {
             throw new Error('index of max (used in test accuracy function) expects a non-empty array. Something went wrong.');
@@ -176,6 +177,7 @@ function App() {
         setDigitPredictions(predictions.slice(0, digits.length));
     }
 
+    // training & testing functions
     async function runTrainingEpoch(session: ort.TrainingSession, dataSet: MnistData, epoch: number) {
         let batchNum =  0;
         let totalNumBatches = dataSet.getNumTrainingBatches();
@@ -189,13 +191,14 @@ function App() {
             const results = await session.runTrainStep(feeds);
 
             // updating UI
-            const loss = parseFloat(results['onnx::loss::2'].data);
+            const loss = parseFloat(results[lossNodeName].data);
             setTrainingLosses(losses => losses.concat(loss));
             const message = `TRAINING | Epoch: ${String(epoch + 1).padStart(2)} / ${numEpochs} | Batch ${String(batchNum).padStart(3)} / ${totalNumBatches} | Loss: ${loss.toFixed(4)}`;
             await logMessage(message);
 
             await session.runOptimizerStep();
             await session.lazyResetGrad();
+            // update digit predictions after optimizer step updates weights
             await updateDigitPredictions(session);
         }
     }
@@ -216,7 +219,7 @@ function App() {
             const results = await session.runEvalStep(feeds);
 
             // update UI
-            const loss = parseFloat(results['onnx::loss::2'].data);
+            const loss = parseFloat(results[lossNodeName].data);
             accumulatedLoss += loss;
             testPicsSoFar += batch.data.dims[0];
             numCorrect += countCorrectPredictions(results['output'], batch.labels);
@@ -230,6 +233,12 @@ function App() {
 
     async function train() {
         clearOutputs();
+
+        if (maxNumTrainSamples > MnistData.MAX_NUM_TRAIN_SAMPLES || maxNumTestSamples > MnistData.MAX_NUM_TEST_SAMPLES) {
+            showErrorMessage(`Max number of training samples (${maxNumTrainSamples}) or test samples (${maxNumTestSamples}) exceeds the maximum allowed (${MnistData.MAX_NUM_TRAIN_SAMPLES} and ${MnistData.MAX_NUM_TEST_SAMPLES}, respectively). Please try again.`);
+            return;
+        }
+
         const trainingSession = await loadTrainingSession();
         const dataSet = new MnistData(batchSize, maxNumTrainSamples, maxNumTestSamples);
 
@@ -244,6 +253,7 @@ function App() {
         showStatusMessage(`Training completed. Final test set accuracy: ${(100 * testAcc).toFixed(2)}%`);
     }
 
+    // plots and digits
     function renderPlots() {
 		const margin = { t: 20, r: 25, b: 25, l: 40 }
 		return (<div className="section">
@@ -328,22 +338,25 @@ function App() {
 		loadDigits()
 	}, [loadDigits])
 
+    // component HTML
         return (
             <Container className = "App">
             <div className="section">
 			<h2>ONNX Runtime Web Training Demo</h2>
 			<p>
-				In this example, you'll a train classifier in your browser to recognize handwritten digits from the <Link href="https://deepai.org/dataset/mnist" target="_blank" rel="noopener">MNIST Dataset</Link>.
-			</p>
-			<p>
-				You can learn more about how to set up a model that can be trained in your browser at <Link href="https://github.com/juharris/train-pytorch-in-js" target="_blank" rel="noopener">github.com/juharris/train-pytorch-in-js</Link>.
+            This demo trains a simple neural network on the <Link href='http://yann.lecun.com/exdb/mnist/'>MNIST dataset</Link> using ONNX Runtime Web. 
+            For more information on how to use ONNX Runtime Web for training, please refer to <Link href="onnxruntime.ai">ONNX Runtime documentation</Link> or 
+            the <Link href="https://github.com/microsoft/onnxruntime-training-examples">ONNX Runtime Training Examples code</Link>.
 			</p>
 		</div>
 		<div className="section">
 			<h3>Training</h3>
-			<p>
-				After each epoch, the learning rate will be multiplied by <code>Gamma</code>.
-			</p>
+            <p>
+                Total number of training samples: {MnistData.MAX_NUM_TRAIN_SAMPLES}
+            </p>
+            <p>
+                Total number of testing samples: {MnistData.MAX_NUM_TEST_SAMPLES}
+            </p>
 		</div>
 		<div className="section">
 			<Grid container spacing={{ xs: 1, md: 2 }}>
@@ -396,6 +409,10 @@ function App() {
             </Button>
         </div>
         <pre>{statusMessage}</pre>
+		{errorMessage &&
+			<p className='error'>
+				{errorMessage}
+			</p>}
 
         {renderPlots()}
 
@@ -411,10 +428,6 @@ function App() {
 					</React.Fragment>))}
 				</pre>
 			</div>}
-		{errorMessage &&
-			<p className='error'>
-				{errorMessage}
-			</p>}
 	</Container> 
         );
 }
