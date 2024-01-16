@@ -6,9 +6,9 @@ A live preview of this demo is available [here](https://carzh.github.io/onnxrunt
 
 ## Run instructions
 ### 1. Prepare offline artifacts.
-On-device-training requires an offline step where 4 training artifacts are generated. The instructions for generating the required artifacts can be found in `./offline-step/README.md`. 
+On-device-training requires an offline step where 4 training artifacts are generated. The instructions for generating the required artifacts can be found in [`./offline-step/README.md`](offline-step/README.md). 
 
-Once the artifacts have been generated, copy them to `./web-bundler/public`
+Once the artifacts have been generated, copy them to [`./web-bundler/public`](web-bundler/public).
 ```
 cp offline-step/*.onnx web-bundler/public
 cp offline-step/checkpoint web-bundler/public
@@ -28,7 +28,7 @@ You can use the gzip utility to unzip them.
 gunzip train-labels-idx1-ubyte.gz train-images-idx3-ubyte.gz t10k-labels-idx1-ubyte.gz t10k-images-idx3-ubyte.gz
 ```
 
-Once unzipped, they should be copied to the `web-bundler/public/data` folder.
+Once unzipped, they should be copied to the [`web-bundler/public/data`](web-bundler/public/data) folder.
 
 ### 3. Run the demo.
 ```
@@ -38,16 +38,16 @@ npm run start
 ```
 
 ## onnxruntime-web/training npm package usage
-The onnxruntime-web package uses WebAssembly binaries, which must be loaded into the browser. The webpack Copy Plugin is recommended.
+Make sure to use onnxruntime-web version >= 1.17.0, since onnxruntime-web/training is only support in 1.17.0 and above.
 
-If your example is having difficulty recognizing onnxruntime-web/training interfaces, make sure that you have the following settings in your tsconfig.json:
+The onnxruntime-web package uses WebAssembly binaries, which must be loaded into the browser. The webpack Copy Plugin is the recommended method to load these binaries -- see [`webpack.config.json`](web-bundler/webpack.config.json) for example usage.
+
+If your example is having difficulty recognizing onnxruntime-web/training interfaces, make sure that you have the following settings in your [`tsconfig.json`](web-bundler/tsconfig.json):
 ```
 		"module": "ES2020",
 		"moduleResolution": "bundler",
 ```
 
-Also make sure that onnxruntime-web version >= 1.17.0, since onnxruntime-web/training is only support in 1.17.0 and above.
-
 ## Demo troubleshooting
-If you run into the following errors: `Cannot read properties of undefined (reading 'data')` or `Cannot read properties of undefined (reading 'dims')`, then use Netron to open `training_model.onnx`, double-check the name of the loss output node, and edit `App.tsx` line 13 to reflect the correct loss output node name.
+If you run into the following errors: `Cannot read properties of undefined (reading 'data')` or `Cannot read properties of undefined (reading 'dims')`, then use Netron to open `training_model.onnx`, double-check the name of the loss output node, and edit [`App.tsx`  line 14](web-bundler/src/App.tsx#L14) to reflect the correct loss output node name.
 
