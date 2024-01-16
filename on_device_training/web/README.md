@@ -2,6 +2,8 @@
 
 This folder contains a demo based on [juharris's project](https://juharris.github.io/train-pytorch-in-js/) that launches a simple model that will train on the [MNIST dataset](http://yann.lecun.com/exdb/mnist/) in your browser.
 
+A live preview of this demo is available [here](https://carzh.github.io/onnxruntime-training-examples/).
+
 ## Run instructions
 ### 1. Prepare offline artifacts.
 On-device-training requires an offline step where 4 training artifacts are generated. The instructions for generating the required artifacts can be found in `./offline-step/README.md`. 

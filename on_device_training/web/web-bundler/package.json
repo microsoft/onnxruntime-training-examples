@@ -6,7 +6,7 @@
     "start": "webpack-dev-server --mode development --open --hot",
     "build": "webpack --mode production",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "deploy": "cross-env CACHE_DIR=cache gh-pages -d public -b web-demo --nojekyll"
   },
   "author": "",
   "license": "ISC",
@@ -19,6 +19,7 @@
     "@types/react": "^18.2.46",
     "@types/react-dom": "^18.2.18",
     "copy-webpack-plugin": "^11.0.0",
+    "cross-env": "^7.0.3",
     "css-loader": "^6.8.1",
     "gh-pages": "^6.1.1",
     "html-webpack-plugin": "^5.6.0",
