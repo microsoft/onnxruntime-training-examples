@@ -52,7 +52,10 @@ npm run deploy
 This will copy all relevant files to a new branch of your fork. By default, files will be copied to a branch called "web-demo."
 
 ### 3. Configure Github
-Navigate to your repository fork, go to Settings, then Pages. Make sure Build and Deployment is set to "Deploy from a branch" for the Source, and then select the "web-demo" branch then "/root". Click Save, and your Github Pages site will be built. The same Settings page will direct you to the URL where the live demo is hosted.
+Navigate to your repository fork, go to Settings, then Pages. Make sure Source is set to "Deploy from a branch", and then select the "web-demo" branch then "/root" for the folder. Click Save, and your Github Pages site will be built. The same Settings page will direct you to the URL where the live demo is hosted.
+
+![image](https://github.com/carzh/onnxruntime-training-examples/assets/22922935/b35cadce-c961-41b8-8ff2-7ba9922e3e2f)
+
 
 ## onnxruntime-web/training npm package usage
 Make sure to use onnxruntime-web version >= 1.17.0, since onnxruntime-web/training is only support in 1.17.0 and above.
