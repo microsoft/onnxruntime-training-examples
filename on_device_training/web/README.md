@@ -37,6 +37,23 @@ npm install
 npm run start
 ```
 
+## Deploy in Github Pages instructions
+The following goes through the steps for deploying to Github Pages in a fork of ONNXRuntime Training Examples repo. 
+
+### 1. Prepare demo
+Create a fork of the ONNXRuntime Training Examples repo & follow the above run instructions. Ensure that the local preview is running correctly by checking [http://localhost:9000/](http://localhost:9000/). 
+
+### 2. Deploy branch
+Run the following:
+```
+npm run deploy
+```
+
+This will copy all relevant files to a new branch of your fork. By default, files will be copied to a branch called "web-demo."
+
+### 3. Configure Github
+Navigate to your repository fork, go to Settings, then Pages. Make sure Build and Deployment is set to "Deploy from a branch" for the Source, and then select the "web-demo" branch then "/root". Click Save, and your Github Pages site will be built. The same Settings page will direct you to the URL where the live demo is hosted.
+
 ## onnxruntime-web/training npm package usage
 Make sure to use onnxruntime-web version >= 1.17.0, since onnxruntime-web/training is only support in 1.17.0 and above.
 
@@ -48,6 +65,16 @@ If your example is having difficulty recognizing onnxruntime-web/training interf
 		"moduleResolution": "bundler",
 ```
 
+## Demo components overview
+This section will go over how different components of the demo work together.
+
+This TypeScript demo uses React for its UI, webpack as its bundler, and npm as its package manager. The gh-pages npm package is used to deploy. ORT web for training can be used in both TypeScript and JavaScript projects and can be imported with either a bundler or a script tag. 
+
+The [`webpack.config.js`](./web-bundler/webpack.config.js) file contains bundler configuration information. The webpack bundler will transcompile the files from the [`./src`](./web-bundler/src) directory to a single JavaScript file which will automatically be placed in the [`./public`](./web-bundler/public) directory.
+
+The [`./public`](./web-bundler/public) directory contains the files that will be mounted or served in the browser, which is why we copy the data files and the generated training artifacts to the public folder. A skeleton [`index.html`](./web-bundler/public/index.html) file is required for React projects, which is located in the `./public` directory. For this project, we use an HtmlWebpackPlugin to generate an index.html that correctly imports the generated JavaScript bundle. [`./src/index.tsx`](./web-bundler/src/index.tsx) mounts a React component onto the index root, and [`./src/App.tsx`](./web-bundler/src/App.tsx) contains the code for that React component. Thus, [`./src/App.tsx`](./web-bundler/src/App.tsx) contains the code for creating a TrainingSession, the training loop, and the testing loop, as well as the interface for users.
+
+The ORT web package for training is an npm package, but can be used with a wide array of web frameworks. If using a bundler, ensure that there is a way for the WASM binaries to be mounted or served in the browser. Refer to [`webpack.config.json`](./web-bundler/webpack.config.js) for how this demo uses the CopyPlugin to load the WASM binaries. 
+
 ## Demo troubleshooting
 If you run into the following errors: `Cannot read properties of undefined (reading 'data')` or `Cannot read properties of undefined (reading 'dims')`, then use Netron to open `training_model.onnx`, double-check the name of the loss output node, and edit [`App.tsx`  line 14](web-bundler/src/App.tsx#L14) to reflect the correct loss output node name.
-

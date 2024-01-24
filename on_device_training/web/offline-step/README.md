@@ -12,4 +12,4 @@ pip install -i https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/O
 
 ## Generate artifacts
 
-Run the cells in the Jupyter notebook.
+Run the cells in the [Jupyter notebook](./mnist.ipynb).

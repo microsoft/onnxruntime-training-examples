@@ -1,3 +1,6 @@
+// The following is modified from Justin Harris's project:
+// https://github.com/juharris/train-pytorch-in-js
+
 import React from "react";
 
 const sizeScale = 2

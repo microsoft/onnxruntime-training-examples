@@ -1,7 +1,9 @@
+// The following is modified from Justin Harris's project:
+// https://github.com/juharris/train-pytorch-in-js
+
 // Modified from https://github.com/cazala/mnist/blob/master/src/mnist.js
 // so that we can place the data in a specific folder and avoid out of memory errors
 // and use TypeScript.
-// TODO: modify comments to credit justin
 import * as ort from 'onnxruntime-web/training';
 
 // Assume the data was loaded when running the Python scripts.
