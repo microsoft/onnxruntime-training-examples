@@ -1,0 +1,17 @@
+.App {
+  word-break: break-all;
+}
+
+div.section {
+  /* margin-bottom: 20px; */
+  margin: 20px;
+}
+
+p.error {
+  color: red;
+}
+
+pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}

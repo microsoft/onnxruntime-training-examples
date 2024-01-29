@@ -1,0 +1,13 @@
+torch
+torchvision
+torchaudio
+onnx
+cerberus
+flatbuffers
+h5py
+numpy>=1.16.6
+packaging
+protobuf
+sympy
+setuptools>=41.4.0
+netron
