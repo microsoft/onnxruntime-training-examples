@@ -1,6 +1,5 @@
 package com.example.ortpersonalize
 
-import ai.onnxruntime.*
 import android.Manifest
 import android.app.Dialog
 import android.content.DialogInterface
@@ -20,14 +19,13 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.ortpersonalize.databinding.ActivityMainBinding
 import java.nio.FloatBuffer
-import java.nio.IntBuffer
+import java.nio.LongBuffer
 import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private var ort_session: Long = -1 // Give a default initial value.
     private val PICK_IMAGE = 1000 // Pick an image for inferencing from the android gallery
     private val CAPTURE_IMAGE = 2000 // Capture an image from the camera
     private val PICK_CLASS_A_IMAGES_FOR_TRAINING =
@@ -53,20 +51,22 @@ class MainActivity : AppCompatActivity() {
         arrayOf("dog", "cat", "elephant", "cow") // Default labels for non custom class
     private var ortTrainer: ORTTrainer? = null
 
+    private fun makeOrtTrainerAndCopyAssets() : ORTTrainer {
+        val trainingModelPath = copyFileOrDir("training_artifacts/training_model.onnx")
+        val evalModelPath = copyFileOrDir("training_artifacts/eval_model.onnx")
+        val checkpointPath = copyFileOrDir("training_artifacts/checkpoint")
+        val optimizerModelPath = copyFileOrDir("training_artifacts/optimizer_model.onnx")
+
+        return ORTTrainer(checkpointPath, trainingModelPath, evalModelPath, optimizerModelPath)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val trainingModelPath =
-            copyAssetToCacheDir("mobilenetv2_training.onnx", "training_model.onnx")
-        val evalModelPath = copyAssetToCacheDir("mobilenetv2_eval.onnx", "eval_model.onnx")
-        val checkpointPath = copyFileOrDir("mobilenetv2.ckpt")
-        val optimizerModelPath =
-            copyAssetToCacheDir("mobilenetv2_optimizer.onnx", "optimizer_model.onnx")
-        ortTrainer =
-            ORTTrainer(checkpointPath, trainingModelPath, evalModelPath, optimizerModelPath)
+        ortTrainer = makeOrtTrainerAndCopyAssets()
 
         val inferButton: Button = findViewById(R.id.infer_button)
         inferButton.setOnClickListener(onInferenceButtonClickedListener)
@@ -215,14 +215,14 @@ class MainActivity : AppCompatActivity() {
                     for (i in 0..images.size - 1 step batchSize) {
                         val imgData = FloatBuffer.allocate(batchSize * channels * width * height)
                         imgData.rewind()
-                        val labels = IntBuffer.allocate(batchSize)
+                        val labels = LongBuffer.allocate(batchSize)
                         labels.rewind()
                         for (j in 0 until batchSize) {
                             if (i + j >= images.size) {
                                 break
                             }
 
-                            labels.put(j, images[i + j].second)
+                            labels.put(j, images[i + j].second.toLong())
 
                             val bitmap: Bitmap =
                                 processBitmap(bitmapFromUri(images[i + j].first, contentResolver))
@@ -279,30 +279,14 @@ class MainActivity : AppCompatActivity() {
                     binding.classB.text = nameClassB
                     binding.classX.text = nameClassX
                     binding.classY.text = nameClassY
-                    ortTrainer = null
-                    val trainingModelPath =
-                        copyAssetToCacheDir("mobilenetv2_training.onnx", "training_model.onnx")
-                    val evalModelPath =
-                        copyAssetToCacheDir("mobilenetv2_eval.onnx", "eval_model.onnx")
-                    val checkpointPath = copyFileOrDir("mobilenetv2.ckpt")
-                    val optimizerModelPath =
-                        copyAssetToCacheDir("mobilenetv2_optimizer.onnx", "optimizer_model.onnx")
-                    ortTrainer = ORTTrainer(checkpointPath, trainingModelPath, evalModelPath, optimizerModelPath)
+                    ortTrainer = makeOrtTrainerAndCopyAssets()
                     enableButtons()
                 } else {
                     binding.classA.text = String.format("%s (20)", prepackedDefaultLabels[0])
                     binding.classB.text = String.format("%s (20)", prepackedDefaultLabels[1])
                     binding.classX.text = String.format("%s (20)", prepackedDefaultLabels[2])
                     binding.classY.text = String.format("%s (20)", prepackedDefaultLabels[3])
-                    ortTrainer = null
-                    val trainingModelPath =
-                        copyAssetToCacheDir("mobilenetv2_training.onnx", "training_model.onnx")
-                    val evalModelPath =
-                        copyAssetToCacheDir("mobilenetv2_eval.onnx", "eval_model.onnx")
-                    val checkpointPath = copyFileOrDir("mobilenetv2.ckpt")
-                    val optimizerModelPath =
-                        copyAssetToCacheDir("mobilenetv2_optimizer.onnx", "optimizer_model.onnx")
-                    ortTrainer = ORTTrainer(checkpointPath, trainingModelPath, evalModelPath, optimizerModelPath)
+                    ortTrainer = makeOrtTrainerAndCopyAssets()
                     binding.trainButton.isEnabled = true
                     binding.inferButton.isEnabled = true
                 }
