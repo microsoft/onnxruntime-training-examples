@@ -8,6 +8,7 @@ import androidx.annotation.InspectableProperty.ValueType
 import java.io.File
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
+import java.nio.LongBuffer
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.Collections
@@ -24,7 +25,7 @@ class ORTTrainer{
         ortTrainingSession = ortEnv?.createTrainingSession(checkpointPath, trainModelPath, evalModelPath, optimizerModelPath)
     }
 
-    public fun performTraining(data: FloatBuffer, labels: IntBuffer, batchSize: Long) {
+    public fun performTraining(data: FloatBuffer, labels: LongBuffer, batchSize: Long) {
         ortSession = null
 
         var loss = -1.0f

@@ -171,15 +171,15 @@ Relevant files in the directory for this section:
 
    a. Create a new `assets` folder inside the `app` from the left pane of the Android Studio project by right click app -> New -> Folder -> Assets Folder and place it under main.
 
-   b. Copy the training artifacts generated in step 2 to this folder.
+   b. Copy the `training_artifacts` folder generated in step 2 to the `assets/training_artifacts` directory in Android Studio.
 
    c. Now, head over to the [`onnxruntime-training-examples`](https://github.com/microsoft/onnxruntime-training-examples/tree/master/on_device_training/mobile/android/c-cpp/data) repo and download the dataset (`images.zip`) to your machine and extract it. This dataset was modified from the orignal [`animals-10`](https://www.kaggle.com/datasets/alessiocorrado99/animals10) dataset available on Kaggle created by [Corrado Alessio](https://www.kaggle.com/alessiocorrado99).
 
    d. Copy the downloaded `images` folder to `assets/images` directory in Android Studio.
 
-   The left pane of the project should look like this:
-
-   ![Project Assets](readme-images/on-device-training-project-assets.png)
+   Now, you should see two folders under `assets`:
+   - `training_artifacts`
+   - `images`
 
 4. <a name="tp4"></a>Interfacing with ONNX Runtime - Java Code
 
@@ -216,7 +216,7 @@ Relevant files in the directory for this section:
       The function returns performs training on the given images.
 
    ```java
-      public fun performTraining(data: FloatBuffer, labels: IntBuffer, batchSize: Long) {
+      public fun performTraining(data: FloatBuffer, labels: LongBuffer, batchSize: Long) {
          ortSession = null
 
          var loss = -1.0f
