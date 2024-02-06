@@ -22,7 +22,6 @@ import java.nio.FloatBuffer
 import java.nio.LongBuffer
 import java.util.*
 
-
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
@@ -581,58 +580,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun mkCacheDir(cacheFileName: String) {
-        val dirs = cacheFileName.split("/")
-        var extendedCacheDir = "$cacheDir"
-        for (index in 0..dirs.size - 2) {
-            val myDir = java.io.File(extendedCacheDir, dirs.get(index))
-            myDir.mkdir()
-            extendedCacheDir = extendedCacheDir + "/" + dirs.get(index)
-        }
-    }
-
-    // copy file from asset to cache dir in the same dir structure.
-    private fun copyAssetToCacheDir(assetFileName: String, cacheFileName: String): String {
-        mkCacheDir(cacheFileName)
-        val f = java.io.File("$cacheDir/$cacheFileName")
-        if (!f.exists()) {
-            try {
-                val modelFile = assets.open(assetFileName)
-                val size: Int = modelFile.available()
-                val buffer = ByteArray(size)
-                modelFile.read(buffer)
-                modelFile.close()
-                val fos = java.io.FileOutputStream(f)
-                fos.write(buffer)
-                fos.close()
-            } catch (e: Exception) {
-                throw RuntimeException(e)
-            }
-        }
-
-
-        return f.path
-    }
-
     private fun copyFileOrDir(path: String): String {
-        val assetManager = assets
-        try {
-            val assets: Array<String>? = assetManager.list(path)
-            if (assets!!.size == 0) {
-                // asset is a file
-                copyAssetToCacheDir(path, path)
-            } else {
-                // asset is a dir. loop over dir and copy all files or sub dirs to cache dir
-                for (i in assets.indices) {
-                    var p: String
-                    p = if (path == "") "" else "$path/"
-                    copyFileOrDir(p + assets[i])
-                }
-            }
-        } catch (ex: java.io.IOException) {
-            Log.e("ortpersonalize", "I/O Exception", ex)
-        }
-
-        return "$cacheDir/$path"
+        val dst = java.io.File("$cacheDir/$path")
+        copyAssetFileOrDir(assets, path, dst)
+        return dst.path
     }
 }
