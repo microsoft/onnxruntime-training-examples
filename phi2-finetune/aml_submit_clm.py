@@ -50,12 +50,12 @@ def main(raw_args=None):
     code_dir = root_dir / "finetune-clm"
 
     model = "microsoft/phi-2"
-    num_train_epochs = 5
-    bsz = 1
-    max_steps = 500
+    num_train_epochs = 2
+    bsz = 2
+    max_steps = -1
 
     dataset_name = "wikitext"
-    dataset_config_name = "split"
+    dataset_config_name = "wikitext-2-raw-v1"
     text_column_name = "text"
     label_column_name = "label"
 
@@ -64,17 +64,15 @@ def main(raw_args=None):
         command=f"torchrun --nproc_per_node {nproc_per_node} run_clm.py \
             --model_name_or_path {model} \
             --dataset_name {dataset_name} \
-            --per_device_train_batch_size {bsz} \
+            --dataset_config_name {dataset_config_name} \
             --do_train \
+            --save_strategy 'no' \
+            --per_device_train_batch_size {bsz} \
             --num_train_epochs {num_train_epochs} \
             --output_dir results --overwrite_output_dir \
-            --save_strategy 'no' \
             --fp16 --max_steps {max_steps} \
-            --gradient_accumulation_steps 1 \
-            --learning_rate 0.00001 \
-            --adam_beta1 0.9 \
-            --adam_beta2 0.999 \
-            --adam_epsilon 1e-8 \
+            --block_size 512 \
+            --gradient_accumulation_steps 4 \
             --deepspeed zero_stage_2.json",
         environment=Environment(build=BuildContext(path=environment_dir)),
         experiment_name="Phi-2-Pytorch-CLM-LORA-Stage2-Experiment",
@@ -102,17 +100,15 @@ def main(raw_args=None):
         command=f"torchrun --nproc_per_node {nproc_per_node} run_clm.py \
             --model_name_or_path {model} \
             --dataset_name {dataset_name} \
-            --per_device_train_batch_size {bsz} \
+            --dataset_config_name {dataset_config_name} \
             --do_train \
+            --save_strategy 'no' \
+            --per_device_train_batch_size {bsz} \
             --num_train_epochs {num_train_epochs} \
             --output_dir results --overwrite_output_dir \
-            --save_strategy 'no' \
             --fp16 --max_steps {max_steps} \
-            --gradient_accumulation_steps 1 \
-            --learning_rate 0.00001 \
-            --adam_beta1 0.9 \
-            --adam_beta2 0.999 \
-            --adam_epsilon 1e-8 \
+            --block_size 512 \
+            --gradient_accumulation_steps 4 \
             --deepspeed zero_stage_2.json",
         environment=Environment(build=BuildContext(path=environment_dir)),
         environment_variables={"APPLY_ORT": "True",
