@@ -78,7 +78,7 @@ def main(raw_args=None):
         experiment_name="Phi-2-Pytorch-CLM-LORA-Stage2-Experiment",
         compute=compute,
         display_name=model.replace(
-            "phi-2",
+            "microsoft/phi-2",
             f"pytorch+LoRA+DS2-{bsz}"
         ),
         description=f"Train Phi-2 using PyTorch",
@@ -116,7 +116,7 @@ def main(raw_args=None):
         experiment_name="Phi-2-ORT-CLM-Stage2-Experiment",
         compute=compute,
         display_name=model.replace(
-            "phi-2",
+            "microsoft/phi-2",
             f"ort+LoRA+DS2-{bsz}"
         ),
         description=f"Train Hugging Face's Open-LLaMA using ONNX Runtime",
