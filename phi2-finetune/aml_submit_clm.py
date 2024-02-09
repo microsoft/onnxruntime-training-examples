@@ -51,7 +51,7 @@ def main(raw_args=None):
 
     model = "microsoft/phi-2"
     num_train_epochs = 2
-    bsz = 2
+    bsz = 3
     max_steps = -1
 
     dataset_name = "wikitext"
@@ -79,7 +79,7 @@ def main(raw_args=None):
         compute=compute,
         display_name=model.replace(
             "microsoft/phi-2",
-            f"pytorch+LoRA+DS2-{bsz}"
+            f"pytorch+DS2-{bsz}"
         ),
         description=f"Train Phi-2 using PyTorch",
         tags={"model": model,
@@ -117,7 +117,7 @@ def main(raw_args=None):
         compute=compute,
         display_name=model.replace(
             "microsoft/phi-2",
-            f"ort+LoRA+DS2-{bsz}"
+            f"ort+DS2-{bsz}"
         ),
         description=f"Train Hugging Face's Open-LLaMA using ONNX Runtime",
         tags={"model": model,
