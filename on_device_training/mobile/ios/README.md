@@ -40,6 +40,12 @@ From this directory, run:
 pip install -r requirements.txt
 ```
 
+Then run the following to install onnxruntime-training pip package:
+
+```bash
+pip install -i https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/ORT/pypi/simple/ onnxruntime-training-cpu
+```
+
 ### Generate Artifacts
 [Artifacts generation](./artifacts_gen.py) script downloads the model from huggingface and creates the training artifacts in `MyVoice/artifacts`. 
 
