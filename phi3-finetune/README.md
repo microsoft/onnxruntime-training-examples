@@ -35,7 +35,7 @@ python aml_submit.py
 
 The above script will generate two URLs, one for Pytorch and another for ONNX Runtime training.
 
-We observe **~11% speedup** for Phi-3 trained leveraging ONNX Runtime Training with 8 V100 GPUs with 32GB memory, with a batch size of 3 and Triton turned on.
+We observe **~<TBD>% speedup** for Phi-3 trained leveraging ONNX Runtime Training with 8 V100 GPUs with 32GB memory, with a batch size of <TBD>.
 
 ### Run directly on your compute
 

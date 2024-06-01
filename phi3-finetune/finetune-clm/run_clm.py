@@ -438,8 +438,6 @@ def main():
             "You are instantiating a new tokenizer from scratch. This is not supported by this script. "
             "You can do it from another script, save it, and load it from here, using --tokenizer_name."
         )
-    # print("#*#*#* Overriding config.num_hidden_layers=1")
-    # config.num_hidden_layers = 1
 
     if model_args.model_name_or_path:
         torch_dtype = (
@@ -485,12 +483,6 @@ def main():
     )
     if apply_4bit is True:
         model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=False)
-
-    if training_args.local_rank == 0:
-        print("#*#*#* model before LoRA", model)
-    model = get_peft_model(model, peft_config)
-    if training_args.local_rank == 0:
-        print("#*#*#* model after LoRA", model)
 
     # Preprocessing the datasets.
     # First we tokenize all the texts.
@@ -706,28 +698,6 @@ def _mp_fn(index):
     # For xla_spawn (TPUs)
     main()
 
-def print_env_info():
-    import subprocess
-    import torch.distributed as dist
-
-    if dist.get_rank() == 0:
-        print("\n\n===== Environment Info =====")
-        docker_sh = "echo Docker:$HOST_HOSTNAME"
-        subprocess.run(docker_sh, shell=True)
-        env_variable_sh = "printenv | grep 'ORTMODULE_\|APPLY_' "
-        print("\n", env_variable_sh)
-        subprocess.run(env_variable_sh, shell=True)
-        package_ver_sh = "pip list | grep 'transformers\|optimum\|onnx\|torch\|accelerate'"
-        print("\n", package_ver_sh)
-        subprocess.run(package_ver_sh, shell=True)
-        optimum_commit = "cd ../optimum && git show --oneline -s"
-        print("\n optimum commit")
-        subprocess.run(optimum_commit, shell=True)
-        transformers_commit = "cd ../transformers && git show --oneline -s"
-        print("\n transfromers commit")
-        subprocess.run(transformers_commit, shell=True)
-        print("=======================================")
 
 if __name__ == "__main__":
     main()
-    print_env_info()
