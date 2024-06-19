@@ -33,7 +33,7 @@ nproc_per_node = ws_config["nproc_per_node"]
 def get_args(raw_args=None):
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--experiment_name", default="Phi-2-ORT-CLM-Stage2-Experiment", help="Experiment name for AML Workspace")
+    parser.add_argument("--experiment_name", default="Phi-3-ORT-CLM-Stage2-Experiment", help="Experiment name for AML Workspace")
 
     args = parser.parse_args(raw_args)
     return args
@@ -49,10 +49,11 @@ def main(raw_args=None):
     environment_dir = root_dir / "environment"
     code_dir = root_dir / "finetune-clm"
 
-    model = "microsoft/phi-3"
-    num_train_epochs = 2
-    bsz = 3
+    model = "microsoft/Phi-3-mini-4k-instruct"
+    num_train_epochs = 5
+    bsz = 1
     max_steps = -1
+    block_size = 64
 
     dataset_name = "wikitext"
     dataset_config_name = "wikitext-2-raw-v1"
@@ -71,20 +72,22 @@ def main(raw_args=None):
             --num_train_epochs {num_train_epochs} \
             --output_dir results --overwrite_output_dir \
             --fp16 --max_steps {max_steps} \
-            --block_size 2048 \
+            --block_size {block_size} \
             --deepspeed zero_stage_2.json \
-            --evaluation_strategy no --remove_unused_columns False",
+            --evaluation_strategy epoch --remove_unused_columns False --save_strategy no \
+            --report_to tensorboard --logging_steps 100",
         environment=Environment(build=BuildContext(path=environment_dir)),
         experiment_name="Phi-3-Pytorch-CLM-LORA-Stage2-Experiment",
         compute=compute,
         display_name=model.replace(
             "microsoft/phi-2",
-            f"pytorch+DS2-{bsz}"
+            f"pytorch+DS2_lora-{bsz}"
         ),
-        description=f"Finetune HuggingFace's Phi-3 using PyTorch",
+        description=f"Finetune HuggingFace's Phi-3 using PyTorch and transformers branch",
         tags={"model": model,
               "bsz": bsz,
-              "dataset_name": dataset_name},
+              "dataset_name": dataset_name,
+              "block_size": block_size},
         shm_size="16g"
     )
     
@@ -112,17 +115,19 @@ def main(raw_args=None):
             --evaluation_strategy no --remove_unused_columns False",
         environment=Environment(build=BuildContext(path=environment_dir)),
         environment_variables={"APPLY_ORT": "True",
-                               "ORTMODULE_FALLBACK_POLICY": "FALLBACK_DISABLE"},
+                               "ORTMODULE_FALLBACK_POLICY": "FALLBACK_DISABLE",
+                               "ORTMODULE_DEEPCOPY_BEFORE_MODEL_EXPORT": "0"},
         experiment_name="Phi-3-ORT-CLM-Stage2-Experiment",
         compute=compute,
         display_name=model.replace(
             "microsoft/phi-3",
-            f"ort+DS2-{bsz}"
+            f"ort+DS2+Lora-{bsz}"
         ),
-        description=f"Finetune HuggingFace's Phi-3 using ONNX Runtime",
+        description=f"Finetune HuggingFace's Phi-3 using ONNX Runtime and transformers branch",
         tags={"model": model,
               "bsz": bsz,
-              "dataset_name": dataset_name},
+              "dataset_name": dataset_name,
+              "block_size": block_size},
         shm_size="16g"
     )
 

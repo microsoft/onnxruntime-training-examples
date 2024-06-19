@@ -484,6 +484,7 @@ def main():
     if apply_4bit is True:
         model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=False)
 
+    model = get_peft_model(model, peft_config)
     # Preprocessing the datasets.
     # First we tokenize all the texts.
     if training_args.do_train:
