@@ -471,7 +471,7 @@ def main():
     # Use LoRA performance efficient fine tuning
     from peft import LoraConfig, TaskType, get_peft_model, prepare_model_for_kbit_training
 
-    target_modules = ["qkv_proj"] 
+    target_modules = ["q_proj", "k_proj", "v_proj", "o_proj"]
     
     peft_config = LoraConfig(
         task_type=TaskType.CAUSAL_LM,

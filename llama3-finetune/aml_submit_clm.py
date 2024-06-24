@@ -30,10 +30,13 @@ workspace_name = ws_config["workspace_name"]
 compute = ws_config["compute"]
 nproc_per_node = ws_config["nproc_per_node"]
 
+hf_token = os.getenv("HUGGINGFACE_TOKEN", None)
+
+
 def get_args(raw_args=None):
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--experiment_name", default="Phi-3-ORT-CLM-Stage2-Experiment", help="Experiment name for AML Workspace")
+    parser.add_argument("--experiment_name", default="Llama-3-ORT-CLM-Stage2-Experiment", help="Experiment name for AML Workspace")
 
     args = parser.parse_args(raw_args)
     return args
@@ -49,9 +52,9 @@ def main(raw_args=None):
     environment_dir = root_dir / "environment"
     code_dir = root_dir / "finetune-clm"
 
-    model = "microsoft/Phi-3-mini-4k-instruct"
+    model = "meta-llama/Meta-Llama-3-8B"
 
-    num_train_epochs = 5
+    num_train_epochs = 15
     bsz = 1
     max_steps = -1
     block_size = 2048
@@ -76,20 +79,26 @@ def main(raw_args=None):
             --fp16 --max_steps {max_steps} \
             --block_size {block_size} \
             --deepspeed zero_stage_2.json \
-            --evaluation_strategy epoch --remove_unused_columns False",
+            --evaluation_strategy epoch --remove_unused_columns False \
+            --token $HUGGINGFACE_TOKEN",
         environment=Environment(build=BuildContext(path=environment_dir)),
-        experiment_name="Phi-3-Pytorch-CLM-LORA-Stage2-Experiment",
+        environment_variables={
+            "HUGGINGFACE_TOKEN": hf_token
+        },
+        experiment_name="Llama-3-Pytorch-CLM-LORA-Stage2-Experiment",
         compute=compute,
         display_name=model.replace(
-            "microsoft/Phi-3",
+            "meta-llama/Meta-Llama-3",
             f"TorchEager+DS2_lora-{bsz}-{block_size}-{num_train_epochs}epoch"
         ),
-        description=f"Finetune HuggingFace's Phi-3 using PyTorch.",
+        description=f"Finetune HuggingFace's Llama-3 using PyTorch.",
         tags={"model": model,
             "bsz": bsz,
             "dataset_name": dataset_name,
             "block_size": block_size},
-        shm_size="16g"
+        shm_size="16g",
+        job_tier="Premium", #https://learn.microsoft.com/en-us/python/api/azure-ai-ml/azure.ai.ml?view=azure-python
+        priority="High"
     )
     
     print("submitting PyTorch job for " + model)
@@ -114,26 +123,29 @@ def main(raw_args=None):
             --fp16 --max_steps {max_steps} \
             --block_size {block_size} \
             --deepspeed zero_stage_2.json \
-            --evaluation_strategy epoch --remove_unused_columns False ",
+            --evaluation_strategy epoch --remove_unused_columns False \
+            --token $HUGGINGFACE_TOKEN",
         environment=Environment(build=BuildContext(path=environment_dir)),
         environment_variables={
+            "HUGGINGFACE_TOKEN": hf_token,
             "APPLY_ORT": "True",
             "ORTMODULE_FALLBACK_POLICY": "FALLBACK_DISABLE",
             "ORTMODULE_DEEPCOPY_BEFORE_MODEL_EXPORT": "0"},
-        experiment_name="Phi-3-ORT-CLM-Stage2-Experiment",
+        experiment_name="Llama-3-ORT-CLM-Stage2-Experiment",
         compute=compute,
         display_name=model.replace(
-            "microsoft/Phi-3",
+            "meta-llama/Meta-Llama-3",
             f"ORT+DS2_lora-{bsz}-{block_size}-{num_train_epochs}epoch"
         ),
-        description=f"Finetune HuggingFace's Phi-3 using ONNX Runtime.",
+        description=f"Finetune HuggingFace's Llama-3 using ONNX Runtime.",
         tags={"model": model,
             "bsz": bsz,
             "dataset_name": dataset_name,
             "block_size": block_size,
             "epoch": num_train_epochs},
-        shm_size="16g"
-
+        shm_size="16g",
+        job_tier="Premium",
+        priority="High"
     )
 
     print("submitting ORT job for " + model)
