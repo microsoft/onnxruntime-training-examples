@@ -1,0 +1,4 @@
+numpy==1.26.3
+torch
+transformers
+datasets
