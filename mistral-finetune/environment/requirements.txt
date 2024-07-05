@@ -17,7 +17,7 @@ bitsandbytes==0.41.0
 einops==0.6.1
 scipy==1.10.0
 aiohttp==3.9.4
-certifi==2023.07.22
+certifi==2024.7.4
 numpy==1.22
 peft==0.5.0
 deepspeed==0.11.1
