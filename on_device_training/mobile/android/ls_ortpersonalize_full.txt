@@ -1,0 +1,284 @@
+.:
+total 48
+drwxrwxrwx+ 5 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 ..
+-rw-rw-rw-  1 codespace root  225 Oct 31 04:57 .gitignore
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 .idea
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 app
+-rw-rw-rw-  1 codespace root  296 Oct 31 04:57 build.gradle
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 gradle
+-rw-rw-rw-  1 codespace root 1358 Oct 31 04:57 gradle.properties
+-rw-rw-rw-  1 codespace root 5766 Oct 31 04:57 gradlew
+-rw-rw-rw-  1 codespace root 2674 Oct 31 04:57 gradlew.bat
+-rw-rw-rw-  1 codespace root  332 Oct 31 04:57 settings.gradle
+
+./.idea:
+total 32
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 5 codespace root 4096 Oct 31 04:57 ..
+-rw-rw-rw-  1 codespace root   47 Oct 31 04:57 .gitignore
+-rw-rw-rw-  1 codespace root   15 Oct 31 04:57 .name
+-rw-rw-rw-  1 codespace root  169 Oct 31 04:57 compiler.xml
+-rw-rw-rw-  1 codespace root  552 Oct 31 04:57 deploymentTargetDropDown.xml
+drwxrwxrwx+ 2 codespace root 4096 Oct 31 04:57 inspectionProfiles
+-rw-rw-rw-  1 codespace root  468 Oct 31 04:57 misc.xml
+
+./.idea/inspectionProfiles:
+total 12
+drwxrwxrwx+ 2 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 ..
+-rw-rw-rw-  1 codespace root 1698 Oct 31 04:57 Project_Default.xml
+
+./app:
+total 24
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 5 codespace root 4096 Oct 31 04:57 ..
+-rw-rw-rw-  1 codespace root    6 Oct 31 04:57 .gitignore
+-rw-rw-rw-  1 codespace root 1572 Oct 31 04:57 build.gradle
+-rw-rw-rw-  1 codespace root  750 Oct 31 04:57 proguard-rules.pro
+drwxrwxrwx+ 5 codespace root 4096 Oct 31 04:57 src
+
+./app/src:
+total 20
+drwxrwxrwx+ 5 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 ..
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 androidTest
+drwxrwxrwx+ 6 codespace root 4096 Oct 31 04:57 main
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 test
+
+./app/src/androidTest:
+total 12
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 5 codespace root 4096 Oct 31 04:57 ..
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 java
+
+./app/src/androidTest/java:
+total 12
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 ..
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 com
+
+./app/src/androidTest/java/com:
+total 12
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 ..
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 example
+
+./app/src/androidTest/java/com/example:
+total 12
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 ..
+drwxrwxrwx+ 2 codespace root 4096 Oct 31 04:57 ortpersonalize
+
+./app/src/androidTest/java/com/example/ortpersonalize:
+total 12
+drwxrwxrwx+ 2 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 ..
+-rw-rw-rw-  1 codespace root  679 Oct 31 04:57 ExampleInstrumentedTest.kt
+
+./app/src/main:
+total 28
+drwxrwxrwx+  6 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+  5 codespace root 4096 Oct 31 04:57 ..
+-rw-rw-rw-   1 codespace root 1174 Oct 31 04:57 AndroidManifest.xml
+drwxrwxrwx+  3 codespace root 4096 Oct 31 04:57 assets
+drwxrwxrwx+  2 codespace root 4096 Oct 31 04:57 cpp
+drwxrwxrwx+  3 codespace root 4096 Oct 31 04:57 java
+drwxrwxrwx+ 14 codespace root 4096 Oct 31 04:57 res
+
+./app/src/main/assets:
+total 26048
+drwxrwxrwx+ 3 codespace root    4096 Oct 31 04:57 .
+drwxrwxrwx+ 6 codespace root    4096 Oct 31 04:57 ..
+drwxrwxrwx+ 2 codespace root    4096 Oct 31 04:57 mobilenetv2.ckpt
+-rw-rw-rw-  1 codespace root 8888760 Oct 31 04:57 mobilenetv2.onnx
+-rw-rw-rw-  1 codespace root 8881916 Oct 31 04:57 mobilenetv2_eval.onnx
+-rw-rw-rw-  1 codespace root     580 Oct 31 04:57 mobilenetv2_optimizer.onnx
+-rw-rw-rw-  1 codespace root 8879520 Oct 31 04:57 mobilenetv2_training.onnx
+
+./app/src/main/assets/mobilenetv2.ckpt:
+total 32
+drwxrwxrwx+ 2 codespace root  4096 Oct 31 04:57 .
+drwxrwxrwx+ 3 codespace root  4096 Oct 31 04:57 ..
+-rw-rw-rw-  1 codespace root 20558 Oct 31 04:57 paramtrain_tensors.pbseq
+
+./app/src/main/cpp:
+total 44
+drwxrwxrwx+ 2 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 6 codespace root 4096 Oct 31 04:57 ..
+-rw-rw-rw-  1 codespace root 1979 Oct 31 04:57 CMakeLists.txt
+-rw-rw-rw-  1 codespace root 2672 Oct 31 04:57 inference.cpp
+-rw-rw-rw-  1 codespace root  690 Oct 31 04:57 inference.h
+-rw-rw-rw-  1 codespace root 3603 Oct 31 04:57 native-lib.cpp
+-rw-rw-rw-  1 codespace root 2050 Oct 31 04:57 session_cache.h
+-rw-rw-rw-  1 codespace root 2076 Oct 31 04:57 train.cpp
+-rw-rw-rw-  1 codespace root  592 Oct 31 04:57 train.h
+-rw-rw-rw-  1 codespace root 1098 Oct 31 04:57 utils.cpp
+-rw-rw-rw-  1 codespace root  307 Oct 31 04:57 utils.h
+
+./app/src/main/java:
+total 12
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 6 codespace root 4096 Oct 31 04:57 ..
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 com
+
+./app/src/main/java/com:
+total 12
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 ..
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 example
+
+./app/src/main/java/com/example:
+total 12
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 ..
+drwxrwxrwx+ 2 codespace root 4096 Oct 31 04:57 ortpersonalize
+
+./app/src/main/java/com/example/ortpersonalize:
+total 44
+drwxrwxrwx+ 2 codespace root  4096 Oct 31 04:57 .
+drwxrwxrwx+ 3 codespace root  4096 Oct 31 04:57 ..
+-rw-rw-rw-  1 codespace root  5640 Oct 31 04:57 ImageProcessingUtil.kt
+-rw-rw-rw-  1 codespace root 27471 Oct 31 04:57 MainActivity.kt
+
+./app/src/main/res:
+total 56
+drwxrwxrwx+ 14 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+  6 codespace root 4096 Oct 31 04:57 ..
+drwxrwxrwx+  2 codespace root 4096 Oct 31 04:57 drawable
+drwxrwxrwx+  2 codespace root 4096 Oct 31 04:57 drawable-v24
+drwxrwxrwx+  2 codespace root 4096 Oct 31 04:57 layout
+drwxrwxrwx+  2 codespace root 4096 Oct 31 04:57 mipmap-anydpi-v26
+drwxrwxrwx+  2 codespace root 4096 Oct 31 04:57 mipmap-hdpi
+drwxrwxrwx+  2 codespace root 4096 Oct 31 04:57 mipmap-mdpi
+drwxrwxrwx+  2 codespace root 4096 Oct 31 04:57 mipmap-xhdpi
+drwxrwxrwx+  2 codespace root 4096 Oct 31 04:57 mipmap-xxhdpi
+drwxrwxrwx+  2 codespace root 4096 Oct 31 04:57 mipmap-xxxhdpi
+drwxrwxrwx+  2 codespace root 4096 Oct 31 04:57 values
+drwxrwxrwx+  2 codespace root 4096 Oct 31 04:57 values-night
+drwxrwxrwx+  2 codespace root 4096 Oct 31 04:57 xml
+
+./app/src/main/res/drawable:
+total 16
+drwxrwxrwx+  2 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 14 codespace root 4096 Oct 31 04:57 ..
+-rw-rw-rw-   1 codespace root 5606 Oct 31 04:57 ic_launcher_background.xml
+
+./app/src/main/res/drawable-v24:
+total 12
+drwxrwxrwx+  2 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 14 codespace root 4096 Oct 31 04:57 ..
+-rw-rw-rw-   1 codespace root 1702 Oct 31 04:57 ic_launcher_foreground.xml
+
+./app/src/main/res/layout:
+total 20
+drwxrwxrwx+  2 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 14 codespace root 4096 Oct 31 04:57 ..
+-rw-rw-rw-   1 codespace root 7018 Oct 31 04:57 activity_main.xml
+-rw-rw-rw-   1 codespace root 1508 Oct 31 04:57 dialog.xml
+
+./app/src/main/res/mipmap-anydpi-v26:
+total 16
+drwxrwxrwx+  2 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 14 codespace root 4096 Oct 31 04:57 ..
+-rw-rw-rw-   1 codespace root  272 Oct 31 04:57 ic_launcher.xml
+-rw-rw-rw-   1 codespace root  272 Oct 31 04:57 ic_launcher_round.xml
+
+./app/src/main/res/mipmap-hdpi:
+total 16
+drwxrwxrwx+  2 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 14 codespace root 4096 Oct 31 04:57 ..
+-rw-rw-rw-   1 codespace root 1404 Oct 31 04:57 ic_launcher.webp
+-rw-rw-rw-   1 codespace root 2898 Oct 31 04:57 ic_launcher_round.webp
+
+./app/src/main/res/mipmap-mdpi:
+total 16
+drwxrwxrwx+  2 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 14 codespace root 4096 Oct 31 04:57 ..
+-rw-rw-rw-   1 codespace root  982 Oct 31 04:57 ic_launcher.webp
+-rw-rw-rw-   1 codespace root 1772 Oct 31 04:57 ic_launcher_round.webp
+
+./app/src/main/res/mipmap-xhdpi:
+total 16
+drwxrwxrwx+  2 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 14 codespace root 4096 Oct 31 04:57 ..
+-rw-rw-rw-   1 codespace root 1900 Oct 31 04:57 ic_launcher.webp
+-rw-rw-rw-   1 codespace root 3918 Oct 31 04:57 ic_launcher_round.webp
+
+./app/src/main/res/mipmap-xxhdpi:
+total 20
+drwxrwxrwx+  2 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 14 codespace root 4096 Oct 31 04:57 ..
+-rw-rw-rw-   1 codespace root 2884 Oct 31 04:57 ic_launcher.webp
+-rw-rw-rw-   1 codespace root 5914 Oct 31 04:57 ic_launcher_round.webp
+
+./app/src/main/res/mipmap-xxxhdpi:
+total 20
+drwxrwxrwx+  2 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 14 codespace root 4096 Oct 31 04:57 ..
+-rw-rw-rw-   1 codespace root 3844 Oct 31 04:57 ic_launcher.webp
+-rw-rw-rw-   1 codespace root 7778 Oct 31 04:57 ic_launcher_round.webp
+
+./app/src/main/res/values:
+total 20
+drwxrwxrwx+  2 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 14 codespace root 4096 Oct 31 04:57 ..
+-rw-rw-rw-   1 codespace root  378 Oct 31 04:57 colors.xml
+-rw-rw-rw-   1 codespace root  532 Oct 31 04:57 strings.xml
+-rw-rw-rw-   1 codespace root  816 Oct 31 04:57 themes.xml
+
+./app/src/main/res/values-night:
+total 12
+drwxrwxrwx+  2 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 14 codespace root 4096 Oct 31 04:57 ..
+-rw-rw-rw-   1 codespace root  816 Oct 31 04:57 themes.xml
+
+./app/src/main/res/xml:
+total 16
+drwxrwxrwx+  2 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 14 codespace root 4096 Oct 31 04:57 ..
+-rw-rw-rw-   1 codespace root  478 Oct 31 04:57 backup_rules.xml
+-rw-rw-rw-   1 codespace root  551 Oct 31 04:57 data_extraction_rules.xml
+
+./app/src/test:
+total 12
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 5 codespace root 4096 Oct 31 04:57 ..
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 java
+
+./app/src/test/java:
+total 12
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 ..
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 com
+
+./app/src/test/java/com:
+total 12
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 ..
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 example
+
+./app/src/test/java/com/example:
+total 12
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 ..
+drwxrwxrwx+ 2 codespace root 4096 Oct 31 04:57 ortpersonalize
+
+./app/src/test/java/com/example/ortpersonalize:
+total 12
+drwxrwxrwx+ 2 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 ..
+-rw-rw-rw-  1 codespace root  350 Oct 31 04:57 ExampleUnitTest.kt
+
+./gradle:
+total 12
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 5 codespace root 4096 Oct 31 04:57 ..
+drwxrwxrwx+ 2 codespace root 4096 Oct 31 04:57 wrapper
+
+./gradle/wrapper:
+total 72
+drwxrwxrwx+ 2 codespace root  4096 Oct 31 04:57 .
+drwxrwxrwx+ 3 codespace root  4096 Oct 31 04:57 ..
+-rw-rw-rw-  1 codespace root 59203 Oct 31 04:57 gradle-wrapper.jar
+-rw-rw-rw-  1 codespace root   230 Oct 31 04:57 gradle-wrapper.properties

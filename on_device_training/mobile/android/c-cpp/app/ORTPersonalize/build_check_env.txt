@@ -1,0 +1,4 @@
+JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+ANDROID_SDK_ROOT=/home/codespace/Android/Sdk
+ANDROID_NDK_HOME=/home/codespace/Android/Sdk/ndk/25.2.9519653
+/usr/bin/adb

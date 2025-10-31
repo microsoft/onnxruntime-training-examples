@@ -1,0 +1,16 @@
+total 80
+drwxrwxrwx+ 4 codespace root       4096 Oct 31 05:22 .
+drwxrwxrwx+ 4 codespace root       4096 Oct 31 04:57 ..
+drwxrwxrwx+ 7 codespace root       4096 Oct 31 04:57 c-cpp
+-rw-rw-rw-  1 codespace codespace    42 Oct 31 05:12 find_results.txt
+drwxrwxrwx+ 7 codespace root       4096 Oct 31 04:57 java
+-rw-rw-rw-  1 codespace codespace   626 Oct 31 05:17 ls_ortpersonalize.txt
+-rw-rw-rw-  1 codespace codespace   343 Oct 31 05:19 ls_ortpersonalize_app.txt
+-rw-rw-rw-  1 codespace codespace    51 Oct 31 05:20 ls_ortpersonalize_app_src.txt
+-rw-rw-rw-  1 codespace codespace 11066 Oct 31 05:22 ls_ortpersonalize_full.txt
+-rw-rw-rw-  1 codespace codespace   258 Oct 31 05:22 ls_ortpersonalize_full_dirs.txt
+-rw-rw-rw-  1 codespace codespace  1341 Oct 31 05:12 ls_project.txt
+-rw-rw-rw-  1 codespace codespace   626 Oct 31 05:13 ls_target_path.txt
+-rw-rw-rw-  1 codespace codespace   679 Oct 31 05:12 ls_workspaces.txt
+-rw-rw-rw-  1 codespace codespace   101 Oct 31 05:12 terminal_pwd.txt
+-rw-rw-rw-  1 codespace codespace 13899 Oct 31 05:12 tree_workspaces.txt

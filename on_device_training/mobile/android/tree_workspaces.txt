@@ -1,0 +1,320 @@
+/workspaces/onnxruntime-training-examples
+├── CODE_OF_CONDUCT.md
+├── DragGAN
+│   ├── DragGANApp
+│   │   ├── Cyotek.Windows.Forms.ImageBox
+│   │   │   ├── Cyotek.Windows.Forms.ImageBox.csproj
+│   │   │   ├── Cyotek.Windows.Forms.ImageBox.nuspec
+│   │   │   ├── ImageBox.bmp
+│   │   │   ├── ImageBox.cs
+│   │   │   ├── ImageBoxActionSources.cs
+│   │   │   ├── ImageBoxBorderStyle.cs
+│   │   │   ├── ImageBoxCancelEventArgs.cs
+│   │   │   ├── ImageBoxGridDisplayMode.cs
+│   │   │   ├── ImageBoxGridScale.cs
+│   │   │   ├── ImageBoxMouseWheelMessageFilter.cs
+│   │   │   ├── ImageBoxMouseWheelMode.cs
+│   │   │   ├── ImageBoxNativeMethods.cs
+│   │   │   ├── ImageBoxPanDirection.cs
+│   │   │   ├── ImageBoxPanMode.cs
+│   │   │   ├── ImageBoxPanStyle.cs
+│   │   │   ├── ImageBoxSelectionMode.cs
+│   │   │   ├── ImageBoxSizeMode.cs
+│   │   │   ├── ImageBoxZoomActions.cs
+│   │   │   ├── ImageBoxZoomEventArgs.cs
+│   │   │   ├── Properties
+│   │   │   ├── ScrollControl.cs
+│   │   │   ├── ScrollProperties.cs
+│   │   │   ├── VirtualScrollableControl.cs
+│   │   │   ├── ZoomLevelCollection.cs
+│   │   │   ├── ZoomLevelCollectionConverter.cs
+│   │   │   └── cyopublic.snk
+│   │   ├── Cyotek.Windows.Forms.ImageBox.Demo
+│   │   │   ├── AboutDialog.cs
+│   │   │   ├── AboutDialog.designer.cs
+│   │   │   ├── AboutDialog.resx
+│   │   │   ├── AnimatedGifDemoForm.Designer.cs
+│   │   │   ├── AnimatedGifDemoForm.cs
+│   │   │   ├── AnimatedGifDemoForm.resx
+│   │   │   ├── BaseForm.Designer.cs
+│   │   │   ├── BaseForm.cs
+│   │   │   ├── BaseForm.resx
+│   │   │   ├── Cyotek.Windows.Forms.ImageBox.Demo.csproj
+│   │   │   ├── DisposedImageDemoForm.Designer.cs
+│   │   │   ├── DisposedImageDemoForm.cs
+│   │   │   ├── DisposedImageDemoForm.resx
+│   │   │   ├── DragHandle.cs
+│   │   │   ├── DragHandleAnchor.cs
+│   │   │   ├── DragHandleCollection.cs
+│   │   │   ├── DragTestForm.Designer.cs
+│   │   │   ├── DragTestForm.cs
+│   │   │   ├── DragTestForm.resx
+│   │   │   ├── EventsListBox.cs
+│   │   │   ├── FilteredPropertyGrid.cs
+│   │   │   ├── GeneralDemoForm.Designer.cs
+│   │   │   ├── GeneralDemoForm.cs
+│   │   │   ├── GeneralDemoForm.resx
+│   │   │   ├── GroupBox.cs
+│   │   │   ├── ImageBoxEx.cs
+│   │   │   ├── MainMenuForm.cs
+│   │   │   ├── MainMenuForm.designer.cs
+│   │   │   ├── MainMenuForm.resx
+│   │   │   ├── MiniMapDemoForm.cs
+│   │   │   ├── MiniMapDemoForm.designer.cs
+│   │   │   ├── MiniMapDemoForm.resx
+│   │   │   ├── OpenUrlDialog.Designer.cs
+│   │   │   ├── OpenUrlDialog.cs
+│   │   │   ├── OpenUrlDialog.resx
+│   │   │   ├── PanStylesDemoForm.Designer.cs
+│   │   │   ├── PanStylesDemoForm.cs
+│   │   │   ├── PanStylesDemoForm.resx
+│   │   │   ├── PixelGridForm.Designer.cs
+│   │   │   ├── PixelGridForm.cs
+│   │   │   ├── PixelGridForm.resx
+│   │   │   ├── Program.cs
+│   │   │   ├── Properties
+│   │   │   ├── PropertyGrid.cs
+│   │   │   ├── ResizableSelectionDemoForm.Designer.cs
+│   │   │   ├── ResizableSelectionDemoForm.cs
+│   │   │   ├── ResizableSelectionDemoForm.resx
+│   │   │   ├── Resources
+│   │   │   ├── ScaledAdornmentsDemoForm.Designer.cs
+│   │   │   ├── ScaledAdornmentsDemoForm.cs
+│   │   │   ├── ScaledAdornmentsDemoForm.resx
+│   │   │   ├── SegmentedImage.cs
+│   │   │   ├── SizeModeDemoForm.Designer.cs
+│   │   │   ├── SizeModeDemoForm.cs
+│   │   │   ├── SizeModeDemoForm.resx
+│   │   │   ├── SwitchImageDuringZoomDemoForm.Designer.cs
+│   │   │   ├── SwitchImageDuringZoomDemoForm.cs
+│   │   │   ├── SwitchImageDuringZoomDemoForm.resx
+│   │   │   ├── TextDemoForm.Designer.cs
+│   │   │   ├── TextDemoForm.cs
+│   │   │   ├── TextDemoForm.resx
+│   │   │   ├── VirtualModeDemonstrationForm.Designer.cs
+│   │   │   ├── VirtualModeDemonstrationForm.cs
+│   │   │   ├── VirtualModeDemonstrationForm.resx
+│   │   │   ├── app.config
+│   │   │   ├── cyopublic.snk
+│   │   │   └── packages.config
+│   │   ├── DragGANApp
+│   │   │   ├── App.config
+│   │   │   ├── DragGAN.cs
+│   │   │   ├── DragGANApp.csproj
+│   │   │   ├── MainForm.Designer.cs
+│   │   │   ├── MainForm.cs
+│   │   │   ├── MainForm.resx
+│   │   │   ├── MathUtils.cs
+│   │   │   ├── Misc.cs
+│   │   │   ├── Options.json
+│   │   │   ├── Program.cs
+│   │   │   ├── Properties
+│   │   │   ├── Resources
+│   │   │   ├── SplashForm.Designer.cs
+│   │   │   ├── SplashForm.cs
+│   │   │   ├── SplashForm.resx
+│   │   │   ├── Tiles
+│   │   │   └── packages.config
+│   │   ├── DragGANApp.sln
+│   │   ├── Options.json
+│   │   └── res
+│   │       ├── PanAll.cur
+│   │       ├── PanAllSymbol.png
+│   │       ├── icon-16.pdn
+│   │       ├── icon-16.png
+│   │       ├── icon-32.pdn
+│   │       ├── icon-32.png
+│   │       └── icon.ico
+│   ├── README.md
+│   ├── checkpoint_converter.py
+│   ├── checkpoints
+│   ├── conv0.py
+│   ├── conv1.py
+│   ├── create_vid.bat
+│   ├── dnnlib
+│   │   └── util.py
+│   ├── draggan_demo.py
+│   ├── draggan_onnx_demo.py
+│   ├── first_block.py
+│   ├── grid_sample.py
+│   ├── handles.json
+│   ├── images
+│   │   ├── Cat2.gif
+│   │   ├── Dog2.gif
+│   │   ├── ffhq_draggan_seed_71_pt_training.gif
+│   │   ├── ffhq_stylegan_seed_71.png
+│   │   ├── metfaces_draggan_seed_71_pt_training.gif
+│   │   └── metfaces_stylegan_seed_71.png
+│   ├── rgb.py
+│   ├── style_generator.py
+│   ├── style_mapper.py
+│   ├── stylegan_demo.py
+│   ├── stylegan_onnx_demo.py
+│   ├── synth_block.py
+│   └── torch_utils
+│       └── persistence.py
+├── ImageClassification-finetune
+│   ├── README.md
+│   ├── aml_submit.py
+│   ├── environment
+│   │   └── Dockerfile
+│   ├── finetune-code
+│   │   ├── run_image_classification.py
+│   │   ├── run_image_classification_ort.py
+│   │   └── zero_stage_1.json
+│   └── ws_config_template.json
+├── LICENSE
+├── QnA-finetune
+│   ├── ORT_Demo.pptx
+│   ├── README.md
+│   ├── aml_submit.py
+│   ├── finetune-code
+│   │   ├── ds_config_zero_1.json
+│   │   └── finetune.py
+│   ├── inference.py
+│   ├── inference_chat.py
+│   ├── score.py
+│   └── ws_config_template.json
+├── README.md
+├── SECURITY.md
+├── StableDiffusion-finetune
+│   ├── README.md
+│   ├── aml_submit.py
+│   ├── environment
+│   │   └── Dockerfile
+│   ├── finetune-code
+│   │   ├── accelerate_config.yaml
+│   │   ├── aml_upload_util.py
+│   │   └── train_text_to_image.py
+│   └── ws_config_template.json
+├── T5
+│   ├── Finetuning using ACPT and AzureML Build 2023.pptx
+│   ├── Notebook_train_summarization_deepspeed_optum.ipynb
+│   ├── assets
+│   │   ├── Noaccelarator.PNG
+│   │   ├── Performance_100epoch.PNG
+│   │   ├── T5_beamsearch.png
+│   │   ├── dsandort.PNG
+│   │   ├── modelevaluation.PNG
+│   │   └── t5modelcard.PNG
+│   └── src
+│       ├── Environment
+│       │   └── context
+│       ├── Finetune
+│       │   ├── cnn_daily.jsonl
+│       │   ├── ds_config.json
+│       │   ├── small_test-inference.jsonl
+│       │   └── train_summarization_deepspeed_optum.py
+│       └── Operationalize
+│           ├── payload.json
+│           └── score_onnx.py
+├── cgmanifest.json
+├── huggingface
+│   ├── BART.md
+│   ├── BERT.md
+│   ├── DeBERTa.md
+│   ├── DistilBERT.md
+│   ├── GPT2.md
+│   ├── README.md
+│   ├── RoBERTa.md
+│   ├── T5.md
+│   ├── docker
+│   │   └── Dockerfile
+│   ├── loss_curve
+│   │   ├── bart.png
+│   │   ├── bert.png
+│   │   ├── deberta.png
+│   │   ├── distilbert.png
+│   │   ├── gpt2.png
+│   │   ├── roberta.png
+│   │   └── t5.png
+│   └── script
+│       ├── ds_config_zero_0.json
+│       ├── ds_config_zero_0_xxberta.json
+│       ├── ds_config_zero_1.json
+│       ├── ds_config_zero_1_xxberta.json
+│       └── hf-ort.py
+├── mistral-finetune
+│   ├── README.md
+│   ├── aml_submit_clm.py
+│   ├── environment
+│   │   ├── Dockerfile
+│   │   └── requirements.txt
+│   ├── finetune-clm
+│   │   ├── run_clm.py
+│   │   └── zero_stage_2.json
+│   └── ws_config_template.json
+├── on_device_training
+│   ├── README.md
+│   ├── desktop
+│   │   ├── csharp
+│   │   │   ├── image_classification
+│   │   │   └── masked_language_modeling
+│   │   └── python
+│   │       ├── graph.png
+│   │       └── mnist.ipynb
+│   ├── mobile
+│   │   ├── android
+│   │   │   ├── c-cpp
+│   │   │   ├── find_results.txt
+│   │   │   ├── java
+│   │   │   ├── ls_project.txt
+│   │   │   ├── ls_workspaces.txt
+│   │   │   ├── terminal_pwd.txt
+│   │   │   └── tree_workspaces.txt
+│   │   └── ios
+│   │       ├── MyVoice
+│   │       ├── MyVoice.xcodeproj
+│   │       ├── MyVoice.xcworkspace
+│   │       ├── Podfile
+│   │       ├── README.md
+│   │       ├── artifacts_gen.py
+│   │       ├── recording_gen.py
+│   │       ├── requirements.txt
+│   │       └── screenshot.png
+│   └── web
+│       ├── README.md
+│       ├── offline-step
+│       │   ├── README.md
+│       │   ├── mnist.ipynb
+│       │   └── requirements.txt
+│       └── web-bundler
+│           ├── babel.config.json
+│           ├── cache
+│           ├── package.json
+│           ├── public
+│           ├── src
+│           ├── tsconfig.json
+│           └── webpack.config.js
+├── optimum
+├── phi2-finetune
+│   ├── README.md
+│   ├── aml_submit_clm.py
+│   ├── environment
+│   │   └── Dockerfile
+│   ├── finetune-clm
+│   │   ├── run_clm.py
+│   │   ├── zero_stage_1.json
+│   │   └── zero_stage_2.json
+│   └── ws_config_template.json
+├── transformers
+└── whisper-finetune
+    ├── README.md
+    ├── aml_submit.py
+    ├── common_voice_hi_23795238.mp3
+    ├── common_voice_hi_23795248.mp3
+    ├── finetune-code
+    │   ├── run_speech_recognition_seq2seq.py
+    │   ├── run_speech_recognition_seq2seq_ort.py
+    │   └── zero_stage_1.json
+    ├── inference.py
+    ├── inference_endpoint
+    │   ├── Dockerfile
+    │   ├── README.md
+    │   ├── endpoint_config_template.json
+    │   ├── inference.py
+    │   └── score.py
+    ├── inference_ort.py
+    └── ws_config_template.json
+
+67 directories, 251 files

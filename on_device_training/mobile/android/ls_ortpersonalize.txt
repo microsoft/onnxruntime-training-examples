@@ -1,0 +1,12 @@
+total 48
+drwxrwxrwx+ 5 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 ..
+-rw-rw-rw-  1 codespace root  225 Oct 31 04:57 .gitignore
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 .idea
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 app
+-rw-rw-rw-  1 codespace root  296 Oct 31 04:57 build.gradle
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 gradle
+-rw-rw-rw-  1 codespace root 1358 Oct 31 04:57 gradle.properties
+-rw-rw-rw-  1 codespace root 5766 Oct 31 04:57 gradlew
+-rw-rw-rw-  1 codespace root 2674 Oct 31 04:57 gradlew.bat
+-rw-rw-rw-  1 codespace root  332 Oct 31 04:57 settings.gradle

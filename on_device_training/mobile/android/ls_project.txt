@@ -1,0 +1,23 @@
+total 92
+drwxrwxrwx+ 15 codespace root 4096 Oct 31 04:57 .
+drwxr-xrwx+  5 codespace root 4096 Oct 31 05:08 ..
+drwxrwxrwx+  7 codespace root 4096 Oct 31 05:01 .git
+-rw-rw-rw-   1 codespace root 1831 Oct 31 04:57 .gitignore
+-rw-rw-rw-   1 codespace root  191 Oct 31 04:57 .gitmodules
+-rw-rw-rw-   1 codespace root  444 Oct 31 04:57 CODE_OF_CONDUCT.md
+drwxrwxrwx+  7 codespace root 4096 Oct 31 04:57 DragGAN
+drwxrwxrwx+  4 codespace root 4096 Oct 31 04:57 ImageClassification-finetune
+-rw-rw-rw-   1 codespace root 1141 Oct 31 04:57 LICENSE
+drwxrwxrwx+  3 codespace root 4096 Oct 31 04:57 QnA-finetune
+-rw-rw-rw-   1 codespace root 4321 Oct 31 04:57 README.md
+-rw-rw-rw-   1 codespace root 2780 Oct 31 04:57 SECURITY.md
+drwxrwxrwx+  4 codespace root 4096 Oct 31 04:57 StableDiffusion-finetune
+drwxrwxrwx+  4 codespace root 4096 Oct 31 04:57 T5
+-rw-rw-rw-   1 codespace root  600 Oct 31 04:57 cgmanifest.json
+drwxrwxrwx+  5 codespace root 4096 Oct 31 04:57 huggingface
+drwxrwxrwx+  4 codespace root 4096 Oct 31 04:57 mistral-finetune
+drwxrwxrwx+  5 codespace root 4096 Oct 31 04:57 on_device_training
+drwxrwxrwx+  2 codespace root 4096 Oct 31 04:57 optimum
+drwxrwxrwx+  4 codespace root 4096 Oct 31 04:57 phi2-finetune
+drwxrwxrwx+  2 codespace root 4096 Oct 31 04:57 transformers
+drwxrwxrwx+  4 codespace root 4096 Oct 31 04:57 whisper-finetune

@@ -1,0 +1,87 @@
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :app:compileDebugAidl NO-SOURCE
+> Task :app:compileDebugRenderscript NO-SOURCE
+> Task :app:dataBindingMergeDependencyArtifactsDebug
+> Task :app:generateDebugResValues
+> Task :app:generateDebugResources
+> Task :app:packageDebugResources
+> Task :app:parseDebugLocalResources
+> Task :app:generateDebugBuildConfig
+> Task :app:mergeDebugResources
+> Task :app:checkDebugAarMetadata
+> Task :app:dataBindingGenBaseClassesDebug
+> Task :app:mapDebugSourceSetPaths
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug
+> Task :app:processDebugMainManifest
+> Task :app:processDebugManifest
+> Task :app:javaPreCompileDebug
+> Task :app:mergeDebugShaders
+> Task :app:compileDebugShaders NO-SOURCE
+> Task :app:processDebugManifestForPackage
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :app:mergeDebugAssets
+> Task :app:compressDebugAssets
+> Task :app:processDebugJavaRes NO-SOURCE
+> Task :app:checkDebugDuplicateClasses
+> Task :app:processDebugResources
+> Task :app:desugarDebugFileDependencies
+
+> Task :app:compileDebugKotlin
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (111, 25): 'startActivityForResult(Intent, Int): Unit' is deprecated. Deprecated in Java
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (117, 21): 'startActivityForResult(Intent, Int): Unit' is deprecated. Deprecated in Java
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (301, 13): 'startActivityForResult(Intent, Int): Unit' is deprecated. Deprecated in Java
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (319, 55): Parameter 'dialog' is never used, could be renamed to _
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (319, 63): Parameter 'which' is never used, could be renamed to _
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (325, 63): Parameter 'which' is never used, could be renamed to _
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (339, 13): 'startActivityForResult(Intent, Int): Unit' is deprecated. Deprecated in Java
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (357, 55): Parameter 'dialog' is never used, could be renamed to _
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (357, 63): Parameter 'which' is never used, could be renamed to _
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (363, 63): Parameter 'which' is never used, could be renamed to _
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (377, 13): 'startActivityForResult(Intent, Int): Unit' is deprecated. Deprecated in Java
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (395, 55): Parameter 'dialog' is never used, could be renamed to _
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (395, 63): Parameter 'which' is never used, could be renamed to _
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (401, 63): Parameter 'which' is never used, could be renamed to _
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (415, 13): 'startActivityForResult(Intent, Int): Unit' is deprecated. Deprecated in Java
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (433, 55): Parameter 'dialog' is never used, could be renamed to _
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (433, 63): Parameter 'which' is never used, could be renamed to _
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (439, 63): Parameter 'which' is never used, could be renamed to _
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (457, 17): 'startActivityForResult(Intent, Int): Unit' is deprecated. Deprecated in Java
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (465, 15): 'onActivityResult(Int, Int, Intent?): Unit' is deprecated. Overrides deprecated member in 'androidx.activity.ComponentActivity'. Deprecated in Java
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (475, 39): 'get(String!): Any?' is deprecated. Deprecated in Java
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (478, 38): Unnecessary safe call on a non-null receiver of type Intent?
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (481, 41): Unnecessary safe call on a non-null receiver of type Intent?
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (486, 37): Unnecessary safe call on a non-null receiver of type Intent?
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (496, 38): Unnecessary safe call on a non-null receiver of type Intent?
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (499, 41): Unnecessary safe call on a non-null receiver of type Intent?
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (514, 38): Unnecessary safe call on a non-null receiver of type Intent?
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (517, 41): Unnecessary safe call on a non-null receiver of type Intent?
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (522, 37): Unnecessary safe call on a non-null receiver of type Intent?
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (532, 38): Unnecessary safe call on a non-null receiver of type Intent?
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (535, 41): Unnecessary safe call on a non-null receiver of type Intent?
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (540, 37): Unnecessary safe call on a non-null receiver of type Intent?
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (550, 13): Condition 'srcBitMap != null' is always 'true'
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/ORTTrainer.kt: (7, 28): 'InspectableProperty' is deprecated. Deprecated in Java
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/ORTTrainer.kt: (31, 13): Variable 'loss' is assigned but never accessed
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/java/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/ORTTrainer.kt: (73, 80): Elvis operator (?:) always returns the left operand of non-nullable type Int
+
+> Task :app:mergeExtDexDebug
+> Task :app:compileDebugJavaWithJavac
+> Task :app:mergeLibDexDebug
+> Task :app:mergeDebugJavaResource
+> Task :app:dexBuilderDebug
+> Task :app:mergeDebugJniLibFolders
+> Task :app:mergeProjectDexDebug
+> Task :app:mergeDebugNativeLibs
+> Task :app:validateSigningDebug
+> Task :app:writeDebugAppMetadata
+> Task :app:writeDebugSigningConfigVersions
+> Task :app:stripDebugDebugSymbols
+> Task :app:packageDebug
+> Task :app:createDebugApkListingFileRedirect
+> Task :app:assembleDebug
+
+BUILD SUCCESSFUL in 1m 13s
+36 actionable tasks: 36 executed

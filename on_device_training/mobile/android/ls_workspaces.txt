@@ -1,0 +1,11 @@
+total 40
+drwxr-xrwx+  5 codespace root      4096 Oct 31 05:08 .
+drwxr-xr-x   1 root      root      4096 Oct 31 04:57 ..
+drwxr-xr-x+  4 codespace root      4096 Oct 31 04:57 .codespaces
+drwxrwxrwx+  2 codespace codespace 4096 Oct 31 04:57 .oryx
+-rw-rw-rw-   1 codespace codespace   42 Oct 31 05:08 find_results.txt
+-rw-rw-rw-   1 codespace codespace 1341 Oct 31 05:08 ls_project.txt
+-rw-rw-rw-   1 codespace codespace  468 Oct 31 05:08 ls_workspaces.txt
+drwxrwxrwx+ 15 codespace root      4096 Oct 31 04:57 onnxruntime-training-examples
+-rw-rw-rw-   1 codespace codespace  101 Oct 31 05:08 terminal_pwd.txt
+-rw-rw-rw-   1 codespace codespace 3851 Oct 31 05:08 tree_workspaces.txt

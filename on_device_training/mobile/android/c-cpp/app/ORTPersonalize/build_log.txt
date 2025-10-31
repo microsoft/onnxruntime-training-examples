@@ -1,0 +1,419 @@
+
+> Configure project :app
+Checking the license for package NDK (Side by side) 23.1.7779620 in /home/codespace/Android/Sdk/licenses
+License for package NDK (Side by side) 23.1.7779620 accepted.
+Preparing "Install NDK (Side by side) 23.1.7779620 (revision: 23.1.7779620)".
+"Install NDK (Side by side) 23.1.7779620 (revision: 23.1.7779620)" ready.
+Installing NDK (Side by side) 23.1.7779620 in /home/codespace/Android/Sdk/ndk/23.1.7779620
+"Install NDK (Side by side) 23.1.7779620 (revision: 23.1.7779620)" complete.
+"Install NDK (Side by side) 23.1.7779620 (revision: 23.1.7779620)" finished.
+Checking the license for package CMake 3.18.1 in /home/codespace/Android/Sdk/licenses
+License for package CMake 3.18.1 accepted.
+Preparing "Install CMake 3.18.1 (revision: 3.18.1)".
+"Install CMake 3.18.1 (revision: 3.18.1)" ready.
+Installing CMake 3.18.1 in /home/codespace/Android/Sdk/cmake/3.18.1
+"Install CMake 3.18.1 (revision: 3.18.1)" complete.
+"Install CMake 3.18.1 (revision: 3.18.1)" finished.
+Checking the license for package Android SDK Build-Tools 30.0.3 in /home/codespace/Android/Sdk/licenses
+License for package Android SDK Build-Tools 30.0.3 accepted.
+Preparing "Install Android SDK Build-Tools 30.0.3 (revision: 30.0.3)".
+"Install Android SDK Build-Tools 30.0.3 (revision: 30.0.3)" ready.
+Installing Android SDK Build-Tools 30.0.3 in /home/codespace/Android/Sdk/build-tools/30.0.3
+"Install Android SDK Build-Tools 30.0.3 (revision: 30.0.3)" complete.
+"Install Android SDK Build-Tools 30.0.3 (revision: 30.0.3)" finished.
+Checking the license for package Android SDK Platform 32 in /home/codespace/Android/Sdk/licenses
+License for package Android SDK Platform 32 accepted.
+Preparing "Install Android SDK Platform 32 (revision: 1)".
+"Install Android SDK Platform 32 (revision: 1)" ready.
+Installing Android SDK Platform 32 in /home/codespace/Android/Sdk/platforms/android-32
+"Install Android SDK Platform 32 (revision: 1)" complete.
+"Install Android SDK Platform 32 (revision: 1)" finished.
+
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :app:compileDebugAidl NO-SOURCE
+> Task :app:compileDebugRenderscript NO-SOURCE
+> Task :app:dataBindingMergeDependencyArtifactsDebug
+> Task :app:generateDebugResValues
+> Task :app:generateDebugResources
+> Task :app:packageDebugResources
+> Task :app:mergeDebugResources
+> Task :app:generateDebugBuildConfig
+> Task :app:parseDebugLocalResources
+> Task :app:checkDebugAarMetadata
+> Task :app:dataBindingGenBaseClassesDebug
+> Task :app:mapDebugSourceSetPaths
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug
+> Task :app:processDebugMainManifest
+> Task :app:processDebugManifest
+> Task :app:javaPreCompileDebug
+> Task :app:mergeDebugShaders
+> Task :app:compileDebugShaders NO-SOURCE
+> Task :app:processDebugManifestForPackage
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :app:mergeDebugAssets
+> Task :app:processDebugResources
+> Task :app:compressDebugAssets
+> Task :app:processDebugJavaRes NO-SOURCE
+> Task :app:checkDebugDuplicateClasses
+> Task :app:desugarDebugFileDependencies
+> Task :app:compileDebugKotlin
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (98, 21): 'startActivityForResult(Intent!, Int): Unit' is deprecated. Deprecated in Java
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (104, 17): 'startActivityForResult(Intent!, Int): Unit' is deprecated. Deprecated in Java
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (289, 13): 'startActivityForResult(Intent!, Int): Unit' is deprecated. Deprecated in Java
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (303, 51): Parameter 'dialog' is never used, could be renamed to _
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (303, 59): Parameter 'which' is never used, could be renamed to _
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (309, 59): Parameter 'which' is never used, could be renamed to _
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (323, 13): 'startActivityForResult(Intent!, Int): Unit' is deprecated. Deprecated in Java
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (337, 51): Parameter 'dialog' is never used, could be renamed to _
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (337, 59): Parameter 'which' is never used, could be renamed to _
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (343, 59): Parameter 'which' is never used, could be renamed to _
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (357, 13): 'startActivityForResult(Intent!, Int): Unit' is deprecated. Deprecated in Java
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (371, 51): Parameter 'dialog' is never used, could be renamed to _
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (371, 59): Parameter 'which' is never used, could be renamed to _
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (377, 59): Parameter 'which' is never used, could be renamed to _
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (391, 13): 'startActivityForResult(Intent!, Int): Unit' is deprecated. Deprecated in Java
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (405, 51): Parameter 'dialog' is never used, could be renamed to _
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (405, 59): Parameter 'which' is never used, could be renamed to _
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (411, 59): Parameter 'which' is never used, could be renamed to _
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (429, 17): 'startActivityForResult(Intent!, Int): Unit' is deprecated. Deprecated in Java
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (437, 15): 'onActivityResult(Int, Int, Intent?): Unit' is deprecated. Overrides deprecated member in 'androidx.activity.ComponentActivity'. Deprecated in Java
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (450, 38): Unnecessary safe call on a non-null receiver of type Intent?
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (453, 41): Unnecessary safe call on a non-null receiver of type Intent?
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (458, 37): Unnecessary safe call on a non-null receiver of type Intent?
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (468, 38): Unnecessary safe call on a non-null receiver of type Intent?
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (471, 41): Unnecessary safe call on a non-null receiver of type Intent?
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (486, 38): Unnecessary safe call on a non-null receiver of type Intent?
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (489, 41): Unnecessary safe call on a non-null receiver of type Intent?
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (494, 37): Unnecessary safe call on a non-null receiver of type Intent?
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (504, 38): Unnecessary safe call on a non-null receiver of type Intent?
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (507, 41): Unnecessary safe call on a non-null receiver of type Intent?
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (512, 37): Unnecessary safe call on a non-null receiver of type Intent?
+w: /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/java/com/example/ortpersonalize/MainActivity.kt: (522, 13): Condition 'srcBitMap != null' is always 'true'
+
+> Task :app:mergeExtDexDebug
+> Task :app:compileDebugJavaWithJavac
+> Task :app:mergeLibDexDebug
+> Task :app:mergeDebugJavaResource
+> Task :app:dexBuilderDebug
+> Task :app:mergeProjectDexDebug
+
+> Task :app:configureCMakeDebug[arm64-v8a]
+C/C++: CMake Warning at /home/codespace/Android/Sdk/ndk/23.1.7779620/build/cmake/android-legacy.toolchain.cmake:416 (message):
+C/C++:   An old version of CMake is being used that cannot automatically detect
+C/C++:   compiler attributes.  Compiler identification is being bypassed.  Some
+C/C++:   values may be wrong or missing.  Update to CMake 3.19 or newer to use
+C/C++:   CMake's built-in compiler identification.
+C/C++: Call Stack (most recent call first):
+C/C++:   /home/codespace/Android/Sdk/ndk/23.1.7779620/build/cmake/android.toolchain.cmake:55 (include)
+C/C++:   /home/codespace/Android/Sdk/cmake/3.18.1/share/cmake-3.18/Modules/CMakeDetermineSystem.cmake:93 (include)
+C/C++:   CMakeLists.txt:10 (project)
+C/C++: CMake Warning at /home/codespace/Android/Sdk/ndk/23.1.7779620/build/cmake/android-legacy.toolchain.cmake:416 (message):
+C/C++:   An old version of CMake is being used that cannot automatically detect
+C/C++:   compiler attributes.  Compiler identification is being bypassed.  Some
+C/C++:   values may be wrong or missing.  Update to CMake 3.19 or newer to use
+C/C++:   CMake's built-in compiler identification.
+C/C++: Call Stack (most recent call first):
+C/C++:   /home/codespace/Android/Sdk/ndk/23.1.7779620/build/cmake/android.toolchain.cmake:55 (include)
+C/C++:   /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/.cxx/Debug/675j4o35/arm64-v8a/CMakeFiles/3.18.1-g262b901/CMakeSystem.cmake:6 (include)
+C/C++:   /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/.cxx/Debug/675j4o35/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)
+C/C++: CMake Warning at /home/codespace/Android/Sdk/ndk/23.1.7779620/build/cmake/android-legacy.toolchain.cmake:416 (message):
+C/C++:   An old version of CMake is being used that cannot automatically detect
+C/C++:   compiler attributes.  Compiler identification is being bypassed.  Some
+C/C++:   values may be wrong or missing.  Update to CMake 3.19 or newer to use
+C/C++:   CMake's built-in compiler identification.
+C/C++: Call Stack (most recent call first):
+C/C++:   /home/codespace/Android/Sdk/ndk/23.1.7779620/build/cmake/android.toolchain.cmake:55 (include)
+C/C++:   /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/.cxx/Debug/675j4o35/arm64-v8a/CMakeFiles/3.18.1-g262b901/CMakeSystem.cmake:6 (include)
+C/C++:   /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/.cxx/Debug/675j4o35/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)
+
+> Task :app:buildCMakeDebug[arm64-v8a] FAILED
+C/C++: ninja: error: '/workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/cpp/lib/libonnxruntime.so', needed by '/workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/build/intermediates/cxx/Debug/675j4o35/obj/arm64-v8a/libortpersonalize.so', missing and no known rule to make it
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:buildCMakeDebug[arm64-v8a]'.
+> com.android.ide.common.process.ProcessException: ninja: Entering directory `/workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/.cxx/Debug/675j4o35/arm64-v8a'
+  
+  C++ build system [build] failed while executing:
+      /home/codespace/Android/Sdk/cmake/3.18.1/bin/ninja \
+        -C \
+        /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/.cxx/Debug/675j4o35/arm64-v8a \
+        ortpersonalize
+    from /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app
+  ninja: error: '/workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/cpp/lib/libonnxruntime.so', needed by '/workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/build/intermediates/cxx/Debug/675j4o35/obj/arm64-v8a/libortpersonalize.so', missing and no known rule to make it
+
+* Try:
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+
+* Exception is:
+org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':app:buildCMakeDebug[arm64-v8a]'.
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:147)
+	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:282)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:145)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:133)
+	at org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter.execute(CleanupStaleOutputsExecuter.java:77)
+	at org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter.execute(FinalizePropertiesTaskExecuter.java:46)
+	at org.gradle.api.internal.tasks.execution.ResolveTaskExecutionModeExecuter.execute(ResolveTaskExecutionModeExecuter.java:51)
+	at org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter.execute(SkipTaskWithNoActionsExecuter.java:57)
+	at org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter.execute(SkipOnlyIfTaskExecuter.java:56)
+	at org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter.execute(CatchExceptionTaskExecuter.java:36)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.executeTask(EventFiringTaskExecuter.java:77)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:55)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:52)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:199)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:157)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
+	at org.gradle.internal.operations.DefaultBuildOperationExecutor.call(DefaultBuildOperationExecutor.java:73)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter.execute(EventFiringTaskExecuter.java:52)
+	at org.gradle.execution.plan.LocalTaskNodeExecutor.execute(LocalTaskNodeExecutor.java:74)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:333)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:320)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:313)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:299)
+	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.lambda$run$0(DefaultPlanExecutor.java:143)
+	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.execute(DefaultPlanExecutor.java:227)
+	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.executeNextNode(DefaultPlanExecutor.java:218)
+	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.run(DefaultPlanExecutor.java:140)
+	at org.gradle.execution.plan.DefaultPlanExecutor.process(DefaultPlanExecutor.java:72)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph.executeWithServices(DefaultTaskExecutionGraph.java:144)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph.execute(DefaultTaskExecutionGraph.java:129)
+	at org.gradle.execution.SelectedTaskExecutionAction.execute(SelectedTaskExecutionAction.java:42)
+	at org.gradle.execution.DryRunBuildExecutionAction.execute(DryRunBuildExecutionAction.java:51)
+	at org.gradle.execution.BuildOperationFiringBuildWorkerExecutor$ExecuteTasks.call(BuildOperationFiringBuildWorkerExecutor.java:54)
+	at org.gradle.execution.BuildOperationFiringBuildWorkerExecutor$ExecuteTasks.call(BuildOperationFiringBuildWorkerExecutor.java:43)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:199)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:157)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
+	at org.gradle.internal.operations.DefaultBuildOperationExecutor.call(DefaultBuildOperationExecutor.java:73)
+	at org.gradle.execution.BuildOperationFiringBuildWorkerExecutor.execute(BuildOperationFiringBuildWorkerExecutor.java:40)
+	at org.gradle.internal.build.DefaultBuildLifecycleController.lambda$executeTasks$7(DefaultBuildLifecycleController.java:165)
+	at org.gradle.internal.model.StateTransitionController.doTransition(StateTransitionController.java:238)
+	at org.gradle.internal.model.StateTransitionController.lambda$tryTransition$8(StateTransitionController.java:174)
+	at org.gradle.internal.work.DefaultSynchronizer.withLock(DefaultSynchronizer.java:44)
+	at org.gradle.internal.model.StateTransitionController.tryTransition(StateTransitionController.java:174)
+	at org.gradle.internal.build.DefaultBuildLifecycleController.executeTasks(DefaultBuildLifecycleController.java:165)
+	at org.gradle.internal.build.DefaultBuildWorkGraphController$DefaultBuildWorkGraph.runWork(DefaultBuildWorkGraphController.java:142)
+	at org.gradle.composite.internal.DefaultBuildController.doBuild(DefaultBuildController.java:231)
+	at org.gradle.internal.Factories$1.create(Factories.java:31)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.withLocks(DefaultWorkerLeaseService.java:270)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.runAsWorkerThread(DefaultWorkerLeaseService.java:119)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.runAsWorkerThread(DefaultWorkerLeaseService.java:124)
+	at org.gradle.composite.internal.DefaultBuildController.doRun(DefaultBuildController.java:204)
+	at org.gradle.composite.internal.DefaultBuildController.access$000(DefaultBuildController.java:51)
+	at org.gradle.composite.internal.DefaultBuildController$BuildOpRunnable.run(DefaultBuildController.java:264)
+	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+	at org.gradle.internal.concurrent.ManagedExecutorImpl$1.run(ManagedExecutorImpl.java:48)
+Caused by: org.gradle.internal.UncheckedException: com.android.ide.common.process.ProcessException: ninja: Entering directory `/workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/.cxx/Debug/675j4o35/arm64-v8a'
+
+C++ build system [build] failed while executing:
+    /home/codespace/Android/Sdk/cmake/3.18.1/bin/ninja \
+      -C \
+      /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/.cxx/Debug/675j4o35/arm64-v8a \
+      ortpersonalize
+  from /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app
+ninja: error: '/workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/cpp/lib/libonnxruntime.so', needed by '/workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/build/intermediates/cxx/Debug/675j4o35/obj/arm64-v8a/libortpersonalize.so', missing and no known rule to make it
+	at org.gradle.internal.UncheckedException.throwAsUncheckedException(UncheckedException.java:68)
+	at org.gradle.internal.UncheckedException.throwAsUncheckedException(UncheckedException.java:41)
+	at org.gradle.internal.reflect.JavaMethod.invoke(JavaMethod.java:107)
+	at org.gradle.api.internal.project.taskfactory.StandardTaskAction.doExecute(StandardTaskAction.java:58)
+	at org.gradle.api.internal.project.taskfactory.StandardTaskAction.execute(StandardTaskAction.java:51)
+	at org.gradle.api.internal.project.taskfactory.StandardTaskAction.execute(StandardTaskAction.java:29)
+	at org.gradle.api.internal.tasks.execution.TaskExecution$3.run(TaskExecution.java:242)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:29)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:26)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:157)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.run(DefaultBuildOperationRunner.java:47)
+	at org.gradle.internal.operations.DefaultBuildOperationExecutor.run(DefaultBuildOperationExecutor.java:68)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.executeAction(TaskExecution.java:227)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.executeActions(TaskExecution.java:210)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.executeWithPreviousOutputFiles(TaskExecution.java:193)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.execute(TaskExecution.java:171)
+	at org.gradle.internal.execution.steps.ExecuteStep.executeInternal(ExecuteStep.java:89)
+	at org.gradle.internal.execution.steps.ExecuteStep.access$000(ExecuteStep.java:40)
+	at org.gradle.internal.execution.steps.ExecuteStep$1.call(ExecuteStep.java:53)
+	at org.gradle.internal.execution.steps.ExecuteStep$1.call(ExecuteStep.java:50)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:199)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:157)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
+	at org.gradle.internal.operations.DefaultBuildOperationExecutor.call(DefaultBuildOperationExecutor.java:73)
+	at org.gradle.internal.execution.steps.ExecuteStep.execute(ExecuteStep.java:50)
+	at org.gradle.internal.execution.steps.ExecuteStep.execute(ExecuteStep.java:40)
+	at org.gradle.internal.execution.steps.RemovePreviousOutputsStep.execute(RemovePreviousOutputsStep.java:68)
+	at org.gradle.internal.execution.steps.RemovePreviousOutputsStep.execute(RemovePreviousOutputsStep.java:38)
+	at org.gradle.internal.execution.steps.ResolveInputChangesStep.execute(ResolveInputChangesStep.java:48)
+	at org.gradle.internal.execution.steps.ResolveInputChangesStep.execute(ResolveInputChangesStep.java:36)
+	at org.gradle.internal.execution.steps.CancelExecutionStep.execute(CancelExecutionStep.java:41)
+	at org.gradle.internal.execution.steps.TimeoutStep.executeWithoutTimeout(TimeoutStep.java:74)
+	at org.gradle.internal.execution.steps.TimeoutStep.execute(TimeoutStep.java:55)
+	at org.gradle.internal.execution.steps.CreateOutputsStep.execute(CreateOutputsStep.java:51)
+	at org.gradle.internal.execution.steps.CreateOutputsStep.execute(CreateOutputsStep.java:29)
+	at org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep.execute(CaptureStateAfterExecutionStep.java:61)
+	at org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep.execute(CaptureStateAfterExecutionStep.java:42)
+	at org.gradle.internal.execution.steps.BroadcastChangingOutputsStep.execute(BroadcastChangingOutputsStep.java:60)
+	at org.gradle.internal.execution.steps.BroadcastChangingOutputsStep.execute(BroadcastChangingOutputsStep.java:27)
+	at org.gradle.internal.execution.steps.BuildCacheStep.executeWithoutCache(BuildCacheStep.java:180)
+	at org.gradle.internal.execution.steps.BuildCacheStep.lambda$execute$1(BuildCacheStep.java:75)
+	at org.gradle.internal.Either$Right.fold(Either.java:175)
+	at org.gradle.internal.execution.caching.CachingState.fold(CachingState.java:59)
+	at org.gradle.internal.execution.steps.BuildCacheStep.execute(BuildCacheStep.java:73)
+	at org.gradle.internal.execution.steps.BuildCacheStep.execute(BuildCacheStep.java:48)
+	at org.gradle.internal.execution.steps.StoreExecutionStateStep.execute(StoreExecutionStateStep.java:36)
+	at org.gradle.internal.execution.steps.StoreExecutionStateStep.execute(StoreExecutionStateStep.java:25)
+	at org.gradle.internal.execution.steps.RecordOutputsStep.execute(RecordOutputsStep.java:36)
+	at org.gradle.internal.execution.steps.RecordOutputsStep.execute(RecordOutputsStep.java:22)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.executeBecause(SkipUpToDateStep.java:110)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.lambda$execute$2(SkipUpToDateStep.java:56)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.execute(SkipUpToDateStep.java:56)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.execute(SkipUpToDateStep.java:38)
+	at org.gradle.internal.execution.steps.ResolveChangesStep.execute(ResolveChangesStep.java:73)
+	at org.gradle.internal.execution.steps.ResolveChangesStep.execute(ResolveChangesStep.java:44)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep.execute(MarkSnapshottingInputsFinishedStep.java:37)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep.execute(MarkSnapshottingInputsFinishedStep.java:27)
+	at org.gradle.internal.execution.steps.ResolveCachingStateStep.execute(ResolveCachingStateStep.java:89)
+	at org.gradle.internal.execution.steps.ResolveCachingStateStep.execute(ResolveCachingStateStep.java:50)
+	at org.gradle.internal.execution.steps.ValidateStep.execute(ValidateStep.java:114)
+	at org.gradle.internal.execution.steps.ValidateStep.execute(ValidateStep.java:57)
+	at org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep.execute(CaptureStateBeforeExecutionStep.java:76)
+	at org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep.execute(CaptureStateBeforeExecutionStep.java:50)
+	at org.gradle.internal.execution.steps.SkipEmptyWorkStep.executeWithNoEmptySources(SkipEmptyWorkStep.java:249)
+	at org.gradle.internal.execution.steps.SkipEmptyWorkStep.execute(SkipEmptyWorkStep.java:86)
+	at org.gradle.internal.execution.steps.SkipEmptyWorkStep.execute(SkipEmptyWorkStep.java:54)
+	at org.gradle.internal.execution.steps.RemoveUntrackedExecutionStateStep.execute(RemoveUntrackedExecutionStateStep.java:32)
+	at org.gradle.internal.execution.steps.RemoveUntrackedExecutionStateStep.execute(RemoveUntrackedExecutionStateStep.java:21)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedStep.execute(MarkSnapshottingInputsStartedStep.java:38)
+	at org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep.execute(LoadPreviousExecutionStateStep.java:43)
+	at org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep.execute(LoadPreviousExecutionStateStep.java:31)
+	at org.gradle.internal.execution.steps.AssignWorkspaceStep.lambda$execute$0(AssignWorkspaceStep.java:40)
+	at org.gradle.api.internal.tasks.execution.TaskExecution$4.withWorkspace(TaskExecution.java:287)
+	at org.gradle.internal.execution.steps.AssignWorkspaceStep.execute(AssignWorkspaceStep.java:40)
+	at org.gradle.internal.execution.steps.AssignWorkspaceStep.execute(AssignWorkspaceStep.java:30)
+	at org.gradle.internal.execution.steps.IdentityCacheStep.execute(IdentityCacheStep.java:37)
+	at org.gradle.internal.execution.steps.IdentityCacheStep.execute(IdentityCacheStep.java:27)
+	at org.gradle.internal.execution.steps.IdentifyStep.execute(IdentifyStep.java:44)
+	at org.gradle.internal.execution.steps.IdentifyStep.execute(IdentifyStep.java:33)
+	at org.gradle.internal.execution.impl.DefaultExecutionEngine$1.execute(DefaultExecutionEngine.java:76)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:144)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:133)
+	at org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter.execute(CleanupStaleOutputsExecuter.java:77)
+	at org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter.execute(FinalizePropertiesTaskExecuter.java:46)
+	at org.gradle.api.internal.tasks.execution.ResolveTaskExecutionModeExecuter.execute(ResolveTaskExecutionModeExecuter.java:51)
+	at org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter.execute(SkipTaskWithNoActionsExecuter.java:57)
+	at org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter.execute(SkipOnlyIfTaskExecuter.java:56)
+	at org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter.execute(CatchExceptionTaskExecuter.java:36)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.executeTask(EventFiringTaskExecuter.java:77)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:55)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:52)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:199)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:157)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
+	at org.gradle.internal.operations.DefaultBuildOperationExecutor.call(DefaultBuildOperationExecutor.java:73)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter.execute(EventFiringTaskExecuter.java:52)
+	at org.gradle.execution.plan.LocalTaskNodeExecutor.execute(LocalTaskNodeExecutor.java:74)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:333)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:320)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:313)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:299)
+	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.lambda$run$0(DefaultPlanExecutor.java:143)
+	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.execute(DefaultPlanExecutor.java:227)
+	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.executeNextNode(DefaultPlanExecutor.java:218)
+	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.run(DefaultPlanExecutor.java:140)
+	at org.gradle.execution.plan.DefaultPlanExecutor.process(DefaultPlanExecutor.java:72)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph.executeWithServices(DefaultTaskExecutionGraph.java:144)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph.execute(DefaultTaskExecutionGraph.java:129)
+	at org.gradle.execution.SelectedTaskExecutionAction.execute(SelectedTaskExecutionAction.java:42)
+	at org.gradle.execution.DryRunBuildExecutionAction.execute(DryRunBuildExecutionAction.java:51)
+	at org.gradle.execution.BuildOperationFiringBuildWorkerExecutor$ExecuteTasks.call(BuildOperationFiringBuildWorkerExecutor.java:54)
+	at org.gradle.execution.BuildOperationFiringBuildWorkerExecutor$ExecuteTasks.call(BuildOperationFiringBuildWorkerExecutor.java:43)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:199)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:157)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
+	at org.gradle.internal.operations.DefaultBuildOperationExecutor.call(DefaultBuildOperationExecutor.java:73)
+	at org.gradle.execution.BuildOperationFiringBuildWorkerExecutor.execute(BuildOperationFiringBuildWorkerExecutor.java:40)
+	at org.gradle.internal.build.DefaultBuildLifecycleController.lambda$executeTasks$7(DefaultBuildLifecycleController.java:165)
+	at org.gradle.internal.model.StateTransitionController.doTransition(StateTransitionController.java:238)
+	at org.gradle.internal.model.StateTransitionController.lambda$tryTransition$8(StateTransitionController.java:174)
+	at org.gradle.internal.work.DefaultSynchronizer.withLock(DefaultSynchronizer.java:44)
+	at org.gradle.internal.model.StateTransitionController.tryTransition(StateTransitionController.java:174)
+	at org.gradle.internal.build.DefaultBuildLifecycleController.executeTasks(DefaultBuildLifecycleController.java:165)
+	at org.gradle.internal.build.DefaultBuildWorkGraphController$DefaultBuildWorkGraph.runWork(DefaultBuildWorkGraphController.java:142)
+	at org.gradle.composite.internal.DefaultBuildController.doBuild(DefaultBuildController.java:231)
+	at org.gradle.internal.Factories$1.create(Factories.java:31)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.withLocks(DefaultWorkerLeaseService.java:270)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.runAsWorkerThread(DefaultWorkerLeaseService.java:119)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.runAsWorkerThread(DefaultWorkerLeaseService.java:124)
+	at org.gradle.composite.internal.DefaultBuildController.doRun(DefaultBuildController.java:204)
+	at org.gradle.composite.internal.DefaultBuildController.access$000(DefaultBuildController.java:51)
+	at org.gradle.composite.internal.DefaultBuildController$BuildOpRunnable.run(DefaultBuildController.java:264)
+	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+	at org.gradle.internal.concurrent.ManagedExecutorImpl$1.run(ManagedExecutorImpl.java:48)
+Caused by: com.android.ide.common.process.ProcessException: ninja: Entering directory `/workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/.cxx/Debug/675j4o35/arm64-v8a'
+
+C++ build system [build] failed while executing:
+    /home/codespace/Android/Sdk/cmake/3.18.1/bin/ninja \
+      -C \
+      /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/.cxx/Debug/675j4o35/arm64-v8a \
+      ortpersonalize
+  from /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app
+ninja: error: '/workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/src/main/cpp/lib/libonnxruntime.so', needed by '/workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/build/intermediates/cxx/Debug/675j4o35/obj/arm64-v8a/libortpersonalize.so', missing and no known rule to make it
+	at com.android.build.gradle.internal.cxx.process.ExecuteProcessKt.execute(ExecuteProcess.kt:274)
+	at com.android.build.gradle.internal.cxx.process.ExecuteProcessKt$executeProcess$1.invoke(ExecuteProcess.kt:106)
+	at com.android.build.gradle.internal.cxx.process.ExecuteProcessKt$executeProcess$1.invoke(ExecuteProcess.kt:104)
+	at com.android.build.gradle.internal.cxx.timing.TimingEnvironmentKt.time(TimingEnvironment.kt:32)
+	at com.android.build.gradle.internal.cxx.process.ExecuteProcessKt.executeProcess(ExecuteProcess.kt:104)
+	at com.android.build.gradle.internal.cxx.process.ExecuteProcessKt.executeProcess$default(ExecuteProcess.kt:84)
+	at com.android.build.gradle.internal.cxx.build.CxxRegularBuilder.executeProcessBatch(CxxRegularBuilder.kt:331)
+	at com.android.build.gradle.internal.cxx.build.CxxRegularBuilder.build(CxxRegularBuilder.kt:128)
+	at com.android.build.gradle.tasks.ExternalNativeBuildTask$doTaskAction$$inlined$recordTaskAction$1.invoke(BaseTask.kt:70)
+	at com.android.build.gradle.internal.tasks.Blocks.recordSpan(Blocks.java:51)
+	at com.android.build.gradle.tasks.ExternalNativeBuildTask.doTaskAction(ExternalNativeBuildTask.kt:136)
+	at com.android.build.gradle.internal.tasks.UnsafeOutputsTask$taskAction$$inlined$recordTaskAction$1.invoke(BaseTask.kt:65)
+	at com.android.build.gradle.internal.tasks.Blocks.recordSpan(Blocks.java:51)
+	at com.android.build.gradle.internal.tasks.UnsafeOutputsTask.taskAction(UnsafeOutputsTask.kt:61)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at org.gradle.internal.reflect.JavaMethod.invoke(JavaMethod.java:104)
+	... 146 more
+Caused by: com.android.ide.common.process.ProcessException: Error while executing process /home/codespace/Android/Sdk/cmake/3.18.1/bin/ninja with arguments {-C /workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize/app/.cxx/Debug/675j4o35/arm64-v8a ortpersonalize}
+	at com.android.build.gradle.internal.process.GradleProcessResult.buildProcessException(GradleProcessResult.java:73)
+	at com.android.build.gradle.internal.process.GradleProcessResult.assertNormalExitValue(GradleProcessResult.java:48)
+	at com.android.build.gradle.internal.cxx.process.ExecuteProcessKt.execute(ExecuteProcess.kt:269)
+	... 163 more
+Caused by: org.gradle.process.internal.ExecException: Process 'command '/home/codespace/Android/Sdk/cmake/3.18.1/bin/ninja'' finished with non-zero exit value 1
+	at org.gradle.process.internal.DefaultExecHandle$ExecResultImpl.assertNormalExitValue(DefaultExecHandle.java:414)
+	at com.android.build.gradle.internal.process.GradleProcessResult.assertNormalExitValue(GradleProcessResult.java:46)
+	... 164 more
+
+
+* Get more help at https://help.gradle.org
+
+BUILD FAILED in 3m 44s
+30 actionable tasks: 30 executed

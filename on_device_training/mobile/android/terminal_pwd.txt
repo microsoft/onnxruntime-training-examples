@@ -1,0 +1,1 @@
+/workspaces/onnxruntime-training-examples/on_device_training/mobile/android/c-cpp/app/ORTPersonalize

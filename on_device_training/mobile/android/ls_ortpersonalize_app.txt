@@ -1,0 +1,7 @@
+total 24
+drwxrwxrwx+ 3 codespace root 4096 Oct 31 04:57 .
+drwxrwxrwx+ 5 codespace root 4096 Oct 31 04:57 ..
+-rw-rw-rw-  1 codespace root    6 Oct 31 04:57 .gitignore
+-rw-rw-rw-  1 codespace root 1572 Oct 31 04:57 build.gradle
+-rw-rw-rw-  1 codespace root  750 Oct 31 04:57 proguard-rules.pro
+drwxrwxrwx+ 5 codespace root 4096 Oct 31 04:57 src
