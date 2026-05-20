@@ -10,7 +10,7 @@ sentencepiece==0.1.99
 transformers==4.38.0
 optimum==1.14.1
 accelerate==0.23.0
-diffusers==0.18.0
+diffusers==0.38.0
 rouge-score==0.1.2
 sacrebleu==2.2.1
 bitsandbytes==0.41.0
